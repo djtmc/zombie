@@ -713,11 +713,11 @@
         </div>
         <div class="setting-item">
           <span>Kamera:</span>
-          <button class="toggle-btn" id="cameraModeToggle" onclick="event.stopPropagation(); toggleCameraMode()">Wycentrowana</button>
+          <button class="toggle-btn" id="cameraModeToggle" onclick="event.stopPropagation(); toggleCameraMode()">Swobodna</button>
         </div>
         <div class="setting-item">
           <span>Jasność:</span>
-          <button class="toggle-btn" id="brightnessToggle" onclick="event.stopPropagation(); toggleBrightness()">Normalna</button>
+          <button class="toggle-btn" id="brightnessToggle" onclick="event.stopPropagation(); toggleBrightness()">Bardzo jasna</button>
         </div>
       </div>
     </div>
@@ -867,7 +867,6 @@
     const scene = new THREE.Scene();
     // Tło nad mapą rozjaśnione o 50%
     scene.background = new THREE.Color(0x0f0f27);
-    scene.fog = new THREE.Fog(0x0f0f27, 40, 120);
     // Camera
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
     camera.position.set(30, 25, 30);
@@ -893,7 +892,7 @@
     controls.maxDistance = 80;
     controls.target.set(0, 0, 0);
     controls.enablePan = false; // domyślnie kamera wycentrowana na bazie
-    let cameraMode = 'centered'; // 'centered' | 'free'
+    let cameraMode = 'free'; // 'centered' | 'free'
     const panKeys = { left: false, right: false, up: false, down: false };
     // Lighting
     const LIGHT_BASE = { ambient: 0.6, directional: 0.6, point: 1.5 };
@@ -921,17 +920,21 @@
       { name: 'Jasna', mult: 1.6, bg: 0x2a2a4a },
       { name: 'Bardzo jasna', mult: 2.3, bg: 0x45456e }
     ];
-    let brightnessIndex = 0;
-    window.toggleBrightness = function() {
-      brightnessIndex = (brightnessIndex + 1) % BRIGHTNESS_LEVELS.length;
+    let brightnessIndex = 2; // domyślnie: Bardzo jasna
+    function applyBrightness(index) {
+      brightnessIndex = index;
       const level = BRIGHTNESS_LEVELS[brightnessIndex];
       ambientLight.intensity = LIGHT_BASE.ambient * level.mult;
       directionalLight.intensity = LIGHT_BASE.directional * level.mult;
       pointLight.intensity = LIGHT_BASE.point * level.mult;
       scene.background = new THREE.Color(level.bg);
-      scene.fog.color = new THREE.Color(level.bg);
-      document.getElementById('brightnessToggle').textContent = level.name;
-      showNotification(`💡 Jasność: ${level.name}`);
+      const btn = document.getElementById('brightnessToggle');
+      if (btn) btn.textContent = level.name;
+    }
+    window.toggleBrightness = function() {
+      const nextIndex = (brightnessIndex + 1) % BRIGHTNESS_LEVELS.length;
+      applyBrightness(nextIndex);
+      showNotification(`💡 Jasność: ${BRIGHTNESS_LEVELS[nextIndex].name}`);
     };
 
     // ========== CAMERA PAN SYSTEM ==========
@@ -2206,14 +2209,15 @@
       camera.lookAt(0, 0, 0);
       controls.target.set(0, 0, 0);
       controls.enabled = true;
-      controls.enablePan = false;
-      cameraMode = 'centered';
+      controls.enablePan = true;
+      cameraMode = 'free';
       panKeys.left = panKeys.right = panKeys.up = panKeys.down = false;
       settings.viewMode = 'perspective';
       const viewBtn = document.getElementById('viewToggle');
       if (viewBtn) viewBtn.textContent = '3D';
       const cameraBtn = document.getElementById('cameraModeToggle');
-      if (cameraBtn) cameraBtn.textContent = 'Wycentrowana';
+      if (cameraBtn) cameraBtn.textContent = 'Swobodna';
+      applyBrightness(2); // reset jasności do "Bardzo jasna"
 
       frameCount = 0;
       isGameOver = false;
@@ -2328,6 +2332,7 @@
       }
     });
     // ========== START ==========
+    applyBrightness(2); // domyślnie: Bardzo jasna
     document.getElementById('loading').style.display = 'none';
     updateUI();
     animate();
