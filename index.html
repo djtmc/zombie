@@ -670,12 +670,19 @@
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(30, 25, 30);
     // Renderer
+    // Wykryj słabsze urządzenia (telefony) aby ograniczyć koszt renderowania
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: !isMobile,
       powerPreference: "high-performance"
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    // Ograniczenie pixelRatio - na ekranach Retina/high-DPI (np. 3x) renderowanie
+    // w pełnej rozdzielczości oznacza render 9x większej liczby pikseli.
+    // Limit do 2 (a na telefonach do 1.5) drastycznie poprawia FPS bez wyraźnej
+    // utraty jakości obrazu.
+    const pixelRatioCap = isMobile ? 1.5 : 2;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
     renderer.shadowMap.enabled = settings.shadows;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
@@ -733,6 +740,7 @@
       base: new THREE.BoxGeometry(4, 5, 4),
       roof: new THREE.ConeGeometry(3, 2.5, 4),
       cylinder: new THREE.CylinderGeometry(1, 1, 2, 12),
+      zombieEye: new THREE.SphereGeometry(0.08, 6, 6),
       soldier: new THREE.CapsuleGeometry(0.3, 1.2, 4, 8)
     };
     const materialCache = {
@@ -778,6 +786,11 @@
       zombieLimb: new THREE.MeshStandardMaterial({
         color: 0x006400,
         roughness: 0.8
+      }),
+      zombieEye: new THREE.MeshStandardMaterial({
+        color: 0xff0000,
+        emissive: 0xff0000,
+        emissiveIntensity: 1
       }),
       soldier: new THREE.MeshStandardMaterial({
         color: 0x4B5320,
@@ -955,6 +968,7 @@
     const projectiles = [];
     const particles = [];
     const zombiePool = [];
+    const particlePool = [];
     // ========== CREATE ZOMBIE (ULEPSZONA GRAFIKA) ==========
     function createZombieMesh() {
       if (zombiePool.length > 0) {
@@ -973,17 +987,11 @@
       head.position.y = 2.3;
       head.castShadow = settings.shadows;
       group.add(head);
-      // Oczy (czerwone, świecące)
-      const eyeGeometry = new THREE.SphereGeometry(0.08, 6, 6);
-      const eyeMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff0000,
-        emissive: 0xff0000,
-        emissiveIntensity: 1
-      });
-      const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+      // Oczy (czerwone, świecące) - geometria i materiał z cache (współdzielone)
+      const leftEye = new THREE.Mesh(geometryCache.zombieEye, materialCache.zombieEye);
       leftEye.position.set(-0.12, 2.35, 0.28);
       group.add(leftEye);
-      const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+      const rightEye = new THREE.Mesh(geometryCache.zombieEye, materialCache.zombieEye);
       rightEye.position.set(0.12, 2.35, 0.28);
       group.add(rightEye);
       // Ręce
@@ -1335,36 +1343,61 @@
       });
     }
     // ========== PARTICLES ==========
+    const PARTICLE_COUNT = 15;
     function createParticleEffect(x, y, z, color) {
       if (!settings.particles) return;
       if (particles.length >= settings.maxParticles) return;
-      const particleCount = 15;
-      const geometry = new THREE.BufferGeometry();
-      const positions = [];
-      const velocities = [];
-      for (let i = 0; i < particleCount; i++) {
-        positions.push(x, y + 1, z);
-        velocities.push(
-          (Math.random() - 0.5) * 0.3,
-          Math.random() * 0.4 + 0.1,
-          (Math.random() - 0.5) * 0.3
-        );
+      let entry = particlePool.pop();
+      if (!entry) {
+        // Utwórz nowy system tylko gdy pula jest pusta (rzadkie po "rozgrzaniu")
+        const geometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const material = new THREE.PointsMaterial({
+          size: 0.4,
+          transparent: true,
+          opacity: 1,
+          blending: THREE.AdditiveBlending
+        });
+        const system = new THREE.Points(geometry, material);
+        entry = {
+          system,
+          positions,
+          velocities: new Float32Array(PARTICLE_COUNT * 3)
+        };
       }
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      const material = new THREE.PointsMaterial({
-        color: color,
-        size: 0.4,
-        transparent: true,
-        opacity: 1,
-        blending: THREE.AdditiveBlending
-      });
-      const particleSystem = new THREE.Points(geometry, material);
-      scene.add(particleSystem);
+      // Zresetuj pozycje/prędkości cząsteczek (bez nowej alokacji geometrii/materiału)
+      const positions = entry.positions;
+      const velocities = entry.velocities;
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        const idx = i * 3;
+        positions[idx] = x;
+        positions[idx + 1] = y + 1;
+        positions[idx + 2] = z;
+        velocities[idx] = (Math.random() - 0.5) * 0.3;
+        velocities[idx + 1] = Math.random() * 0.4 + 0.1;
+        velocities[idx + 2] = (Math.random() - 0.5) * 0.3;
+      }
+      entry.system.geometry.attributes.position.needsUpdate = true;
+      entry.system.material.color.setHex(color);
+      entry.system.material.opacity = 1;
+      entry.system.visible = true;
+      scene.add(entry.system);
       particles.push({
-        system: particleSystem,
+        entry: entry,
         velocities: velocities,
         life: 40
       });
+    }
+    function returnParticleToPool(entry) {
+      entry.system.visible = false;
+      scene.remove(entry.system);
+      if (particlePool.length < settings.maxParticles) {
+        particlePool.push(entry);
+      } else {
+        entry.system.geometry.dispose();
+        entry.system.material.dispose();
+      }
     }
     // ========== UPDATE LOOP ==========
     const tempVec = new THREE.Vector3();
@@ -1569,19 +1602,17 @@
       for (let i = particles.length - 1; i >= 0; i--) {
         const particle = particles[i];
         particle.life--;
-        const positions = particle.system.geometry.attributes.position.array;
+        const positions = particle.entry.positions;
         for (let j = 0; j < positions.length; j += 3) {
           positions[j] += particle.velocities[j];
           positions[j + 1] += particle.velocities[j + 1];
           positions[j + 2] += particle.velocities[j + 2];
           particle.velocities[j + 1] -= 0.015; // Grawitacja
         }
-        particle.system.geometry.attributes.position.needsUpdate = true;
-        particle.system.material.opacity = particle.life / 40;
+        particle.entry.system.geometry.attributes.position.needsUpdate = true;
+        particle.entry.system.material.opacity = particle.life / 40;
         if (particle.life <= 0) {
-          scene.remove(particle.system);
-          particle.system.geometry.dispose();
-          particle.system.material.dispose();
+          returnParticleToPool(particle.entry);
           particles.splice(i, 1);
         }
       }
@@ -1718,10 +1749,12 @@
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
     });
     // ========== MAIN LOOP ==========
+    let animationHandle = null;
     function animate() {
-      requestAnimationFrame(animate);
+      animationHandle = requestAnimationFrame(animate);
       update();
       updateFPS();
       if (controls.enabled) {
@@ -1729,6 +1762,17 @@
       }
       renderer.render(scene, camera);
     }
+    // Zatrzymaj pętlę renderowania gdy karta jest w tle (oszczędność CPU/baterii)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (animationHandle !== null) {
+          cancelAnimationFrame(animationHandle);
+          animationHandle = null;
+        }
+      } else if (animationHandle === null) {
+        animate();
+      }
+    });
     // ========== START ==========
     document.getElementById('loading').style.display = 'none';
     updateUI();
