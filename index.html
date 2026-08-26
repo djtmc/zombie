@@ -696,6 +696,10 @@
       </div>
       <div class="panel-body">
         <div class="setting-item">
+          <span>Tryb wydajności:</span>
+          <button class="toggle-btn off" id="perfModeToggle" onclick="event.stopPropagation(); togglePerformanceMode()">WYŁ</button>
+        </div>
+        <div class="setting-item">
           <span>Cienie:</span>
           <button class="toggle-btn off" id="shadowToggle" onclick="event.stopPropagation(); toggleShadows()">WYŁ</button>
         </div>
@@ -706,6 +710,14 @@
         <div class="setting-item">
           <span>Widok:</span>
           <button class="toggle-btn" id="viewToggle" onclick="event.stopPropagation(); toggleView()">3D</button>
+        </div>
+        <div class="setting-item">
+          <span>Kamera:</span>
+          <button class="toggle-btn" id="cameraModeToggle" onclick="event.stopPropagation(); toggleCameraMode()">Wycentrowana</button>
+        </div>
+        <div class="setting-item">
+          <span>Jasność:</span>
+          <button class="toggle-btn" id="brightnessToggle" onclick="event.stopPropagation(); toggleBrightness()">Normalna</button>
         </div>
       </div>
     </div>
@@ -719,6 +731,7 @@
         <div class="control-item">🖱️ Scroll - Zoom</div>
         <div class="control-item">🖱️ Klik - Postaw</div>
         <div class="control-item">⌨️ V - Zmień widok</div>
+        <div class="control-item">⌨️ WASD/Strzałki - Przesuń mapę (tryb swobodny)</div>
         <div class="control-item">⌨️ ESC - Anuluj</div>
         <br>
         <div class="control-title">💡 Wskazówki</div>
@@ -726,7 +739,7 @@
           • Żołnierze strzelają do zombie<br>
           • Mury blokują dostęp<br>
           • Buduj tartaki i kopalnie<br>
-          • Koszary produkują żołnierzy co 60s<br>
+          • Koszary produkują żołnierzy co 30s<br>
           • Kliknij armatę/tartak/kopalnię/koszary aby ulepszyć<br>
           • Tylko 1 koszary naraz<br>
           • Ukończ cel poziomu
@@ -856,7 +869,7 @@
     scene.background = new THREE.Color(0x0f0f27);
     scene.fog = new THREE.Fog(0x0f0f27, 40, 120);
     // Camera
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
     camera.position.set(30, 25, 30);
     // Renderer
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -870,6 +883,7 @@
     renderer.shadowMap.enabled = settings.shadows;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
+    const clock = new THREE.Clock();
     // Controls
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -878,10 +892,14 @@
     controls.minDistance = 15;
     controls.maxDistance = 80;
     controls.target.set(0, 0, 0);
+    controls.enablePan = false; // domyślnie kamera wycentrowana na bazie
+    let cameraMode = 'centered'; // 'centered' | 'free'
+    const panKeys = { left: false, right: false, up: false, down: false };
     // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const LIGHT_BASE = { ambient: 0.6, directional: 0.6, point: 1.5 };
+    const ambientLight = new THREE.AmbientLight(0xffffff, LIGHT_BASE.ambient);
     scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, LIGHT_BASE.directional);
     directionalLight.position.set(30, 50, 20);
     directionalLight.castShadow = settings.shadows;
     if (settings.shadows) {
@@ -893,9 +911,62 @@
       directionalLight.shadow.mapSize.height = 2048;
     }
     scene.add(directionalLight);
-    const pointLight = new THREE.PointLight(0x4169e1, 1.5, 30);
+    const pointLight = new THREE.PointLight(0x4169e1, LIGHT_BASE.point, 30);
     pointLight.position.set(0, 15, 0);
     scene.add(pointLight);
+
+    // ========== BRIGHTNESS SYSTEM ==========
+    const BRIGHTNESS_LEVELS = [
+      { name: 'Normalna', mult: 1, bg: 0x0f0f27 },
+      { name: 'Jasna', mult: 1.6, bg: 0x2a2a4a },
+      { name: 'Bardzo jasna', mult: 2.3, bg: 0x45456e }
+    ];
+    let brightnessIndex = 0;
+    window.toggleBrightness = function() {
+      brightnessIndex = (brightnessIndex + 1) % BRIGHTNESS_LEVELS.length;
+      const level = BRIGHTNESS_LEVELS[brightnessIndex];
+      ambientLight.intensity = LIGHT_BASE.ambient * level.mult;
+      directionalLight.intensity = LIGHT_BASE.directional * level.mult;
+      pointLight.intensity = LIGHT_BASE.point * level.mult;
+      scene.background = new THREE.Color(level.bg);
+      scene.fog.color = new THREE.Color(level.bg);
+      document.getElementById('brightnessToggle').textContent = level.name;
+      showNotification(`💡 Jasność: ${level.name}`);
+    };
+
+    // ========== CAMERA PAN SYSTEM ==========
+    window.toggleCameraMode = function() {
+      const btn = document.getElementById('cameraModeToggle');
+      if (cameraMode === 'centered') {
+        cameraMode = 'free';
+        controls.enablePan = true;
+        btn.textContent = 'Swobodna';
+        showNotification('🗺️ Kamera: tryb swobodny (WASD/strzałki, prawy przycisk myszy)');
+      } else {
+        cameraMode = 'centered';
+        controls.enablePan = false;
+        controls.target.set(0, 0, 0);
+        panKeys.left = panKeys.right = panKeys.up = panKeys.down = false;
+        btn.textContent = 'Wycentrowana';
+        showNotification('🎯 Kamera: tryb wycentrowany');
+      }
+    };
+    const PAN_SPEED = 25; // jednostek na sekundę
+    function updateCameraPan(delta) {
+      if (cameraMode !== 'free') return;
+      if (!panKeys.left && !panKeys.right && !panKeys.up && !panKeys.down) return;
+      const moveVec = new THREE.Vector3();
+      if (panKeys.left) moveVec.x -= 1;
+      if (panKeys.right) moveVec.x += 1;
+      if (panKeys.up) moveVec.z -= 1;
+      if (panKeys.down) moveVec.z += 1;
+      if (moveVec.lengthSq() === 0) return;
+      moveVec.normalize().multiplyScalar(PAN_SPEED * delta);
+      camera.position.x += moveVec.x;
+      camera.position.z += moveVec.z;
+      controls.target.x += moveVec.x;
+      controls.target.z += moveVec.z;
+    }
     // ========== GROUND ==========
     const groundSize = 100;
     const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
@@ -1093,7 +1164,7 @@
         cost: { wood: 500, gold: 500 },
         hp: 200,
         height: 3,
-        productionInterval: 3600, // 60s @ 60FPS
+        productionInterval: 30000, // 30 sekund (czas rzeczywisty w ms)
         category: 'defense'
       }
     };
@@ -1466,9 +1537,10 @@
         typeName = '🏰 Koszary';
         const multipliers = [1, 2, 4, 8];
         const mult = multipliers[lvl];
-        const secondsLeft = Math.ceil((building.productionCooldown || 0) / 60);
+        const remainingMs = Math.max(0, def.productionInterval - (building.productionTimer || 0));
+        const secondsLeft = Math.ceil(remainingMs / 1000);
         info.innerHTML = `Poziom ulepszenia: ${lvl}/3<br>` +
-          `Produkcja: ${mult} żołnierz${mult > 1 ? 'y' : ''} co 60s<br>` +
+          `Produkcja: ${mult} żołnierz${mult > 1 ? 'y' : ''} co 30s<br>` +
           `Następna produkcja za: ${secondsLeft}s`;
       } else {
         typeName = building.type === 'sawmill' ? '🏭 Tartak' : '⛏️ Kopalnia';
@@ -1601,7 +1673,7 @@
             buildingData.moveSpeed = def.moveSpeed;
             buildingData.target = null;
           } else if (type === 'koszary') {
-            buildingData.productionCooldown = def.productionInterval;
+            buildingData.productionTimer = 0; // licznik czasu (ms) od ostatniej produkcji
           }
           buildings.push(buildingData);
           updateResourceProduction();
@@ -1630,7 +1702,18 @@
         closeUpgradeModal();
       } else if (e.key === 'v' || e.key === 'V') {
         toggleView();
+      } else if (cameraMode === 'free') {
+        if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') panKeys.left = true;
+        if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') panKeys.right = true;
+        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') panKeys.up = true;
+        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') panKeys.down = true;
       }
+    });
+    window.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') panKeys.left = false;
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') panKeys.right = false;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') panKeys.up = false;
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') panKeys.down = false;
     });
     // ========== RESOURCE PRODUCTION ==========
     function updateResourceProduction() {
@@ -1759,9 +1842,10 @@
     const tempVec = new THREE.Vector3();
     let frameCount = 0;
 
-    function update() {
+    function update(delta) {
       if (isGameOver) return;
       frameCount++;
+      const deltaMs = delta * 1000;
       game.resourceTimer++;
       if (game.resourceTimer >= 60) {
         game.wood = Math.floor(game.wood + game.woodPerSecond);
@@ -1777,18 +1861,26 @@
       for (let i = zombies.length - 1; i >= 0; i--) {
         const zombie = zombies[i];
         zombie.animationTime += 0.1;
-        let closestTarget = baseGroup;
-        let closestDist = zombie.position.distanceTo(baseGroup.position);
-        if (closestDist > 20 && frameCount % 2 === 0) continue;
-        for (let j = 0; j < buildings.length; j++) {
-          const building = buildings[j];
-          const dist = zombie.position.distanceTo(building.position);
-          if (dist < closestDist) {
-            closestDist = dist;
-            closestTarget = building.mesh;
+
+        // Retargetowanie tylko co ~12 klatek (duża oszczędność CPU przy wielu zombie/budynkach)
+        zombie.retargetTimer = (zombie.retargetTimer || 0) - 1;
+        if (!zombie.cachedTarget || zombie.retargetTimer <= 0) {
+          let closestTarget = baseGroup;
+          let closestDistSq = zombie.position.distanceToSquared(baseGroup.position);
+          for (let j = 0; j < buildings.length; j++) {
+            const building = buildings[j];
+            const distSq = zombie.position.distanceToSquared(building.position);
+            if (distSq < closestDistSq) {
+              closestDistSq = distSq;
+              closestTarget = building.mesh;
+            }
           }
+          zombie.cachedTarget = closestTarget;
+          zombie.retargetTimer = 12;
         }
+        const closestTarget = zombie.cachedTarget;
         zombie.target = closestTarget;
+        const closestDist = zombie.position.distanceTo(closestTarget.position);
         tempVec.subVectors(closestTarget.position, zombie.position).normalize();
         if (closestDist > 2) {
           zombie.position.add(tempVec.multiplyScalar(zombie.speed));
@@ -1867,12 +1959,12 @@
           building.mesh.userData.flag.rotation.y = Math.sin(frameCount * 0.05) * 0.3;
         }
         if (building.type === 'koszary') {
-          building.productionCooldown--;
-          if (building.productionCooldown <= 0) {
+          building.productionTimer = (building.productionTimer || 0) + deltaMs;
+          if (building.productionTimer >= def.productionInterval) {
             const multipliers = [1, 2, 4, 8];
             const count = multipliers[building.upgradeLevel || 0];
             spawnSoldiersFromBarracks(building, count);
-            building.productionCooldown = def.productionInterval;
+            building.productionTimer = 0;
           }
         }
         if (building.type === 'soldier' && def.moveSpeed) {
@@ -2114,9 +2206,14 @@
       camera.lookAt(0, 0, 0);
       controls.target.set(0, 0, 0);
       controls.enabled = true;
+      controls.enablePan = false;
+      cameraMode = 'centered';
+      panKeys.left = panKeys.right = panKeys.up = panKeys.down = false;
       settings.viewMode = 'perspective';
       const viewBtn = document.getElementById('viewToggle');
       if (viewBtn) viewBtn.textContent = '3D';
+      const cameraBtn = document.getElementById('cameraModeToggle');
+      if (cameraBtn) cameraBtn.textContent = 'Wycentrowana';
 
       frameCount = 0;
       isGameOver = false;
@@ -2126,6 +2223,38 @@
       showNotification('🎮 Nowa gra rozpoczęta!');
     };
     // ========== SETTINGS ==========
+    // ========== SETTINGS ==========
+    window.togglePerformanceMode = function() {
+      const btn = document.getElementById('perfModeToggle');
+      if (!settings.performanceMode) {
+        settings.performanceMode = true;
+        settings._savedMaxZombies = settings.maxZombies;
+        settings._savedMaxParticles = settings.maxParticles;
+        settings._savedParticlesEnabled = settings.particles;
+        settings.maxZombies = 15;
+        settings.maxParticles = 20;
+        settings.particles = false;
+        const particleBtn = document.getElementById('particleToggle');
+        particleBtn.textContent = 'WYŁ';
+        particleBtn.className = 'toggle-btn off';
+        renderer.setPixelRatio(1);
+        btn.textContent = 'WŁ';
+        btn.className = 'toggle-btn';
+        showNotification('⚡ Tryb wydajności włączony');
+      } else {
+        settings.performanceMode = false;
+        settings.maxZombies = settings._savedMaxZombies || 30;
+        settings.maxParticles = settings._savedMaxParticles || 60;
+        settings.particles = settings._savedParticlesEnabled !== undefined ? settings._savedParticlesEnabled : true;
+        const particleBtn = document.getElementById('particleToggle');
+        particleBtn.textContent = settings.particles ? 'WŁ' : 'WYŁ';
+        particleBtn.className = settings.particles ? 'toggle-btn' : 'toggle-btn off';
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
+        btn.textContent = 'WYŁ';
+        btn.className = 'toggle-btn off';
+        showNotification('⚡ Tryb wydajności wyłączony');
+      }
+    };
     window.toggleShadows = function() {
       settings.shadows = !settings.shadows;
       const btn = document.getElementById('shadowToggle');
@@ -2179,8 +2308,10 @@
     let animationHandle = null;
     function animate() {
       animationHandle = requestAnimationFrame(animate);
-      update();
+      const delta = Math.min(clock.getDelta(), 0.1); // sekundy, cap zabezpieczający przy zacięciach
+      update(delta);
       updateFPS();
+      updateCameraPan(delta);
       if (controls.enabled) {
         controls.update();
       }
