@@ -800,6 +800,15 @@
     </div>
   </div>
 
+  <div id="game-over-modal" class="modal-overlay" style="z-index: 600;">
+    <div class="modal-content" style="text-align: center; border-color: #ff4444; box-shadow: 0 0 40px rgba(255,68,68,0.6);">
+      <h2 style="color: #ff4444;">💀 GAME OVER 💀</h2>
+      <p style="margin: 15px 0; font-size: 16px;">Twoja baza została zniszczona!</p>
+      <div id="gameOverStats" style="text-align: left; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; margin: 15px 0; font-size: 14px; line-height: 1.6;"></div>
+      <button class="next-level-btn" style="background: #ff4444;" onclick="restartGame()">🔄 NOWA GRA</button>
+    </div>
+  </div>
+  
   <div id="upgrade-modal" class="modal-overlay">
     <div class="modal-content">
       <button class="modal-close" onclick="closeUpgradeModal()">✖</button>
@@ -1712,7 +1721,8 @@
     let frameCount = 0;
 
     function update() {
-      frameCount++;
+    if (isGameOver) return; // zatrzymaj logikę gry po Game Over
+    frameCount++;
       // Generacja zasobów pasywna
       game.resourceTimer++;
       if (game.resourceTimer >= 60) {
@@ -2012,15 +2022,91 @@
       });
     }
 
-    function gameOver() {
-      const msg = `💀 GAME OVER! 💀\n\n` +
-        `Osiągnięty poziom: ${game.level}\n` +
-        `Przetrwałeś ${game.wave} fal!\n` +
-        `Zabiłeś ${game.zombieKilled} zombie!\n` +
-        `Zbudowałeś ${buildings.length} budynków!`;
-      alert(msg);
-      location.reload();
-    }
+let isGameOver = false;
+
+function gameOver() {
+  if (isGameOver) return; // zabezpieczenie przed wielokrotnym wywołaniem
+  isGameOver = true;
+  document.getElementById('gameOverStats').innerHTML =
+    `🏆 Osiągnięty poziom: <b>${game.level}</b><br>` +
+    `🌊 Przetrwałeś fal: <b>${game.wave}</b><br>` +
+    `💀 Zabitych zombie: <b>${game.zombieKilled}</b><br>` +
+    `🏗️ Zbudowanych budynków: <b>${buildings.length}</b>`;
+  document.getElementById('game-over-modal').style.display = 'flex';
+}
+
+window.restartGame = function() {
+  // Usuń wszystkie zombie ze sceny
+  for (const zombie of zombies) {
+    scene.remove(zombie.mesh);
+  }
+  zombies.length = 0;
+
+  // Usuń wszystkie budynki ze sceny
+  for (const building of buildings) {
+    scene.remove(building.mesh);
+  }
+  buildings.length = 0;
+
+  // Usuń wszystkie pociski
+  for (const proj of projectiles) {
+    scene.remove(proj.mesh);
+  }
+  projectiles.length = 0;
+
+  // Usuń wszystkie cząsteczki
+  for (const particle of particles) {
+    returnParticleToPool(particle.entry);
+  }
+  particles.length = 0;
+
+  // Wyczyść pule (opcjonalnie, można zostawić dla wydajności)
+  zombiePool.length = 0;
+
+  // Anuluj tryb budowania jeśli aktywny
+  cancelBuilding();
+  closeUpgradeModal();
+
+  // Reset stanu gry do wartości początkowych
+  game.baseHP = 100;
+  game.maxBaseHP = 100;
+  game.gold = 150;
+  game.wood = 100;
+  game.wave = 1;
+  game.zombieKilled = 0;
+  game.selectedBuilding = null;
+  game.isPlacingBuilding = false;
+  game.buildingPreview = null;
+  game.woodPerSecond = 0;
+  game.goldPerSecond = 0;
+  game.resourceTimer = 0;
+  game.level = 1;
+  game.levelKills = 0;
+  game.levelGoal = 15;
+  game.zombiesPerWave = 3;
+  game.difficultyMultiplier = 1;
+  game.zombieHPMultiplier = 1;
+  game.zombieSpeedMultiplier = 1;
+  game.zombieDamageMultiplier = 1;
+
+  baseGroup.userData.hp = game.baseHP;
+
+  // Reset kamery
+  camera.position.set(30, 25, 30);
+  camera.lookAt(0, 0, 0);
+  controls.target.set(0, 0, 0);
+  controls.enabled = true;
+  settings.viewMode = 'perspective';
+  const viewBtn = document.getElementById('viewToggle');
+  if (viewBtn) viewBtn.textContent = '3D';
+
+  frameCount = 0;
+  isGameOver = false;
+
+  document.getElementById('game-over-modal').style.display = 'none';
+  updateUI();
+  showNotification('🎮 Nowa gra rozpoczęta!');
+};
     // ========== SETTINGS ==========
     window.toggleShadows = function() {
       settings.shadows = !settings.shadows;
