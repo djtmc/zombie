@@ -1459,7 +1459,7 @@
         const bonuses = [0, 0.10, 0.20, 0.30];
         const mult = 1 + bonuses[lvl];
         info.innerHTML = `Poziom ulepszenia: ${lvl}/3<br>` +
-          `Produkcja: ${(baseProd * mult).toFixed(1)} ${prodIcon}/s`;
+          `Produkcja: ${Math.round(baseProd * mult)} ${prodIcon}/s`;
       }
       title.textContent = typeName + ' - Ulepszenia';
       tiersDiv.innerHTML = '';
@@ -1632,8 +1632,8 @@
           const bonuses = [0, 0.10, 0.20, 0.30];
           mult = 1 + bonuses[building.upgradeLevel];
         }
-        if (def.woodPerSecond) game.woodPerSecond += def.woodPerSecond * mult;
-        if (def.goldPerSecond) game.goldPerSecond += def.goldPerSecond * mult;
+        if (def.woodPerSecond) game.woodPerSecond += Math.round(def.woodPerSecond * mult);
+        if (def.goldPerSecond) game.goldPerSecond += Math.round(def.goldPerSecond * mult);
       });
     }
     // ========== SPAWN ZOMBIE ==========
