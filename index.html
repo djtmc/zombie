@@ -1395,14 +1395,14 @@
     window.exchange = function(type) {
       if (type === 'goldToWood') {
         if (game.gold >= 20) {
-          game.gold -= 20;
-          game.wood += 10;
+          game.gold = Math.floor(game.gold - 20);
+          game.wood = Math.floor(game.wood + 10);
           showNotification('💰 Wymieniono: 20 złota → 10 drewna');
         }
       } else if (type === 'woodToGold') {
         if (game.wood >= 10) {
-          game.wood -= 10;
-          game.gold += 20;
+          game.wood = Math.floor(game.wood - 10);
+          game.gold = Math.floor(game.gold + 20);
           showNotification('🪵 Wymieniono: 10 drewna → 20 złota');
         }
       }
@@ -2002,8 +2002,8 @@
       const hpPercent = (game.baseHP / game.maxBaseHP) * 100;
       baseHPElement.querySelector('.stat-value').textContent = Math.max(0, Math.floor(game.baseHP));
       baseHPElement.className = hpPercent < 30 ? 'stat danger' : 'stat';
-      document.getElementById('gold').textContent = game.gold;
-      document.getElementById('wood').textContent = game.wood;
+      document.getElementById('gold').textContent = Math.floor(game.gold);
+      document.getElementById('wood').textContent = Math.floor(game.wood);
       document.getElementById('wave').textContent = game.wave;
       document.getElementById('zombieCount').textContent = zombies.length;
       document.getElementById('killed').textContent = game.zombieKilled;
