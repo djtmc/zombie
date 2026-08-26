@@ -1727,8 +1727,8 @@
       // Generacja zasobów pasywna
       game.resourceTimer++;
       if (game.resourceTimer >= 60) {
-        game.wood += game.woodPerSecond;
-        game.gold += game.goldPerSecond;
+        game.wood = Math.floor(game.wood + game.woodPerSecond);
+        game.gold = Math.floor(game.gold + game.goldPerSecond);
         game.resourceTimer = 0;
       }
       // Spawn zombie (więcej z każdą falą)
