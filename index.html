@@ -712,10 +712,6 @@
           <button class="toggle-btn" id="viewToggle" onclick="event.stopPropagation(); toggleView()">3D</button>
         </div>
         <div class="setting-item">
-          <span>Kamera:</span>
-          <button class="toggle-btn" id="cameraModeToggle" onclick="event.stopPropagation(); toggleCameraMode()">Swobodna</button>
-        </div>
-        <div class="setting-item">
           <span>Jasność:</span>
           <button class="toggle-btn" id="brightnessToggle" onclick="event.stopPropagation(); toggleBrightness()">Bardzo jasna</button>
         </div>
@@ -768,8 +764,8 @@
   <div id="buildings">
     <!-- OBRONA -->
     <button class="building-btn" onclick="selectBuilding('wall')">
-      <span class="building-icon">🧱</span>
-      <div class="building-name">Ściana</div>
+      <span class="building-icon">✖️</span>
+      <div class="building-name">Zasieki</div>
       <div class="building-cost">10 🪵</div>
     </button>
     <button class="building-btn" onclick="selectBuilding('bigwall')">
@@ -777,10 +773,10 @@
       <div class="building-name">Mur</div>
       <div class="building-cost">25 🪵</div>
     </button>
-    <button class="building-btn" onclick="selectBuilding('tower')">
-      <span class="building-icon">🗼</span>
-      <div class="building-name">Wieża</div>
-      <div class="building-cost">20 🪵, 15 💰</div>
+    <button class="building-btn special" onclick="buyWielkaArmata()" id="wielkaArmataBtn">
+      <span class="building-icon">🎯</span>
+      <div class="building-name">Wielka Armata</div>
+      <div class="building-cost">2000 🪵, 2000 💰</div>
     </button>
     <button class="building-btn" onclick="selectBuilding('cannon')">
       <span class="building-icon">💥</span>
@@ -797,10 +793,10 @@
       <div class="building-name">Koszary</div>
       <div class="building-cost">500 🪵, 500 💰</div>
     </button>
-    <button class="building-btn" onclick="selectBuilding('trap')">
-      <span class="building-icon">🪤</span>
-      <div class="building-name">Pułapka</div>
-      <div class="building-cost">15 🪵</div>
+    <button class="building-btn special" onclick="selectBuilding('factory')">
+      <span class="building-icon">⚙️</span>
+      <div class="building-name">Fabryka</div>
+      <div class="building-cost">1000 🪵, 1000 💰</div>
     </button>
 
     <!-- ZASOBY -->
@@ -814,6 +810,7 @@
       <div class="building-name">Kopalnia</div>
       <div class="building-cost">25 🪵, 20 💰</div>
     </button>
+
   </div>
 
   <div id="level-complete">
@@ -871,10 +868,10 @@
     // od poprzedniej kwadratowej planszy 100x100.
     const MAP_WIDTH = 130;  // oś X (lewo-prawo)
     const MAP_DEPTH = 70;   // oś Z (góra-dół)
-    const BASE_X = MAP_WIDTH / 2 - 15;   // baza po prawej stronie planszy
+    const BASE_X = MAP_WIDTH / 2 - 6;   // baza całkowicie po prawej stronie planszy
     const BASE_Z = 0;
-    const ZOMBIE_SPAWN_X = -MAP_WIDTH / 2 + 5; // zombie wychodzą z lewej strony
-    const MAP_TILT = 0.06; // lekkie pochylenie planszy w stronę gracza/kamery (radiany)
+    const ZOMBIE_SPAWN_X = -MAP_WIDTH / 2 + 5; // zombie i BOSS wychodzą z lewej strony (z klatki)
+    const MAP_TILT = 0.2; // stałe pochylenie planszy w stronę gracza
     // ========== SCENE SETUP ==========
     const container = document.getElementById('container');
     const scene = new THREE.Scene();
@@ -904,9 +901,8 @@
     controls.minDistance = 15;
     controls.maxDistance = 80;
     controls.target.set(BASE_X - 20, 0, 0);
-    controls.enablePan = false; // domyślnie kamera wycentrowana na bazie
-    let cameraMode = 'free'; // 'centered' | 'free'
-    const panKeys = { left: false, right: false, up: false, down: false };
+    controls.enablePan = false; // przesuwanie planszy tylko klawiszami, wyłącznie lewo-prawo
+    const panKeys = { left: false, right: false };
     // Lighting
     const LIGHT_BASE = { ambient: 0.6, directional: 0.6, point: 1.5 };
     const ambientLight = new THREE.AmbientLight(0xffffff, LIGHT_BASE.ambient);
@@ -960,38 +956,16 @@
       showNotification(`🎚️ Trudność: ${level.name}`);
     };
 
-    // ========== CAMERA PAN SYSTEM ==========
-    window.toggleCameraMode = function() {
-      const btn = document.getElementById('cameraModeToggle');
-      if (cameraMode === 'centered') {
-        cameraMode = 'free';
-        controls.enablePan = true;
-        btn.textContent = 'Swobodna';
-        showNotification('🗺️ Kamera: tryb swobodny (WASD/strzałki, prawy przycisk myszy)');
-      } else {
-        cameraMode = 'centered';
-        controls.enablePan = false;
-        controls.target.set(BASE_X - 20, 0, 0);
-        panKeys.left = panKeys.right = panKeys.up = panKeys.down = false;
-        btn.textContent = 'Wycentrowana';
-        showNotification('🎯 Kamera: tryb wycentrowany');
-      }
-    };
+    // ========== CAMERA PAN SYSTEM (tylko lewo-prawo) ==========
     const PAN_SPEED = 25; // jednostek na sekundę
     function updateCameraPan(delta) {
-      if (cameraMode !== 'free') return;
-      if (!panKeys.left && !panKeys.right && !panKeys.up && !panKeys.down) return;
-      const moveVec = new THREE.Vector3();
-      if (panKeys.left) moveVec.x -= 1;
-      if (panKeys.right) moveVec.x += 1;
-      if (panKeys.up) moveVec.z -= 1;
-      if (panKeys.down) moveVec.z += 1;
-      if (moveVec.lengthSq() === 0) return;
-      moveVec.normalize().multiplyScalar(PAN_SPEED * delta);
-      camera.position.x += moveVec.x;
-      camera.position.z += moveVec.z;
-      controls.target.x += moveVec.x;
-      controls.target.z += moveVec.z;
+      if (!panKeys.left && !panKeys.right) return;
+      let dir = 0;
+      if (panKeys.left) dir -= 1;
+      if (panKeys.right) dir += 1;
+      const move = dir * PAN_SPEED * delta;
+      camera.position.x += move;
+      controls.target.x += move;
     }
     // ========== GROUND ==========
     // Prostokątna plansza (patrz stałe MAP_WIDTH/MAP_DEPTH powyżej), lekko pochylona w stronę gracza
@@ -1009,6 +983,43 @@
     gridHelper.scale.set(MAP_WIDTH / 100, 1, MAP_DEPTH / 100);
     gridHelper.rotation.x = MAP_TILT;
     scene.add(gridHelper);
+    // ========== KLATKA (miejsce, z którego wychodzi BOSS) ==========
+    function createCageMesh() {
+      const group = new THREE.Group();
+      const barMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.4 });
+      const barGeo = new THREE.CylinderGeometry(0.12, 0.12, 4, 6);
+      for (let i = -2; i <= 2; i++) {
+        const bar = new THREE.Mesh(barGeo, barMat);
+        bar.position.set(0, 2, i * 0.8);
+        group.add(bar);
+      }
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 3.6), barMat);
+      topBar.position.set(0, 4, 0);
+      group.add(topBar);
+      const bottomBar = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 3.6), barMat);
+      bottomBar.position.set(0, 0.1, 0);
+      group.add(bottomBar);
+      return group;
+    }
+    const cageMesh = createCageMesh();
+    cageMesh.position.set(ZOMBIE_SPAWN_X, 0, 0);
+    scene.add(cageMesh);
+    // ========== SLOTY NA WIELKĄ ARMATĘ (4 niskie bloki) ==========
+    // Kolejność zakupu: 1) góra 25% od prawej, 2) dół 25% od prawej, 3) góra środek, 4) dół środek
+    const armataSlots = [
+      { x: MAP_WIDTH / 2 - MAP_WIDTH * 0.25, z: -MAP_DEPTH / 2 + 3 },
+      { x: MAP_WIDTH / 2 - MAP_WIDTH * 0.25, z: MAP_DEPTH / 2 - 3 },
+      { x: 0, z: -MAP_DEPTH / 2 + 3 },
+      { x: 0, z: MAP_DEPTH / 2 - 3 }
+    ];
+    armataSlots.forEach(slot => {
+      const block = new THREE.Mesh(
+        new THREE.BoxGeometry(3, 1, 3),
+        new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8 })
+      );
+      block.position.set(slot.x, 0.5, slot.z);
+      scene.add(block);
+    });
     // ========== GEOMETRY & MATERIAL CACHE ==========
     const geometryCache = {
       box: new THREE.BoxGeometry(1.5, 1, 1.5),
@@ -1126,7 +1137,9 @@
       resourceTimer: 0,
       level: 1,
       levelKills: 0,
-      levelGoal: 15,
+      levelGoal: 10,
+      bossSpawned: false,
+      bossDefeated: false,
       zombiesPerWave: 3,
       difficultyMultiplier: 1,
       zombieHPMultiplier: 1,
@@ -1149,13 +1162,13 @@
         width: 2,
         category: 'defense'
       },
-      tower: {
-        cost: { wood: 20, gold: 15 },
-        hp: 80,
+      wielkaArmata: {
+        cost: { wood: 2000, gold: 2000 },
+        hp: 200,
         height: 4,
-        range: 15,
-        damage: 30,
-        fireRate: 45,
+        range: 35,
+        damage: 200,
+        fireRate: 50,
         category: 'defense'
       },
       cannon: {
@@ -1177,11 +1190,11 @@
         moveSpeed: 0.05,
         category: 'defense'
       },
-      trap: {
-        cost: { wood: 15 },
-        hp: 40,
-        height: 0.5,
-        damage: 100,
+      factory: {
+        cost: { wood: 1000, gold: 1000 },
+        hp: 120,
+        height: 3,
+        productionInterval: 60000, // 60 sekund (czas rzeczywisty w ms)
         category: 'defense'
       },
       sawmill: {
@@ -1205,6 +1218,17 @@
         productionInterval: 30000, // 30 sekund (czas rzeczywisty w ms)
         category: 'defense'
       }
+    };
+    // Czołg - produkowany przez Fabrykę (nie kupowany bezpośrednio): 3x siła i odporność żołnierza
+    buildingTypes.tank = {
+      cost: { wood: 0, gold: 0 },
+      hp: buildingTypes.soldier.hp * 3,
+      height: 1.2,
+      range: buildingTypes.soldier.range,
+      damage: buildingTypes.soldier.damage * 3,
+      fireRate: buildingTypes.soldier.fireRate,
+      moveSpeed: buildingTypes.soldier.moveSpeed * 0.7,
+      category: 'defense'
     };
     // ========== UPGRADE CONFIG ==========
     const cannonUpgradeTiers = [
@@ -1312,12 +1336,30 @@
       const def = buildingTypes[type];
       const group = new THREE.Group();
       if (type === 'wall') {
-        const mesh = new THREE.Mesh(geometryCache.box, materialCache.wall);
-        mesh.scale.y = def.height;
-        mesh.position.y = def.height / 2;
-        mesh.castShadow = settings.shadows;
-        mesh.receiveShadow = settings.shadows;
-        group.add(mesh);
+        // Zasieki - skrzyżowane kolce w kształcie X
+        const spikeGeo = new THREE.BoxGeometry(1.7, 0.15, 0.15);
+        const spike1 = new THREE.Mesh(spikeGeo, materialCache.wall);
+        spike1.rotation.z = Math.PI / 4;
+        spike1.position.y = 1;
+        spike1.castShadow = settings.shadows;
+        group.add(spike1);
+        const spike2 = new THREE.Mesh(spikeGeo, materialCache.wall);
+        spike2.rotation.z = -Math.PI / 4;
+        spike2.position.y = 1;
+        spike2.castShadow = settings.shadows;
+        group.add(spike2);
+        const spike3 = new THREE.Mesh(spikeGeo, materialCache.wall);
+        spike3.rotation.z = Math.PI / 4;
+        spike3.rotation.y = Math.PI / 2;
+        spike3.position.y = 1;
+        spike3.castShadow = settings.shadows;
+        group.add(spike3);
+        const spike4 = new THREE.Mesh(spikeGeo, materialCache.wall);
+        spike4.rotation.z = -Math.PI / 4;
+        spike4.rotation.y = Math.PI / 2;
+        spike4.position.y = 1;
+        spike4.castShadow = settings.shadows;
+        group.add(spike4);
       } else if (type === 'bigwall') {
         const mesh = new THREE.Mesh(geometryCache.bigBox, materialCache.bigwall);
         mesh.scale.set(def.width, def.height, def.width);
@@ -1325,19 +1367,22 @@
         mesh.castShadow = settings.shadows;
         mesh.receiveShadow = settings.shadows;
         group.add(mesh);
-      } else if (type === 'tower') {
-        const base = new THREE.Mesh(geometryCache.box, materialCache.tower);
-        base.scale.y = 2.5;
-        base.position.y = 1.25;
+      } else if (type === 'wielkaArmata') {
+        const base = new THREE.Mesh(
+          new THREE.CylinderGeometry(1.4, 1.4, 1.4, 12),
+          materialCache.cannon
+        );
+        base.position.y = 0.7;
         base.castShadow = settings.shadows;
         group.add(base);
-        const top = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.9, 1.1, 1.5, 8),
-          materialCache.tower
+        const barrel = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.4, 0.5, 3.2, 10),
+          new THREE.MeshStandardMaterial({ color: 0x1a1a1a, metalness: 0.9 })
         );
-        top.position.y = 3.25;
-        top.castShadow = settings.shadows;
-        group.add(top);
+        barrel.position.set(0, 1.8, 1.4);
+        barrel.rotation.x = Math.PI / 2;
+        barrel.castShadow = settings.shadows;
+        group.add(barrel);
       } else if (type === 'cannon') {
         const base = new THREE.Mesh(geometryCache.cylinder, materialCache.cannon);
         base.position.y = 1;
@@ -1370,12 +1415,44 @@
         weapon.position.set(0.4, 1.2, 0.3);
         group.add(weapon);
         group.userData.weapon = weapon;
-      } else if (type === 'trap') {
-        const mesh = new THREE.Mesh(geometryCache.box, materialCache.trap);
-        mesh.scale.y = def.height;
+      } else if (type === 'tank') {
+        const body = new THREE.Mesh(
+          new THREE.BoxGeometry(1.6, 0.8, 2.2),
+          new THREE.MeshStandardMaterial({ color: 0x4b5320, roughness: 0.6, metalness: 0.3 })
+        );
+        body.position.y = 0.7;
+        body.castShadow = settings.shadows;
+        group.add(body);
+        const turret = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.6, 0.7, 0.5, 8),
+          new THREE.MeshStandardMaterial({ color: 0x3a4018 })
+        );
+        turret.position.y = 1.2;
+        turret.castShadow = settings.shadows;
+        group.add(turret);
+        const barrel = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.12, 0.12, 1.6, 8),
+          new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.9 })
+        );
+        barrel.position.set(0, 1.2, 1.1);
+        barrel.rotation.x = Math.PI / 2;
+        group.add(barrel);
+        group.userData.weapon = barrel;
+      } else if (type === 'factory') {
+        const mesh = new THREE.Mesh(
+          geometryCache.box,
+          new THREE.MeshStandardMaterial({ color: 0x3a3a4a, roughness: 0.7, metalness: 0.3 })
+        );
+        mesh.scale.set(3, def.height, 2.5);
         mesh.position.y = def.height / 2;
         mesh.castShadow = settings.shadows;
         group.add(mesh);
+        const chimney = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.3, 0.35, 2, 8),
+          new THREE.MeshStandardMaterial({ color: 0x222222 })
+        );
+        chimney.position.set(1, def.height + 1, 0);
+        group.add(chimney);
       } else if (type === 'sawmill') {
         const mesh = new THREE.Mesh(geometryCache.box, materialCache.sawmill);
         mesh.scale.set(2.5, def.height, 2);
@@ -1655,7 +1732,7 @@
         const intersects = raycaster.intersectObject(ground);
         if (intersects.length > 0) {
           const point = intersects[0].point;
-          const gridSize = (game.selectedBuilding === 'bigwall' || game.selectedBuilding === 'koszary') ? 3 : 2;
+          const gridSize = (game.selectedBuilding === 'bigwall' || game.selectedBuilding === 'koszary' || game.selectedBuilding === 'factory') ? 3 : 2;
           const x = Math.round(point.x / gridSize) * gridSize;
           const z = Math.round(point.z / gridSize) * gridSize;
           game.buildingPreview.position.set(x, 0, z);
@@ -1671,8 +1748,12 @@
     });
 
     function checkCanPlace(x, z) {
-      const minDist = (game.selectedBuilding === 'bigwall' || game.selectedBuilding === 'koszary') ? 4 : 3;
+      const minDist = (game.selectedBuilding === 'bigwall' || game.selectedBuilding === 'koszary' || game.selectedBuilding === 'factory') ? 4 : 3;
       if (Math.abs(x - BASE_X) < 5 && Math.abs(z - BASE_Z) < 5) return false;
+      if (Math.abs(x - ZOMBIE_SPAWN_X) < 4 && Math.abs(z) < 4) return false; // klatka
+      for (const slot of armataSlots) {
+        if (Math.abs(slot.x - x) < 3 && Math.abs(slot.z - z) < 3) return false;
+      }
       for (let building of buildings) {
         const dist = Math.sqrt(
           (building.position.x - x) ** 2 +
@@ -1712,7 +1793,7 @@
           if (type === 'soldier') {
             buildingData.moveSpeed = def.moveSpeed;
             buildingData.target = null;
-          } else if (type === 'koszary') {
+          } else if (type === 'koszary' || type === 'factory') {
             buildingData.productionTimer = 0; // licznik czasu (ms) od ostatniej produkcji
           }
           buildings.push(buildingData);
@@ -1742,18 +1823,14 @@
         closeUpgradeModal();
       } else if (e.key === 'v' || e.key === 'V') {
         toggleView();
-      } else if (cameraMode === 'free') {
+      } else {
         if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') panKeys.left = true;
         if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') panKeys.right = true;
-        if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') panKeys.up = true;
-        if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') panKeys.down = true;
       }
     });
     window.addEventListener('keyup', (e) => {
       if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') panKeys.left = false;
       if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') panKeys.right = false;
-      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') panKeys.up = false;
-      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') panKeys.down = false;
     });
     // ========== RESOURCE PRODUCTION ==========
     function updateResourceProduction() {
@@ -1799,6 +1876,66 @@
       }
       showNotification(`🪖 Koszary wyprodukowały ${count} żołnierz${count > 1 ? 'y' : 'a'}!`);
     }
+    function spawnTanksFromFactory(factory, count) {
+      const def = buildingTypes.tank;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 3 + Math.random() * 2;
+        const x = factory.position.x + Math.cos(angle) * radius;
+        const z = factory.position.z + Math.sin(angle) * radius;
+        const mesh = createBuildingMesh('tank');
+        mesh.position.set(x, 0, z);
+        scene.add(mesh);
+        buildings.push({
+          mesh: mesh,
+          type: 'tank',
+          hp: def.hp,
+          maxHP: def.hp,
+          cooldown: 0,
+          position: new THREE.Vector3(x, 0, z),
+          moveSpeed: def.moveSpeed,
+          target: null,
+          upgradeLevel: 0
+        });
+      }
+      if (settings.particles) {
+        createParticleEffect(factory.position.x, 0, factory.position.z, 0x556b2f);
+      }
+      showNotification(`🛡️ Fabryka wyprodukowała ${count} czołg${count > 1 ? 'i' : ''}!`);
+    }
+    // ========== WIELKA ARMATA (auto-zakup, max 4, na stałych slotach) ==========
+    let wielkaArmataCount = 0;
+    window.buyWielkaArmata = function() {
+      if (wielkaArmataCount >= 4) {
+        showNotification('🎯 Maksymalna liczba Wielkich Armat (4/4) osiągnięta!');
+        return;
+      }
+      const cost = buildingTypes.wielkaArmata.cost;
+      if (game.wood < cost.wood || game.gold < cost.gold) {
+        showNotification('❌ Za mało surowców na Wielką Armatę!');
+        return;
+      }
+      game.wood -= cost.wood;
+      game.gold -= cost.gold;
+      const slot = armataSlots[wielkaArmataCount];
+      const def = buildingTypes.wielkaArmata;
+      const mesh = createBuildingMesh('wielkaArmata');
+      mesh.position.set(slot.x, 1, slot.z); // na wierzchu niskiego bloku (wysokość bloku = 1)
+      scene.add(mesh);
+      buildings.push({
+        mesh: mesh,
+        type: 'wielkaArmata',
+        hp: def.hp,
+        maxHP: def.hp,
+        cooldown: 0,
+        position: new THREE.Vector3(slot.x, 0, slot.z),
+        upgradeLevel: 0
+      });
+      wielkaArmataCount++;
+      if (settings.particles) createParticleEffect(slot.x, 1, slot.z, 0xffaa00);
+      showNotification(`🎯 Wielka Armata (${wielkaArmataCount}/4) postawiona!`);
+      updateUI();
+    };
     // ========== SPAWN ZOMBIE ==========
     function spawnZombie() {
       if (zombies.length >= settings.maxZombies) return;
@@ -1821,6 +1958,33 @@
         position: new THREE.Vector3(x, 0, z),
         animationTime: Math.random() * 100
       });
+    }
+    // ========== SPAWN BOSS ==========
+    // BOSS wychodzi z klatki po zabiciu wszystkich zombie z limitu danego poziomu.
+    // Siła rażenia BOSS-a = 20% sumy obrażeń wszystkich zombie z tego poziomu.
+    function spawnBoss() {
+      game.bossSpawned = true;
+      const zCount = game.level * 10;
+      const perZombieDamage = (8 + game.level * 3) * game.zombieDamageMultiplier * game.difficultyScale;
+      const perZombieHP = (50 + game.level * 20) * game.zombieHPMultiplier * game.difficultyScale;
+      const bossDamage = zCount * perZombieDamage * 0.20;
+      const bossHP = zCount * perZombieHP * 0.5;
+      const zombieMesh = createZombieMesh();
+      zombieMesh.scale.set(3, 3, 3);
+      zombieMesh.position.set(ZOMBIE_SPAWN_X, 0, 0);
+      scene.add(zombieMesh);
+      zombies.push({
+        mesh: zombieMesh,
+        hp: bossHP,
+        maxHP: bossHP,
+        speed: (0.04 + game.wave * 0.003) * game.zombieSpeedMultiplier * 0.8,
+        damage: bossDamage,
+        target: null,
+        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, 0),
+        animationTime: Math.random() * 100,
+        isBoss: true
+      });
+      showNotification(`👑 UWAGA! BOSS wychodzi z klatki!`);
     }
     // ========== PARTICLES ==========
     const PARTICLE_COUNT = 15;
@@ -1951,28 +2115,38 @@
         }
         if (zombie.hp <= 0) {
           scene.remove(zombie.mesh);
-          returnZombieToPool(zombie.mesh);
+          if (!zombie.isBoss) {
+            returnZombieToPool(zombie.mesh);
+          }
           zombies.splice(i, 1);
-          if (Math.random() < 0.65) {
-            game.gold += 6 + Math.floor(game.wave / 2);
-          } else {
-            game.wood += 4 + Math.floor(game.wave / 3);
+          if (settings.particles && (zombie.isBoss || Math.random() < 0.4)) {
+            createParticleEffect(zombie.position.x, 0, zombie.position.z, zombie.isBoss ? 0xff0000 : 0x00ff00);
           }
-          game.zombieKilled++;
-          game.levelKills++;
-          if (settings.particles && Math.random() < 0.4) {
-            createParticleEffect(zombie.position.x, 0, zombie.position.z, 0x00ff00);
-          }
-          if (game.levelKills >= game.levelGoal) {
+          if (zombie.isBoss) {
+            game.gold += 200 + game.level * 50;
+            game.wood += 150 + game.level * 40;
+            game.bossDefeated = true;
+            showNotification(`👑 BOSS POKONANY!`);
             completeLevel();
-          }
-          const waveInterval = 10 + game.level;
-          if (game.zombieKilled % waveInterval === 0) {
-            game.wave++;
-            game.zombiesPerWave++;
-            game.wood += 35 + game.wave * 6;
-            game.gold += 25 + game.wave * 4;
-            showNotification(`🌊 FALA ${game.wave}! Zombie: ${game.zombiesPerWave} na falę`);
+          } else {
+            if (Math.random() < 0.65) {
+              game.gold += 6 + Math.floor(game.wave / 2);
+            } else {
+              game.wood += 4 + Math.floor(game.wave / 3);
+            }
+            game.zombieKilled++;
+            game.levelKills++;
+            if (game.levelKills >= game.levelGoal && !game.bossSpawned) {
+              spawnBoss();
+            }
+            const waveInterval = 10 + game.level;
+            if (game.zombieKilled % waveInterval === 0) {
+              game.wave++;
+              game.zombiesPerWave++;
+              game.wood += 35 + game.wave * 6;
+              game.gold += 25 + game.wave * 4;
+              showNotification(`🌊 FALA ${game.wave}! Zombie: ${game.zombiesPerWave} na falę`);
+            }
           }
         }
       }
@@ -2006,7 +2180,14 @@
             building.productionTimer = 0;
           }
         }
-        if (building.type === 'soldier' && def.moveSpeed) {
+        if (building.type === 'factory') {
+          building.productionTimer = (building.productionTimer || 0) + deltaMs;
+          if (building.productionTimer >= def.productionInterval) {
+            spawnTanksFromFactory(building, 1);
+            building.productionTimer = 0;
+          }
+        }
+        if ((building.type === 'soldier' || building.type === 'tank') && def.moveSpeed) {
           let nearestZombie = null;
           let nearestDist = Infinity;
           for (let zombie of zombies) {
@@ -2025,7 +2206,7 @@
             }
           }
         }
-        if ((building.type === 'tower' || building.type === 'cannon' || building.type === 'soldier') && def.range) {
+        if ((building.type === 'wielkaArmata' || building.type === 'cannon' || building.type === 'soldier' || building.type === 'tank') && def.range) {
           building.cooldown--;
           if (building.cooldown <= 0) {
             for (let zombie of zombies) {
@@ -2045,7 +2226,7 @@
                   createProjectile(building.position, zombie.position, damage, building.type);
                 }
                 building.cooldown = fireRate;
-                if (building.type === 'soldier' && building.mesh.userData.weapon) {
+                if ((building.type === 'soldier' || building.type === 'tank') && building.mesh.userData.weapon) {
                   building.mesh.userData.weapon.position.z = 0.5;
                   setTimeout(() => {
                     if (building.mesh.userData.weapon) {
@@ -2054,18 +2235,6 @@
                   }, 100);
                 }
                 break;
-              }
-            }
-          }
-        }
-        if (building.type === 'trap') {
-          for (let zombie of zombies) {
-            const dist = building.position.distanceTo(zombie.position);
-            if (dist < 2.5 && building.hp > 0) {
-              zombie.hp -= def.damage;
-              building.hp = 0;
-              if (settings.particles) {
-                createParticleEffect(building.position.x, 0, building.position.z, 0xff8800);
               }
             }
           }
@@ -2115,7 +2284,7 @@
     }
 
     function createProjectile(from, to, damage, type) {
-      const material = type === 'cannon' ? materialCache.projectileCannon : materialCache.projectile;
+      const material = (type === 'cannon' || type === 'wielkaArmata') ? materialCache.projectileCannon : materialCache.projectile;
       const mesh = new THREE.Mesh(geometryCache.projectile, material);
       mesh.position.copy(from);
       mesh.position.y += 2.5;
@@ -2125,7 +2294,7 @@
         position: mesh.position.clone(),
         target: to.clone(),
         damage: damage,
-        speed: type === 'cannon' ? 0.45 : type === 'soldier' ? 0.7 : 0.6,
+        speed: (type === 'cannon' || type === 'wielkaArmata') ? 0.45 : (type === 'soldier' || type === 'tank') ? 0.7 : 0.6,
         life: 120
       });
     }
@@ -2143,7 +2312,9 @@
     window.nextLevel = function() {
       game.level++;
       game.levelKills = 0;
-      game.levelGoal = Math.floor(15 + game.level * 10 * 1.2);
+      game.levelGoal = game.level * 10;
+      game.bossSpawned = false;
+      game.bossDefeated = false;
       game.difficultyMultiplier += 0.15;
       game.zombieHPMultiplier += 0.2;
       game.zombieSpeedMultiplier += 0.05;
@@ -2173,12 +2344,19 @@
       const levelProgress = (game.levelKills / game.levelGoal) * 100;
       document.getElementById('levelProgress').style.width = Math.min(100, levelProgress) + '%';
       document.querySelectorAll('.building-btn').forEach((btn, index) => {
-        const types = ['wall', 'bigwall', 'tower', 'cannon', 'soldier', 'koszary', 'trap', 'sawmill', 'mine'];
+        const types = ['wall', 'bigwall', null, 'cannon', 'soldier', 'koszary', 'factory', 'sawmill', 'mine'];
         const type = types[index];
         if (type) {
           btn.disabled = !canAfford(type);
         }
       });
+      const wielkaBtn = document.getElementById('wielkaArmataBtn');
+      if (wielkaBtn) {
+        const maxed = wielkaArmataCount >= 4;
+        const affordable = game.wood >= buildingTypes.wielkaArmata.cost.wood && game.gold >= buildingTypes.wielkaArmata.cost.gold;
+        wielkaBtn.disabled = maxed || !affordable;
+        wielkaBtn.querySelector('.building-name').textContent = `Wielka Armata (${wielkaArmataCount}/4)`;
+      }
     }
     // ========== GAME OVER / RESTART ==========
     function gameOver() {
@@ -2232,12 +2410,15 @@
       game.resourceTimer = 0;
       game.level = 1;
       game.levelKills = 0;
-      game.levelGoal = 15;
+      game.levelGoal = 10;
+      game.bossSpawned = false;
+      game.bossDefeated = false;
       game.zombiesPerWave = 3;
       game.difficultyMultiplier = 1;
       game.zombieHPMultiplier = 1;
       game.zombieSpeedMultiplier = 1;
       game.zombieDamageMultiplier = 1;
+      wielkaArmataCount = 0;
 
       baseGroup.userData.hp = game.baseHP;
 
@@ -2245,14 +2426,11 @@
       camera.lookAt(BASE_X - 20, 0, 0);
       controls.target.set(BASE_X - 20, 0, 0);
       controls.enabled = true;
-      controls.enablePan = true;
-      cameraMode = 'free';
-      panKeys.left = panKeys.right = panKeys.up = panKeys.down = false;
+      controls.enablePan = false;
+      panKeys.left = panKeys.right = false;
       settings.viewMode = 'perspective';
       const viewBtn = document.getElementById('viewToggle');
       if (viewBtn) viewBtn.textContent = '3D';
-      const cameraBtn = document.getElementById('cameraModeToggle');
-      if (cameraBtn) cameraBtn.textContent = 'Swobodna';
       applyBrightness(2); // reset jasności do "Bardzo jasna"
 
       frameCount = 0;
