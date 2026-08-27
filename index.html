@@ -719,6 +719,10 @@
           <span>Jasność:</span>
           <button class="toggle-btn" id="brightnessToggle" onclick="event.stopPropagation(); toggleBrightness()">Bardzo jasna</button>
         </div>
+        <div class="setting-item">
+          <span>Trudność:</span>
+          <button class="toggle-btn" id="difficultyToggle" onclick="event.stopPropagation(); toggleDifficulty()">Ogień w szopie</button>
+        </div>
       </div>
     </div>
 
@@ -862,6 +866,15 @@
       maxParticles: 60,
       viewMode: 'perspective' // 'perspective' lub 'top'
     };
+    // ========== MAP LAYOUT ==========
+    // Prostokątna plansza: o 30% szersza (lewo-prawo, oś X) i o 30% węższa (góra-dół, oś Z)
+    // od poprzedniej kwadratowej planszy 100x100.
+    const MAP_WIDTH = 130;  // oś X (lewo-prawo)
+    const MAP_DEPTH = 70;   // oś Z (góra-dół)
+    const BASE_X = MAP_WIDTH / 2 - 15;   // baza po prawej stronie planszy
+    const BASE_Z = 0;
+    const ZOMBIE_SPAWN_X = -MAP_WIDTH / 2 + 5; // zombie wychodzą z lewej strony
+    const MAP_TILT = 0.06; // lekkie pochylenie planszy w stronę gracza/kamery (radiany)
     // ========== SCENE SETUP ==========
     const container = document.getElementById('container');
     const scene = new THREE.Scene();
@@ -869,7 +882,7 @@
     scene.background = new THREE.Color(0x0f0f27);
     // Camera
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
-    camera.position.set(30, 25, 30);
+    camera.position.set(BASE_X + 15, 32, 42);
     // Renderer
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     const renderer = new THREE.WebGLRenderer({
@@ -890,7 +903,7 @@
     controls.maxPolarAngle = Math.PI / 2.2;
     controls.minDistance = 15;
     controls.maxDistance = 80;
-    controls.target.set(0, 0, 0);
+    controls.target.set(BASE_X - 20, 0, 0);
     controls.enablePan = false; // domyślnie kamera wycentrowana na bazie
     let cameraMode = 'free'; // 'centered' | 'free'
     const panKeys = { left: false, right: false, up: false, down: false };
@@ -937,6 +950,16 @@
       showNotification(`💡 Jasność: ${BRIGHTNESS_LEVELS[nextIndex].name}`);
     };
 
+    // ========== DIFFICULTY TOGGLE ==========
+    window.toggleDifficulty = function() {
+      difficultyIndex = (difficultyIndex + 1) % DIFFICULTY_LEVELS.length;
+      const level = DIFFICULTY_LEVELS[difficultyIndex];
+      game.difficultyScale = level.scale;
+      const btn = document.getElementById('difficultyToggle');
+      if (btn) btn.textContent = level.name;
+      showNotification(`🎚️ Trudność: ${level.name}`);
+    };
+
     // ========== CAMERA PAN SYSTEM ==========
     window.toggleCameraMode = function() {
       const btn = document.getElementById('cameraModeToggle');
@@ -948,7 +971,7 @@
       } else {
         cameraMode = 'centered';
         controls.enablePan = false;
-        controls.target.set(0, 0, 0);
+        controls.target.set(BASE_X - 20, 0, 0);
         panKeys.left = panKeys.right = panKeys.up = panKeys.down = false;
         btn.textContent = 'Wycentrowana';
         showNotification('🎯 Kamera: tryb wycentrowany');
@@ -971,18 +994,20 @@
       controls.target.z += moveVec.z;
     }
     // ========== GROUND ==========
-    const groundSize = 100;
-    const groundGeometry = new THREE.PlaneGeometry(groundSize, groundSize);
+    // Prostokątna plansza (patrz stałe MAP_WIDTH/MAP_DEPTH powyżej), lekko pochylona w stronę gracza
+    const groundGeometry = new THREE.PlaneGeometry(MAP_WIDTH, MAP_DEPTH);
     const groundMaterial = new THREE.MeshStandardMaterial({
       color: 0x1a3a1a,
       roughness: 0.9,
       metalness: 0.1
     });
     const ground = new THREE.Mesh(groundGeometry, groundMaterial);
-    ground.rotation.x = -Math.PI / 2;
+    ground.rotation.x = -Math.PI / 2 + MAP_TILT;
     ground.receiveShadow = settings.shadows;
     scene.add(ground);
-    const gridHelper = new THREE.GridHelper(groundSize, 50, 0x444444, 0x222222);
+    const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x222222);
+    gridHelper.scale.set(MAP_WIDTH / 100, 1, MAP_DEPTH / 100);
+    gridHelper.rotation.x = MAP_TILT;
     scene.add(gridHelper);
     // ========== GEOMETRY & MATERIAL CACHE ==========
     const geometryCache = {
@@ -1077,6 +1102,15 @@
     };
     // ========== GAME STATE ==========
     let isGameOver = false;
+    // ========== DIFFICULTY SYSTEM ==========
+    // Aktualny poziom trudności gry (bez zmian) to "Ogień w szopie" - scale 1.0
+    // Średnia jest o 15% łatwiejsza, Łatwa o 40% łatwiejsza (mniej HP/obrażeń/spawnów zombie)
+    const DIFFICULTY_LEVELS = [
+      { name: 'Łatwa', scale: 0.60 },
+      { name: 'Średnia', scale: 0.85 },
+      { name: 'Ogień w szopie', scale: 1.0 }
+    ];
+    let difficultyIndex = 2; // domyślnie: Ogień w szopie (obecny, najtrudniejszy poziom)
     const game = {
       baseHP: 100,
       maxBaseHP: 100,
@@ -1097,7 +1131,8 @@
       difficultyMultiplier: 1,
       zombieHPMultiplier: 1,
       zombieSpeedMultiplier: 1,
-      zombieDamageMultiplier: 1
+      zombieDamageMultiplier: 1,
+      difficultyScale: DIFFICULTY_LEVELS[difficultyIndex].scale
     };
     // ========== BUILDING TYPES ==========
     const buildingTypes = {
@@ -1212,6 +1247,7 @@
     flag.position.set(0.75, 9, 0);
     baseGroup.add(flag);
     scene.add(baseGroup);
+    baseGroup.position.set(BASE_X, 0, BASE_Z);
     baseGroup.userData = { type: 'base', hp: game.baseHP };
     // ========== ARRAYS ==========
     const zombies = [];
@@ -1636,7 +1672,7 @@
 
     function checkCanPlace(x, z) {
       const minDist = (game.selectedBuilding === 'bigwall' || game.selectedBuilding === 'koszary') ? 4 : 3;
-      if (Math.abs(x) < 5 && Math.abs(z) < 5) return false;
+      if (Math.abs(x - BASE_X) < 5 && Math.abs(z - BASE_Z) < 5) return false;
       for (let building of buildings) {
         const dist = Math.sqrt(
           (building.position.x - x) ** 2 +
@@ -1644,8 +1680,9 @@
         );
         if (dist < minDist) return false;
       }
-      const maxPos = groundSize / 2 - 3;
-      if (Math.abs(x) > maxPos || Math.abs(z) > maxPos) return false;
+      const maxX = MAP_WIDTH / 2 - 3;
+      const maxZ = MAP_DEPTH / 2 - 3;
+      if (Math.abs(x) > maxX || Math.abs(z) > maxZ) return false;
       return true;
     }
     window.addEventListener('click', (e) => {
@@ -1765,10 +1802,9 @@
     // ========== SPAWN ZOMBIE ==========
     function spawnZombie() {
       if (zombies.length >= settings.maxZombies) return;
-      const angle = Math.random() * Math.PI * 2;
-      const distance = groundSize / 2 - 5;
-      const x = Math.cos(angle) * distance;
-      const z = Math.sin(angle) * distance;
+      // Zombie wychodzą z lewej krawędzi planszy (baza jest po prawej stronie)
+      const x = ZOMBIE_SPAWN_X;
+      const z = (Math.random() - 0.5) * (MAP_DEPTH - 10);
       const zombieMesh = createZombieMesh();
       zombieMesh.position.set(x, 0, z);
       scene.add(zombieMesh);
@@ -1777,10 +1813,10 @@
       const baseDamage = 8 + game.wave * 3;
       zombies.push({
         mesh: zombieMesh,
-        hp: baseHP * game.zombieHPMultiplier,
-        maxHP: baseHP * game.zombieHPMultiplier,
+        hp: baseHP * game.zombieHPMultiplier * game.difficultyScale,
+        maxHP: baseHP * game.zombieHPMultiplier * game.difficultyScale,
         speed: baseSpeed * game.zombieSpeedMultiplier,
-        damage: baseDamage * game.zombieDamageMultiplier,
+        damage: baseDamage * game.zombieDamageMultiplier * game.difficultyScale,
         target: null,
         position: new THREE.Vector3(x, 0, z),
         animationTime: Math.random() * 100
@@ -1856,7 +1892,7 @@
         game.resourceTimer = 0;
       }
       if (frameCount % 4 === 0) {
-        const spawnChance = (0.02 + game.wave * 0.004) * game.difficultyMultiplier;
+        const spawnChance = (0.02 + game.wave * 0.004) * game.difficultyMultiplier * game.difficultyScale;
         if (Math.random() < spawnChance) {
           spawnZombie();
         }
@@ -2205,9 +2241,9 @@
 
       baseGroup.userData.hp = game.baseHP;
 
-      camera.position.set(30, 25, 30);
-      camera.lookAt(0, 0, 0);
-      controls.target.set(0, 0, 0);
+      camera.position.set(BASE_X + 15, 32, 42);
+      camera.lookAt(BASE_X - 20, 0, 0);
+      controls.target.set(BASE_X - 20, 0, 0);
       controls.enabled = true;
       controls.enablePan = true;
       cameraMode = 'free';
@@ -2276,14 +2312,14 @@
       const btn = document.getElementById('viewToggle');
       if (settings.viewMode === 'perspective') {
         settings.viewMode = 'top';
-        camera.position.set(0, 60, 0);
+        camera.position.set(0, 90, 0);
         camera.lookAt(0, 0, 0);
         controls.enabled = false;
         btn.textContent = 'GÓRA';
       } else {
         settings.viewMode = 'perspective';
-        camera.position.set(30, 25, 30);
-        camera.lookAt(0, 0, 0);
+        camera.position.set(BASE_X + 15, 32, 42);
+        camera.lookAt(BASE_X - 20, 0, 0);
         controls.enabled = true;
         btn.textContent = '3D';
       }
