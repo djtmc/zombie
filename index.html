@@ -40,7 +40,6 @@
     .building-btn:disabled { background: rgba(85, 85, 85, 0.8); cursor: not-allowed; opacity: 0.5; border-color: #666; }
     .building-btn.selected { background: rgba(61, 127, 62, 0.95); border-color: #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.6); }
     .building-btn.special { background: rgba(138, 43, 226, 0.95); border-color: #9370DB; }
-    .building-btn.special:hover:not(:disabled) { background: rgba(148, 63, 236, 0.95); }
     .building-icon { font-size: 22px; display: block; margin-bottom: 3px; }
     .building-name { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
     .building-cost { font-size: 8px; opacity: 0.9; }
@@ -53,12 +52,9 @@
     .panel.collapsed .panel-header .arrow { transform: rotate(-90deg); }
     .panel-body { padding: 0 12px 12px 12px; font-size: 12px; }
     .panel.collapsed .panel-body { display: none; }
-    .control-title { font-weight: bold; color: #4CAF50; margin-bottom: 8px; font-size: 14px; }
     .control-item { margin: 6px 0; padding-left: 5px; }
     .setting-item { margin: 8px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .toggle-btn { background: #4CAF50; color: white; border: none; padding: 6px 16px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.3s; }
-    .toggle-btn:hover { transform: scale(1.1); }
-    .toggle-btn.off { background: #f44336; }
 
     /* Notifications & Overlays */
     #fps { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); padding: 8px 18px; border-radius: 5px; font-size: 15px; color: #4CAF50; font-weight: bold; }
@@ -69,20 +65,20 @@
     .level-complete-content, .modal-content { background: linear-gradient(135deg, #2c2c54, #1a1a3a); padding: 30px; border-radius: 15px; text-align: center; border: 3px solid #d4af37; box-shadow: 0 0 40px rgba(212, 175, 55, 0.5); max-width: 400px; width: 90%; position: relative;}
     .level-complete-content h2, .modal-content h2 { font-size: 32px; margin-bottom: 20px; color: #d4af37; text-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
     .next-level-btn { background: #4CAF50; color: white; border: none; padding: 15px 40px; font-size: 20px; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; transition: all 0.3s; }
-    .next-level-btn:hover { background: #45a049; transform: scale(1.1); }
-    .modal-close { position: absolute; top: 10px; right: 10px; background: #ff4444; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; }
+    
+    /* Boss HP Bar OVERLAY */
+    #boss-hp-container { position: absolute; width: 150px; transform: translate(-50%, -100%); display: none; z-index: 150; pointer-events: none; text-align: center; }
+    #boss-hp-name { color: #ff4444; font-weight: bold; font-size: 14px; text-shadow: 1px 1px 2px #000; margin-bottom: 2px; }
+    #boss-hp-bar-bg { width: 100%; height: 10px; background: rgba(0,0,0,0.8); border: 2px solid #555; border-radius: 5px; overflow: hidden; }
+    #boss-hp-bar { width: 100%; height: 100%; background: linear-gradient(90deg, #ff0000, #ff4444); transition: width 0.1s linear; }
+
     #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; color: #4CAF50; z-index: 500; text-align: center; }
     .loading-spinner { width: 60px; height: 60px; border: 6px solid rgba(76, 175, 80, 0.3); border-top-color: #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* Exchange & Upgrades */
+    /* Exchange Panel */
     #exchange { position: absolute; bottom: 15px; right: 15px; background: rgba(0, 0, 0, 0.9); padding: 12px; border-radius: 8px; border: 2px solid #d4af37; z-index: 100; pointer-events: auto; }
-    .exchange-btn { background: #d4af37; color: #000; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 4px; transition: all 0.3s; font-size: 10px; }
-    .exchange-btn:hover:not(:disabled) { background: #ffcc44; transform: scale(1.05); }
-    .upgrade-tier { background: rgba(0, 0, 0, 0.4); border: 2px solid #555; border-radius: 8px; padding: 10px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .upgrade-btn { background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
-    .upgrade-btn:disabled { background: #666; cursor: not-allowed; }
-    #upgradeInfo, #gameOverStats { text-align: left; font-size: 13px; margin-bottom: 15px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; line-height: 1.6; }
+    .exchange-btn { background: #d4af37; color: #000; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 4px; font-size: 10px; }
 
     @media (max-width: 768px) {
       #buildings { bottom: 10px; gap: 5px; }
@@ -97,6 +93,13 @@
 <body>
   <div id="loading"><div>🧟 ZOMBIE SURVIVAL 3D 🏰</div><div class="loading-spinner"></div><div>Ładowanie gry...</div></div>
   <div id="container"></div>
+  
+  <!-- Boss HP Overlay -->
+  <div id="boss-hp-container">
+    <div id="boss-hp-name">👑 BOSS</div>
+    <div id="boss-hp-bar-bg"><div id="boss-hp-bar"></div></div>
+  </div>
+
   <div id="fps">FPS: 60</div>
   <div id="notification"></div>
 
@@ -109,9 +112,8 @@
     </div>
     <div class="stats">
       <div class="stat" id="baseHP">❤️ HP Bazy<br><span class="stat-value">100</span></div>
-      <div class="stat">💰 Złoto<br><span class="stat-value" id="gold">150</span><div class="stat-income" id="goldIncome"></div></div>
-      <div class="stat">🪵 Drewno<br><span class="stat-value" id="wood">100</span><div class="stat-income" id="woodIncome"></div></div>
-      <!-- Zmienione UI dla fali -->
+      <div class="stat">💰 Złoto<br><span class="stat-value" id="gold">150</span></div>
+      <div class="stat">🪵 Drewno<br><span class="stat-value" id="wood">100</span></div>
       <div class="stat">🌊 Fala<br><span class="stat-value" id="waveText">1 / 1</span></div>
       <div class="stat">🧟 Na mapie<br><span class="stat-value" id="zombieCount">0</span></div>
       <div class="stat">💀 Zabici<br><span class="stat-value" id="killed">0</span></div>
@@ -122,8 +124,6 @@
     <div class="panel" id="settings-panel">
       <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')"><span>⚙️ Ustawienia</span><span class="arrow">▼</span></div>
       <div class="panel-body">
-        <div class="setting-item"><span>Cienie:</span><button class="toggle-btn off" id="shadowToggle" onclick="event.stopPropagation(); toggleShadows()">WYŁ</button></div>
-        <div class="setting-item"><span>Efekty:</span><button class="toggle-btn" id="particleToggle" onclick="event.stopPropagation(); toggleParticles()">WŁ</button></div>
         <div class="setting-item"><span>Trudność:</span><button class="toggle-btn" id="difficultyToggle" onclick="event.stopPropagation(); toggleDifficulty()">Ogień w szopie</button></div>
       </div>
     </div>
@@ -131,15 +131,15 @@
       <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')"><span>⌨️ Sterowanie</span><span class="arrow">▼</span></div>
       <div class="panel-body">
         <div class="control-item">🖱️ Przeciągnij - Przesuń w Boki</div>
-        <div class="control-item">🖱️ Klik - Postaw</div>
+        <div class="control-item">🖱️ Klik - Postaw Budynek</div>
         <div class="control-item">⌨️ A/D - Przesuń mapę</div>
-        <div class="control-item">⌨️ ESC - Anuluj</div>
+        <div class="control-item">⌨️ ESC - Anuluj budowanie</div>
       </div>
     </div>
   </div>
   
   <div id="exchange">
-    <div class="control-title" style="color: #d4af37; font-size: 12px;">💱 Wymiana</div>
+    <div style="color: #d4af37; font-size: 12px; font-weight: bold; margin-bottom:4px;">💱 Wymiana</div>
     <button class="exchange-btn" onclick="exchange('goldToWood')">💰→🪵<br><small>20→10</small></button>
     <button class="exchange-btn" onclick="exchange('woodToGold')">🪵→💰<br><small>10→20</small></button>
   </div>
@@ -150,39 +150,24 @@
     <button class="building-btn" onclick="selectBuilding('bigwall')"><span class="building-icon">🏗️</span><div class="building-name">Mur</div><div class="building-cost">25 🪵</div></button>
     <button class="building-btn special" onclick="buyWielkaArmata()" id="wielkaArmataBtn"><span class="building-icon">🎯</span><div class="building-name">Wielka Armata</div><div class="building-cost">2000 🪵, 2000 💰</div></button>
     <button class="building-btn" onclick="selectBuilding('cannon')"><span class="building-icon">💥</span><div class="building-name">Armata</div><div class="building-cost">30 🪵, 25 💰</div></button>
-    <button class="building-btn special" onclick="selectBuilding('soldier')"><span class="building-icon">🪖</span><div class="building-name">Żołnierz</div><div class="building-cost">100 🪵, 150 💰</div></button>
-    <button class="building-btn special" onclick="selectBuilding('koszary')" id="koszaryBtn"><span class="building-icon">🏰</span><div class="building-name">Koszary</div><div class="building-cost">500 🪵, 500 💰</div></button>
-    <button class="building-btn special" onclick="selectBuilding('factory')"><span class="building-icon">⚙️</span><div class="building-name">Fabryka</div><div class="building-cost">1000 🪵, 1000 💰</div></button>
     <!-- ZASOBY -->
     <button class="building-btn" style="background: rgba(95, 95, 45, 0.95); border-color: #d4af37;" onclick="selectBuilding('sawmill')"><span class="building-icon">🏭</span><div class="building-name">Tartak</div><div class="building-cost">25 🪵, 20 💰</div></button>
     <button class="building-btn" style="background: rgba(95, 95, 45, 0.95); border-color: #d4af37;" onclick="selectBuilding('mine')"><span class="building-icon">⛏️</span><div class="building-name">Kopalnia</div><div class="building-cost">25 🪵, 20 💰</div></button>
   </div>
 
-  <div id="level-complete">
-    <div class="level-complete-content">
+  <div id="level-complete" class="modal-overlay">
+    <div class="modal-content">
       <h2>🎉 POZIOM UKOŃCZONY! 🎉</h2>
-      <p>Poziom <span id="completedLevel">1</span> zakończony!</p>
-      <p>💀 Zabiłeś: <span id="completedKills">0</span> zombie</p>
-      <p>🏆 Nagroda: <span id="completedReward"></span></p>
+      <p style="color:white; margin: 10px 0;">Poziom <span id="completedLevel">1</span> zakończony!</p>
       <button class="next-level-btn" onclick="nextLevel()">NASTĘPNY POZIOM ➜</button>
     </div>
   </div>
 
   <div id="game-over-modal" class="modal-overlay" style="z-index: 600;">
-    <div class="modal-content" style="text-align: center; border-color: #ff4444; box-shadow: 0 0 40px rgba(255,68,68,0.6);">
+    <div class="modal-content" style="border-color: #ff4444;">
       <h2 style="color: #ff4444;">💀 GAME OVER 💀</h2>
-      <p style="margin: 15px 0; font-size: 16px;">Twoja baza została zniszczona!</p>
-      <div id="gameOverStats"></div>
+      <p style="color:white; margin: 15px 0;">Twoja baza została zniszczona!</p>
       <button class="next-level-btn" style="background: #ff4444;" onclick="restartGame()">🔄 NOWA GRA</button>
-    </div>
-  </div>
-
-  <div id="upgrade-modal" class="modal-overlay">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeUpgradeModal()">✖</button>
-      <h2 id="upgradeTitle">Ulepszenie</h2>
-      <div id="upgradeInfo"></div>
-      <div id="upgradeTiers"></div>
     </div>
   </div>
 
@@ -199,8 +184,7 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // ========== SETTINGS & MAP ==========
-    const settings = { shadows: false, particles: true, maxZombies: 30, maxParticles: 60 };
+    // ========== CONFIG ==========
     const MAP_WIDTH = 130;  
     const MAP_DEPTH = 70;   
     const BASE_X = MAP_WIDTH / 2 - 6;   
@@ -210,11 +194,10 @@
     // ========== SCENE SETUP ==========
     const container = document.getElementById('container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x45456e); // Bardzo jasna
+    scene.background = new THREE.Color(0x45456e); 
 
-    // POCHYLENIE CAŁEJ MAPY - KLUCZOWE
     const worldGroup = new THREE.Group();
-    worldGroup.rotation.x = 0.35; // 35% nachylenia
+    worldGroup.rotation.x = 0.35; // POCHYLENIE
     scene.add(worldGroup);
 
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
@@ -224,93 +207,57 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
-    const clock = new THREE.Clock();
-
-    // Zablokowane sterowanie z oryginalnego kodu
+    
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableRotate = false; // BARK ROTACJI
     controls.enableZoom = false;   // BRAK ZOOMU
     controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: null, RIGHT: null };
     const panKeys = { left: false, right: false };
 
-    // Oświetlenie zostaje w Scene, żeby cień i blask działał niezależnie od obrotu
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.4); scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1.4); directionalLight.position.set(30, 50, 20); scene.add(directionalLight);
-    const pointLight = new THREE.PointLight(0x4169e1, 3.4, 30); pointLight.position.set(0, 15, 0); scene.add(pointLight);
 
-    // ========== DIFFICULTY & WAVES SYSTEM ==========
+    // ========== DIFFICULTY SYSTEM (SPEED & WAVES) ==========
     const DIFFICULTY_LEVELS = [
-      { name: 'Łatwa', scale: 0.60, waveTime: 60 },
-      { name: 'Średnia', scale: 0.85, waveTime: 40 },
-      { name: 'Ogień w szopie', scale: 1.0, waveTime: 20 }
+      { name: 'Łatwa', scale: 0.60, waveTime: 60, speedMult: 0.65 },
+      { name: 'Średnia', scale: 0.85, waveTime: 40, speedMult: 0.85 },
+      { name: 'Ogień w szopie', scale: 1.0, waveTime: 20, speedMult: 1.2 }
     ];
-    let difficultyIndex = 2; // Domyślnie Ogień w szopie
+    let difficultyIndex = 2; // Ogień w szopie
 
     window.toggleDifficulty = function() {
       difficultyIndex = (difficultyIndex + 1) % DIFFICULTY_LEVELS.length;
       const level = DIFFICULTY_LEVELS[difficultyIndex];
       game.difficultyScale = level.scale;
+      game.speedMult = level.speedMult;
       document.getElementById('difficultyToggle').textContent = level.name;
       showNotification(`🎚️ Trudność: ${level.name} (Fale co ${level.waveTime}s)`);
     };
 
     let isGameOver = false;
     const game = {
-      baseHP: 100, maxBaseHP: 100, gold: 150, wood: 100, zombieKilled: 0,
+      baseHP: 100, gold: 150, wood: 100, zombieKilled: 0,
       selectedBuilding: null, isPlacingBuilding: false, buildingPreview: null,
-      woodPerSecond: 0, goldPerSecond: 0, resourceTimer: 0,
+      resourceTimer: 0,
       
-      // Nowe zmnienne fal:
       level: 1, levelKills: 0, levelGoal: 10,
       waveTimer: 0, currentWave: 1, maxWaves: 1,
       zombiesToSpawnThisWave: 0, spawnSubTimer: 0,
       
-      bossSpawned: false, bossDefeated: false,
-      difficultyScale: DIFFICULTY_LEVELS[2].scale,
-      zombieHPMultiplier: 1, zombieSpeedMultiplier: 1, zombieDamageMultiplier: 1
+      bossSpawned: false,
+      difficultyScale: DIFFICULTY_LEVELS[2].scale, speedMult: DIFFICULTY_LEVELS[2].speedMult
     };
 
-    // ========== BUDYNKI - ORYGINALNE DANE ==========
+    // ========== MESHES ==========
     const buildingTypes = {
-      wall: { cost: { wood: 10 }, hp: 100, height: 2.5, category: 'defense' },
-      bigwall: { cost: { wood: 25 }, hp: 250, height: 4, width: 2, category: 'defense' },
-      wielkaArmata: { cost: { wood: 2000, gold: 2000 }, hp: 200, height: 4, range: 35, damage: 200, fireRate: 50 },
+      wall: { cost: { wood: 10 }, hp: 100, height: 2.5 },
+      bigwall: { cost: { wood: 25 }, hp: 250, height: 4, width: 2 },
+      wielkaArmata: { cost: { wood: 2000, gold: 2000 }, hp: 200, range: 35, damage: 200, fireRate: 50 },
       cannon: { cost: { wood: 30, gold: 25 }, hp: 70, height: 3, range: 22, damage: 60, fireRate: 80 },
-      soldier: { cost: { wood: 100, gold: 150 }, hp: 120, height: 1.8, range: 18, damage: 40, fireRate: 30, moveSpeed: 0.05 },
-      factory: { cost: { wood: 1000, gold: 1000 }, hp: 120, height: 3, productionInterval: 60000 },
-      sawmill: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, woodPerSecond: 2 },
-      mine: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, goldPerSecond: 3 },
-      koszary: { cost: { wood: 500, gold: 500 }, hp: 200, height: 3, productionInterval: 30000 },
-      tank: { cost: { wood: 0, gold: 0 }, hp: 360, height: 1.2, range: 18, damage: 120, fireRate: 30, moveSpeed: 0.035 }
+      sawmill: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, woodPS: 2 },
+      mine: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, goldPS: 3 }
     };
 
-    const geometryCache = {
-      box: new THREE.BoxGeometry(1.5, 1, 1.5), bigBox: new THREE.BoxGeometry(2, 1, 2),
-      zombie: new THREE.BoxGeometry(0.7, 1.8, 0.4), zombieHead: new THREE.SphereGeometry(0.35, 8, 8),
-      zombieArm: new THREE.BoxGeometry(0.2, 0.8, 0.2), zombieLeg: new THREE.BoxGeometry(0.25, 0.9, 0.25),
-      projectile: new THREE.SphereGeometry(0.2, 8, 8), base: new THREE.BoxGeometry(4, 5, 4),
-      roof: new THREE.ConeGeometry(3, 2.5, 4), cylinder: new THREE.CylinderGeometry(1, 1, 2, 12),
-      zombieEye: new THREE.SphereGeometry(0.08, 6, 6), soldier: new THREE.CapsuleGeometry(0.3, 1.2, 4, 8)
-    };
-    const materialCache = {
-      wall: new THREE.MeshStandardMaterial({ color: 0x8b4513, roughness: 0.8 }),
-      bigwall: new THREE.MeshStandardMaterial({ color: 0x696969, roughness: 0.9 }),
-      cannon: new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.6 }),
-      sawmill: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.9 }),
-      mine: new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.7 }),
-      koszary: new THREE.MeshStandardMaterial({ color: 0x5c4a3a, roughness: 0.85 }),
-      zombieBody: new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.8 }),
-      zombieHead: new THREE.MeshStandardMaterial({ color: 0x90EE90, roughness: 0.7 }),
-      zombieLimb: new THREE.MeshStandardMaterial({ color: 0x006400, roughness: 0.8 }),
-      zombieEye: new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000 }),
-      soldier: new THREE.MeshStandardMaterial({ color: 0x4B5320, roughness: 0.6 }),
-      base: new THREE.MeshStandardMaterial({ color: 0x4169e1, emissive: 0x1a3f8a }),
-      roof: new THREE.MeshStandardMaterial({ color: 0x8b0000 }),
-      projectile: new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: 0xffaa00 }),
-      projectileCannon: new THREE.MeshStandardMaterial({ color: 0xff4400, emissive: 0xff2200 })
-    };
-
-    // Płaska plansza DODAWANA DO POCHYLONEJ GRUPY
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(MAP_WIDTH, MAP_DEPTH), new THREE.MeshStandardMaterial({ color: 0x1a3a1a, roughness: 0.9 }));
     ground.rotation.x = -Math.PI / 2;
     worldGroup.add(ground);
@@ -319,7 +266,7 @@
     gridHelper.scale.set(MAP_WIDTH / 100, 1, MAP_DEPTH / 100);
     worldGroup.add(gridHelper);
 
-    // ========== KLATKA (4 ściany) ==========
+    // Klatka
     let cageGroup = null;
     function createFullCage() {
       const group = new THREE.Group();
@@ -328,20 +275,16 @@
       for (let x = -2.5; x <= 2.5; x += 1.25) {
         for (let z = -2.5; z <= 2.5; z += 1.25) {
           if (Math.abs(x) === 2.5 || Math.abs(z) === 2.5) {
-            const bar = new THREE.Mesh(barGeo, barMat);
-            bar.position.set(x, 2.5, z);
-            group.add(bar);
+            const bar = new THREE.Mesh(barGeo, barMat); bar.position.set(x, 2.5, z); group.add(bar);
           }
         }
       }
-      const roof = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.2, 5.2), barMat);
-      roof.position.set(0, 5, 0); group.add(roof);
+      const roof = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.2, 5.2), barMat); roof.position.set(0, 5, 0); group.add(roof);
       return group;
     }
 
     const armataSlots = [
-      { x: MAP_WIDTH / 2 - MAP_WIDTH * 0.25, z: -MAP_DEPTH / 2 + 3 },
-      { x: MAP_WIDTH / 2 - MAP_WIDTH * 0.25, z: MAP_DEPTH / 2 - 3 },
+      { x: MAP_WIDTH / 2 - MAP_WIDTH * 0.25, z: -MAP_DEPTH / 2 + 3 }, { x: MAP_WIDTH / 2 - MAP_WIDTH * 0.25, z: MAP_DEPTH / 2 - 3 },
       { x: 0, z: -MAP_DEPTH / 2 + 3 }, { x: 0, z: MAP_DEPTH / 2 - 3 }
     ];
     armataSlots.forEach(s => {
@@ -350,62 +293,52 @@
     });
 
     const baseGroup = new THREE.Group();
-    const baseMesh = new THREE.Mesh(geometryCache.base, materialCache.base); baseMesh.position.y = 2.5; baseGroup.add(baseMesh);
-    const roofBase = new THREE.Mesh(geometryCache.roof, materialCache.roof); roofBase.position.y = 6; roofBase.rotation.y = Math.PI / 4; baseGroup.add(roofBase);
-    worldGroup.add(baseGroup);
-    baseGroup.position.set(BASE_X, 0, BASE_Z);
+    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(4,5,4), new THREE.MeshStandardMaterial({ color: 0x4169e1 })); baseMesh.position.y = 2.5; baseGroup.add(baseMesh);
+    worldGroup.add(baseGroup); baseGroup.position.set(BASE_X, 0, BASE_Z);
 
-    const zombies = []; const buildings = []; const projectiles = []; const particles = [];
-    const zombiePool = []; const particlePool = [];
+    const zombies = []; const buildings = []; const projectiles = [];
 
-    // Funkcje tworzące siatki... (Identyczne jak w Twoim oryginalnym kodzie)
     function createZombieMesh() {
-      if (zombiePool.length > 0) { const z = zombiePool.pop(); z.visible = true; return z; }
       const group = new THREE.Group();
-      const body = new THREE.Mesh(geometryCache.zombie, materialCache.zombieBody); body.position.y = 1.2; group.add(body);
-      const head = new THREE.Mesh(geometryCache.zombieHead, materialCache.zombieHead); head.position.y = 2.3; group.add(head);
-      const leftArm = new THREE.Mesh(geometryCache.zombieArm, materialCache.zombieLimb); leftArm.position.set(-0.5, 1.2, 0); group.add(leftArm);
-      const rightArm = new THREE.Mesh(geometryCache.zombieArm, materialCache.zombieLimb); rightArm.position.set(0.5, 1.2, 0); group.add(rightArm);
-      const leftLeg = new THREE.Mesh(geometryCache.zombieLeg, materialCache.zombieLimb); leftLeg.position.set(-0.25, 0.45, 0); group.add(leftLeg);
-      const rightLeg = new THREE.Mesh(geometryCache.zombieLeg, materialCache.zombieLimb); rightLeg.position.set(0.25, 0.45, 0); group.add(rightLeg);
-      group.userData = { leftArm, rightArm, leftLeg, rightLeg };
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.4), new THREE.MeshStandardMaterial({ color: 0x228B22 })); body.position.y = 1.2; group.add(body);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.35), new THREE.MeshStandardMaterial({ color: 0x90EE90 })); head.position.y = 2.3; group.add(head);
       return group;
     }
 
     function createBuildingMesh(type) {
       const def = buildingTypes[type]; const group = new THREE.Group();
-      if (type === 'wall') {
-        const spikeGeo = new THREE.BoxGeometry(1.7, 0.15, 0.15);
-        for(let i=0;i<4;i++) { const s=new THREE.Mesh(spikeGeo, materialCache.wall); s.position.y=1; group.add(s); }
-      } else if (type === 'bigwall') {
-        const m = new THREE.Mesh(geometryCache.bigBox, materialCache.bigwall); m.scale.set(def.width, def.height, def.width); m.position.y = def.height/2; group.add(m);
-      } else if (type === 'cannon' || type === 'wielkaArmata') {
-        const base = new THREE.Mesh(geometryCache.cylinder, materialCache.cannon); base.position.y = 1; group.add(base);
-      } else if (type === 'soldier') {
-        const b = new THREE.Mesh(geometryCache.soldier, materialCache.soldier); b.position.y = 1.2; group.add(b);
+      if (type === 'cannon' || type === 'wielkaArmata') {
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(1, 1, 2), new THREE.MeshStandardMaterial({ color: 0x444444 })); base.position.y = 1; group.add(base);
       } else {
-        const m = new THREE.Mesh(geometryCache.box, materialCache.koszary); m.scale.set(2.5, def.height, 2); m.position.y = def.height/2; group.add(m);
+        const m = new THREE.Mesh(new THREE.BoxGeometry(def.width||2, def.height, def.width||2), new THREE.MeshStandardMaterial({ color: 0x8b4513 })); m.position.y = def.height/2; group.add(m);
       }
       return group;
     }
 
-    // ========== SYSTEM BUDOWANIA Z PODGLĄDEM ==========
-    function canAfford(type) {
-      if (type === 'koszary' && buildings.filter(b => b.type === 'koszary').length >= 1) return false;
-      const c = buildingTypes[type].cost;
-      return (!c.wood || game.wood >= c.wood) && (!c.gold || game.gold >= c.gold);
+    // ========== SYSTEM BUDOWANIA Z KOLIZJAMI ==========
+    function checkCanPlace(x, z) {
+      if (Math.abs(x - BASE_X) < 5 && Math.abs(z - BASE_Z) < 5) return false; // baza
+      if (Math.abs(x - ZOMBIE_SPAWN_X) < 4 && Math.abs(z) < 4) return false; // klatka
+      for (const slot of armataSlots) { if (Math.abs(slot.x - x) < 3 && Math.abs(slot.z - z) < 3) return false; } // miejsca na armate
+      for (let b of buildings) {
+          const dist = Math.sqrt((b.position.x - x)**2 + (b.position.z - z)**2);
+          if (dist < 3) return false; // inny budynek
+      }
+      const maxX = MAP_WIDTH / 2 - 3; const maxZ = MAP_DEPTH / 2 - 3;
+      if (Math.abs(x) > maxX || Math.abs(z) > maxZ) return false; // za mapa
+      return true;
     }
 
     window.selectBuilding = function(type) {
-      if (!canAfford(type)) return;
-      game.selectedBuilding = type;
-      game.isPlacingBuilding = true;
+      const c = buildingTypes[type].cost;
+      if (game.wood < (c.wood||0) || game.gold < (c.gold||0)) return;
+      game.selectedBuilding = type; game.isPlacingBuilding = true;
       if (game.buildingPreview) worldGroup.remove(game.buildingPreview);
       game.buildingPreview = createBuildingMesh(type);
       game.buildingPreview.traverse((child) => {
         if (child.isMesh) {
           child.material = child.material.clone(); child.material.transparent = true; child.material.opacity = 0.6;
-          child.material.emissive = new THREE.Color(0x00ff00); child.material.emissiveIntensity = 0.3;
+          child.material.emissiveIntensity = 0.4;
         }
       });
       worldGroup.add(game.buildingPreview);
@@ -418,8 +351,8 @@
 
     let wielkaArmataCount = 0;
     window.buyWielkaArmata = function() {
-      if (wielkaArmataCount >= 4 || !canAfford('wielkaArmata')) return;
-      const c = buildingTypes.wielkaArmata.cost; game.wood -= c.wood; game.gold -= c.gold;
+      if (wielkaArmataCount >= 4 || game.wood<2000 || game.gold<2000) return;
+      game.wood -= 2000; game.gold -= 2000;
       const slot = armataSlots[wielkaArmataCount];
       const m = createBuildingMesh('wielkaArmata'); m.position.set(slot.x, 1, slot.z); worldGroup.add(m);
       buildings.push({ mesh: m, type: 'wielkaArmata', hp: 200, cooldown: 0, position: new THREE.Vector3(slot.x,0,slot.z) });
@@ -430,7 +363,6 @@
     const mouse = new THREE.Vector2();
     let mousePos3D = new THREE.Vector3();
     
-    // RAYCASTER UWZGLĘDNIAJĄCY POCHYLENIE
     window.addEventListener('mousemove', (e) => {
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1; mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
       if (game.isPlacingBuilding && game.buildingPreview) {
@@ -438,11 +370,16 @@
         const intersects = raycaster.intersectObject(ground);
         if (intersects.length > 0) {
           const localPoint = worldGroup.worldToLocal(intersects[0].point.clone());
-          const gridSize = 2;
-          const x = Math.round(localPoint.x / gridSize) * gridSize;
-          const z = Math.round(localPoint.z / gridSize) * gridSize;
+          const x = Math.round(localPoint.x / 2) * 2;
+          const z = Math.round(localPoint.z / 2) * 2;
           game.buildingPreview.position.set(x, 0, z);
           mousePos3D.set(x, 0, z);
+          
+          // Kolorowanie sprawdzając kolizje
+          const canPlace = checkCanPlace(x, z);
+          game.buildingPreview.traverse((child) => {
+            if (child.isMesh) child.material.emissive.setHex(canPlace ? 0x00ff00 : 0xff0000);
+          });
         }
       }
     });
@@ -450,13 +387,16 @@
     window.addEventListener('click', (e) => {
       if (e.target !== renderer.domElement) return;
       if (game.isPlacingBuilding && game.selectedBuilding) {
-        const type = game.selectedBuilding;
-        if (canAfford(type)) {
-          const c = buildingTypes[type].cost;
-          if (c.wood) game.wood -= c.wood; if (c.gold) game.gold -= c.gold;
-          const b = createBuildingMesh(type); b.position.copy(mousePos3D); worldGroup.add(b);
-          buildings.push({ mesh: b, type: type, hp: buildingTypes[type].hp, cooldown: 0, position: b.position.clone() });
-          cancelBuilding(); updateUI();
+        if (checkCanPlace(mousePos3D.x, mousePos3D.z)) {
+          const type = game.selectedBuilding; const c = buildingTypes[type].cost;
+          if(game.wood >= (c.wood||0) && game.gold >= (c.gold||0)) {
+            if (c.wood) game.wood -= c.wood; if (c.gold) game.gold -= c.gold;
+            const b = createBuildingMesh(type); b.position.copy(mousePos3D); worldGroup.add(b);
+            buildings.push({ mesh: b, type: type, hp: buildingTypes[type].hp, cooldown: 0, position: b.position.clone() });
+            cancelBuilding(); updateUI();
+          }
+        } else {
+            showNotification("❌ Zbyt blisko innego budynku!");
         }
       }
     });
@@ -470,6 +410,7 @@
       if (e.key === 'a' || e.key === 'ArrowLeft') panKeys.left = false;
       if (e.key === 'd' || e.key === 'ArrowRight') panKeys.right = false;
     });
+
     window.exchange = function(type) {
       if (type === 'goldToWood' && game.gold >= 20) { game.gold -= 20; game.wood += 10; }
       else if (type === 'woodToGold' && game.wood >= 10) { game.wood -= 10; game.gold += 20; }
@@ -480,16 +421,18 @@
     function spawnZombie() {
       const z = (Math.random() - 0.5) * (MAP_DEPTH - 10);
       const m = createZombieMesh(); m.position.set(ZOMBIE_SPAWN_X, 0, z); worldGroup.add(m);
-      const hp = (50 + game.level * 20) * game.zombieHPMultiplier * game.difficultyScale;
+      const hp = (50 + game.level * 20) * game.difficultyScale;
+      // Prędkość w zależności od Trudności
+      const moveSpeed = (0.04 + game.level * 0.005) * game.speedMult;
+      
       zombies.push({
-        mesh: m, hp: hp, speed: (0.04 + game.level * 0.005) * game.zombieSpeedMultiplier,
-        damage: (8 + game.level * 3) * game.zombieDamageMultiplier * game.difficultyScale,
-        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, z), animationTime: Math.random() * 100, isLocked: false
+        mesh: m, hp: hp, maxHP: hp, speed: moveSpeed,
+        damage: (8 + game.level * 3) * game.difficultyScale,
+        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, z), isLocked: false
       });
     }
 
     function setupLevel() {
-      // Inicjalizacja fal
       game.levelGoal = (game.level === 1) ? 10 : game.level * 10;
       game.maxWaves = Math.ceil(game.levelGoal / 10);
       game.currentWave = 1;
@@ -497,58 +440,56 @@
       game.zombiesToSpawnThisWave = 0;
       game.bossSpawned = false;
 
-      // Zbuduj klatkę
       if (cageGroup) worldGroup.remove(cageGroup);
       cageGroup = createFullCage(); cageGroup.position.set(ZOMBIE_SPAWN_X, 0, 0); worldGroup.add(cageGroup);
 
-      // Zbalansowany Boss
+      // Boss
       const zCount = game.levelGoal;
-      const baseDmg = (8 + game.level * 3) * game.zombieDamageMultiplier;
-      const baseHP = (50 + game.level * 20) * game.zombieHPMultiplier;
+      const baseDmg = (8 + game.level * 3);
+      const baseHP = (50 + game.level * 20);
       
-      const bossHP = zCount * baseHP * 0.7 * game.difficultyScale; // Skalowanie do trudności
+      const bossHP = zCount * baseHP * 0.7 * game.difficultyScale;
       const bossDamage = zCount * baseDmg * 0.15 * game.difficultyScale;
+      const bossSpeed = 0.035 * game.speedMult; // Trudność wpływa na Bossa
 
       const m = createZombieMesh(); m.scale.set(3, 3, 3); m.position.set(ZOMBIE_SPAWN_X, 0, 0); worldGroup.add(m);
       zombies.push({
-        mesh: m, hp: bossHP, speed: 0.03 * game.zombieSpeedMultiplier, damage: bossDamage,
-        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, 0), animationTime: 0, isBoss: true, isLocked: true
+        mesh: m, hp: bossHP, maxHP: bossHP, speed: bossSpeed, damage: bossDamage,
+        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, 0), isBoss: true, isLocked: true
       });
+      document.getElementById('boss-hp-container').style.display = 'none'; // reset paska bossa
       updateUI();
     }
-
-    // ========== GAME LOOP ==========
-    const tempVec = new THREE.Vector3();
-    let frameCount = 0;
 
     function showNotification(text) {
       const n = document.getElementById('notification'); n.textContent = text; n.style.display = 'block';
       setTimeout(() => n.style.display = 'none', 3000);
     }
 
+    const tempVec = new THREE.Vector3();
+
     function update(delta) {
       if (isGameOver) return;
-      frameCount++;
       const deltaMs = delta * 1000;
       
       // Ekonomia
       game.resourceTimer += delta;
       if (game.resourceTimer >= 1) {
         buildings.forEach(b => {
-          if (b.type === 'sawmill') game.wood += buildingTypes.sawmill.woodPerSecond;
-          if (b.type === 'mine') game.gold += buildingTypes.mine.goldPerSecond;
+          if (b.type === 'sawmill') game.wood += buildingTypes.sawmill.woodPS;
+          if (b.type === 'mine') game.gold += buildingTypes.mine.goldPS;
         });
         game.resourceTimer = 0; updateUI();
       }
 
-      // FALE ZOMBIE (Timery)
+      // FALE
       if (!game.bossSpawned) {
         if (game.zombiesToSpawnThisWave > 0) {
           game.spawnSubTimer -= delta;
           if (game.spawnSubTimer <= 0) {
              spawnZombie();
              game.zombiesToSpawnThisWave--;
-             game.spawnSubTimer = 0.5; // Co 0.5 sekundy
+             game.spawnSubTimer = 0.5; // Odstęp 0.5s pomiędzy zombiakami z tej samej fali
              updateUI();
           }
         } else {
@@ -564,12 +505,33 @@
         }
       }
 
+      // Aktualizacja Paska Życia Bossa (HTML OVERLAY)
+      const bossZ = zombies.find(z => z.isBoss);
+      const hpUI = document.getElementById('boss-hp-container');
+      const hpBar = document.getElementById('boss-hp-bar');
+      if (bossZ && !bossZ.isLocked) {
+          const worldPos = new THREE.Vector3();
+          bossZ.mesh.getWorldPosition(worldPos); // Prawdziwa pozycja 3D w świecie (ignorując nachylenie worldGroup)
+          worldPos.y += 3.5; // Przesunięcie lekko nad głowę Bossa
+          worldPos.project(camera); // Projekcja z 3D do 2D
+          
+          const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
+          const y = (worldPos.y * -0.5 + 0.5) * window.innerHeight;
+          hpUI.style.left = `${x}px`;
+          hpUI.style.top = `${y}px`;
+          hpUI.style.display = 'block';
+          
+          const hpPercent = Math.max(0, bossZ.hp / bossZ.maxHP) * 100;
+          hpBar.style.width = `${hpPercent}%`;
+      } else {
+          hpUI.style.display = 'none';
+      }
+
       // Zombie Ruch
       for (let i = zombies.length - 1; i >= 0; i--) {
         const z = zombies[i];
-        if (z.isLocked) continue; // Boss w klatce
+        if (z.isLocked) continue; 
 
-        z.animationTime += 0.1;
         let target = baseGroup; let minDist = z.position.distanceToSquared(baseGroup.position);
         buildings.forEach(b => {
           const d = z.position.distanceToSquared(b.position);
@@ -578,12 +540,9 @@
 
         tempVec.subVectors(target.position, z.position).normalize();
         if (minDist > 3) {
-          z.position.add(tempVec.multiplyScalar(z.speed)); z.mesh.position.copy(z.position);
+          z.position.add(tempVec.multiplyScalar(z.speed)); 
+          z.mesh.position.copy(z.position);
           z.mesh.rotation.y = Math.atan2(tempVec.x, tempVec.z);
-          if (z.mesh.userData.leftLeg) {
-            z.mesh.userData.leftLeg.rotation.x = Math.sin(z.animationTime * 0.3) * 0.3;
-            z.mesh.userData.rightLeg.rotation.x = Math.sin(z.animationTime * 0.3 + Math.PI) * 0.3;
-          }
         } else {
           if (target === baseGroup) {
             game.baseHP -= z.damage * 0.018;
@@ -593,11 +552,13 @@
           }
         }
 
+        // Smierć Zombie
         if (z.hp <= 0) {
           worldGroup.remove(z.mesh); zombies.splice(i, 1);
           if (z.isBoss) {
             game.gold += 200 + game.level * 50; game.wood += 150 + game.level * 40;
             document.getElementById('level-complete').style.display = 'flex';
+            hpUI.style.display = 'none'; // schowaj pasek bossa po smierci
           } else {
             game.zombieKilled++; game.levelKills++;
             if (Math.random() < 0.65) game.gold += 6 + Math.floor(game.currentWave / 2); else game.wood += 4;
@@ -614,30 +575,38 @@
         }
       }
 
-      // Wieże, pociski i niszczenie budynków (Logika z oryginalnego kodu uproszczona)
+      // Wieże strzelają
       for (let i = buildings.length - 1; i >= 0; i--) {
         const b = buildings[i];
         if (b.hp <= 0) { worldGroup.remove(b.mesh); buildings.splice(i, 1); continue; }
         const def = buildingTypes[b.type];
         if (def.range) {
-          b.cooldown--;
+          b.cooldown -= delta * 60; // cooldown w klatkach
           if (b.cooldown <= 0) {
             const zTarget = zombies.find(zmb => !zmb.isLocked && b.position.distanceTo(zmb.position) < def.range);
             if (zTarget) {
               const p = new THREE.Mesh(geometryCache.projectile, materialCache.projectileCannon);
               p.position.copy(b.position); p.position.y += 2.5; worldGroup.add(p);
-              projectiles.push({ mesh: p, pos: p.position.clone(), target: zTarget.position.clone(), dmg: def.damage, life: 120 });
+              projectiles.push({ mesh: p, pos: p.position.clone(), target: zTarget, dmg: def.damage, life: 120 });
               b.cooldown = def.fireRate;
             }
           }
         }
       }
 
+      // Pociski w locie
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i]; p.life--;
-        tempVec.subVectors(p.target, p.pos).normalize(); p.pos.add(tempVec.multiplyScalar(0.45)); p.mesh.position.copy(p.pos);
-        if (p.pos.distanceTo(p.target) < 0.8 || p.life <= 0) {
-          zombies.forEach(z => { if (p.pos.distanceTo(z.position) < 2 && !z.isLocked) z.hp -= p.dmg; });
+        // Pocisk śledzi cel w ruchu (jeśli cel żyje)
+        if (p.target && !p.target.isLocked) {
+          tempVec.subVectors(p.target.position, p.pos).normalize(); 
+          p.pos.add(tempVec.multiplyScalar(0.45)); 
+          p.mesh.position.copy(p.pos);
+          if (p.pos.distanceTo(p.target.position) < 2 || p.life <= 0) {
+            p.target.hp -= p.dmg;
+            worldGroup.remove(p.mesh); projectiles.splice(i, 1);
+          }
+        } else {
           worldGroup.remove(p.mesh); projectiles.splice(i, 1);
         }
       }
@@ -658,7 +627,6 @@
       game.wood += 40; game.gold += 50;
       document.getElementById('level-complete').style.display = 'none';
       document.getElementById('currentLevel').textContent = game.level;
-      document.getElementById('levelGoal').textContent = (game.level === 1) ? 10 : game.level * 10;
       setupLevel();
     };
     window.restartGame = function() { location.reload(); };
@@ -671,11 +639,10 @@
       lastTime = time;
 
       // Sztywne przesuwanie kamery w lewo-prawo (tylko oś X)
-      if (panKeys.left) camera.position.x -= 25 * delta;
-      if (panKeys.right) camera.position.x += 25 * delta;
+      if (panKeys.left) camera.position.x -= 30 * delta;
+      if (panKeys.right) camera.position.x += 30 * delta;
       
       camera.position.y = 32; camera.position.z = 42;
-      // Zabezpieczenie przed "wylotem" z mapy
       if(camera.position.x > BASE_X + 25) camera.position.x = BASE_X + 25;
       if(camera.position.x < BASE_X - 60) camera.position.x = BASE_X - 60;
       controls.target.set(camera.position.x - 20, 0, 0);
