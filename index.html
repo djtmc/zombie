@@ -22,11 +22,9 @@
     @keyframes titleGlow { 0%, 100% { text-shadow: 3px 3px 6px #000, 0 0 10px #ff0000; } 50% { text-shadow: 3px 3px 6px #000, 0 0 20px #ff0000; } }
     .stats { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
     .stat { background: rgba(0, 0, 0, 0.85); padding: 5px 8px; border-radius: 6px; border: 2px solid #444; font-size: 11px; backdrop-filter: blur(10px); transition: all 0.3s; }
-    .stat:hover { border-color: #888; transform: scale(1.05); }
     .stat.danger { border-color: #ff0000; background: rgba(139, 0, 0, 0.6); animation: pulse 1s infinite; }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
     .stat-value { color: #4CAF50; font-weight: bold; font-size: 13px; }
-    .stat-income { font-size: 9px; color: #88ff88; margin-top: 2px; }
 
     /* Level Display */
     #level-display { background: linear-gradient(135deg, rgba(138, 43, 226, 0.9), rgba(75, 0, 130, 0.9)); padding: 8px 12px; border-radius: 6px; border: 2px solid #9370DB; font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 8px; }
@@ -40,12 +38,11 @@
     .building-btn:disabled { background: rgba(85, 85, 85, 0.8); cursor: not-allowed; opacity: 0.5; border-color: #666; }
     .building-btn.selected { background: rgba(61, 127, 62, 0.95); border-color: #0f0; box-shadow: 0 0 20px rgba(0, 255, 0, 0.6); }
     .building-btn.special { background: rgba(138, 43, 226, 0.95); border-color: #9370DB; }
-    .building-btn.special:hover:not(:disabled) { background: rgba(148, 63, 236, 0.95); }
     .building-icon { font-size: 22px; display: block; margin-bottom: 3px; }
     .building-name { font-weight: bold; font-size: 10px; margin-bottom: 2px; }
     .building-cost { font-size: 8px; opacity: 0.9; }
 
-    /* Right side collapsible panels */
+    /* Right side panels */
     #right-panels { position: absolute; top: 15px; right: 15px; z-index: 100; display: flex; flex-direction: column; gap: 8px; max-width: 240px; pointer-events: auto; }
     .panel { background: rgba(0, 0, 0, 0.85); border-radius: 8px; border: 2px solid #444; backdrop-filter: blur(10px); overflow: hidden; }
     .panel-header { padding: 10px 12px; cursor: pointer; font-weight: bold; color: #4CAF50; display: flex; justify-content: space-between; align-items: center; font-size: 14px; user-select: none; }
@@ -53,53 +50,36 @@
     .panel.collapsed .panel-header .arrow { transform: rotate(-90deg); }
     .panel-body { padding: 0 12px 12px 12px; font-size: 12px; }
     .panel.collapsed .panel-body { display: none; }
-    .control-title { font-weight: bold; color: #4CAF50; margin-bottom: 8px; font-size: 14px; }
-    .control-item { margin: 6px 0; padding-left: 5px; }
     .setting-item { margin: 8px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
     .toggle-btn { background: #4CAF50; color: white; border: none; padding: 6px 16px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.3s; }
-    .toggle-btn:hover { transform: scale(1.1); }
     .toggle-btn.off { background: #f44336; }
 
-    /* Notifications & FPS */
+    /* Notifications & Modals */
     #fps { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); background: rgba(0, 0, 0, 0.85); padding: 8px 18px; border-radius: 5px; font-size: 15px; color: #4CAF50; font-weight: bold; }
     #notification { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); padding: 25px 45px; border-radius: 12px; border: 3px solid #4CAF50; font-size: 20px; font-weight: bold; display: none; z-index: 300; text-align: center; animation: fadeInOut 3s; pointer-events: none; }
     @keyframes fadeInOut { 0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } 10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
-
-    /* Overlays */
-    #level-complete, .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: none; justify-content: center; align-items: center; z-index: 400; }
-    .level-complete-content, .modal-content { background: linear-gradient(135deg, #2c2c54, #1a1a3a); padding: 30px; border-radius: 15px; text-align: center; border: 3px solid #d4af37; box-shadow: 0 0 40px rgba(212, 175, 55, 0.5); max-width: 400px; width: 90%; position: relative;}
-    .level-complete-content h2, .modal-content h2 { font-size: 32px; margin-bottom: 20px; color: #d4af37; text-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
-    .next-level-btn { background: #4CAF50; color: white; border: none; padding: 15px 40px; font-size: 20px; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; transition: all 0.3s; }
-    .next-level-btn:hover { background: #45a049; transform: scale(1.1); }
-    .modal-close { position: absolute; top: 10px; right: 10px; background: #ff4444; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; }
+    
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.9); display: none; justify-content: center; align-items: center; z-index: 400; }
+    .modal-content { background: linear-gradient(135deg, #2c2c54, #1a1a3a); padding: 30px; border-radius: 15px; text-align: center; border: 3px solid #d4af37; box-shadow: 0 0 40px rgba(212, 175, 55, 0.5); max-width: 400px; width: 90%; position: relative;}
+    .modal-content h2 { font-size: 32px; margin-bottom: 20px; color: #d4af37; text-shadow: 0 0 20px rgba(212, 175, 55, 0.5); }
+    .next-level-btn { background: #4CAF50; color: white; border: none; padding: 15px 40px; font-size: 20px; border-radius: 10px; cursor: pointer; margin-top: 20px; font-weight: bold; }
     
     #loading { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 28px; color: #4CAF50; z-index: 500; text-align: center; }
-    .loading-spinner { width: 60px; height: 60px; border: 6px solid rgba(76, 175, 80, 0.3); border-top-color: #4CAF50; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px auto; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Exchange Panel */
+    
     #exchange { position: absolute; bottom: 15px; right: 15px; background: rgba(0, 0, 0, 0.9); padding: 12px; border-radius: 8px; border: 2px solid #d4af37; z-index: 100; pointer-events: auto; }
-    .exchange-btn { background: #d4af37; color: #000; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 4px; transition: all 0.3s; font-size: 10px; }
-    .exchange-btn:hover:not(:disabled) { background: #ffcc44; transform: scale(1.05); }
-
-    /* Upgrades */
-    .upgrade-tier { background: rgba(0, 0, 0, 0.4); border: 2px solid #555; border-radius: 8px; padding: 10px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .upgrade-btn { background: #4CAF50; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 12px; }
-    .upgrade-btn:disabled { background: #666; cursor: not-allowed; }
-    #upgradeInfo, #gameOverStats { text-align: left; font-size: 13px; margin-bottom: 15px; padding: 10px 12px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; line-height: 1.6; }
+    .exchange-btn { background: #d4af37; color: #000; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; margin: 4px; font-size: 10px; }
 
     @media (max-width: 768px) {
       #buildings { bottom: 10px; gap: 5px; }
       .building-btn { min-width: 56px; padding: 6px 8px; }
       .building-icon { font-size: 18px; }
       .building-name { font-size: 9px; }
-      #right-panels { max-width: 150px; font-size: 11px; }
     }
   </style>
 </head>
 
 <body>
-  <div id="loading"><div>🧟 ZOMBIE SURVIVAL 3D 🏰</div><div class="loading-spinner"></div><div>Ładowanie gry...</div></div>
+  <div id="loading"><div>🧟 ZOMBIE SURVIVAL 3D 🏰</div><div>Ładowanie gry...</div></div>
   <div id="container"></div>
   <div id="fps">FPS: 60</div>
   <div id="notification"></div>
@@ -113,36 +93,25 @@
     </div>
     <div class="stats">
       <div class="stat" id="baseHP">❤️ HP Bazy<br><span class="stat-value">100</span></div>
-      <div class="stat">💰 Złoto<br><span class="stat-value" id="gold">150</span><div class="stat-income" id="goldIncome"></div></div>
-      <div class="stat">🪵 Drewno<br><span class="stat-value" id="wood">100</span><div class="stat-income" id="woodIncome"></div></div>
-      <div class="stat">👹 Fala<br><span class="stat-value" id="wave">1</span></div>
-      <div class="stat">🧟 Zombie<br><span class="stat-value" id="zombieCount">0</span></div>
+      <div class="stat">💰 Złoto<br><span class="stat-value" id="gold">150</span></div>
+      <div class="stat">🪵 Drewno<br><span class="stat-value" id="wood">100</span></div>
+      <div class="stat" id="waveContainer">🌊 Fala<br><span class="stat-value" id="wave">1 / 2</span></div>
+      <div class="stat">🧟 Na mapie<br><span class="stat-value" id="zombieCount">0</span></div>
       <div class="stat">💀 Zabici<br><span class="stat-value" id="killed">0</span></div>
     </div>
   </div>
 
   <div id="right-panels">
     <div class="panel" id="settings-panel">
-      <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')"><span>⚙️ Ustawienia</span><span class="arrow">▼</span></div>
+      <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')"><span>⚙️ Trudność</span><span class="arrow">▼</span></div>
       <div class="panel-body">
-        <div class="setting-item"><span>Cienie:</span><button class="toggle-btn off" id="shadowToggle" onclick="event.stopPropagation(); toggleShadows()">WYŁ</button></div>
-        <div class="setting-item"><span>Efekty:</span><button class="toggle-btn" id="particleToggle" onclick="event.stopPropagation(); toggleParticles()">WŁ</button></div>
         <div class="setting-item"><span>Trudność:</span><button class="toggle-btn" id="difficultyToggle" onclick="event.stopPropagation(); toggleDifficulty()">Ogień w szopie</button></div>
-      </div>
-    </div>
-    <div class="panel" id="controls-panel">
-      <div class="panel-header" onclick="this.parentElement.classList.toggle('collapsed')"><span>⌨️ Sterowanie</span><span class="arrow">▼</span></div>
-      <div class="panel-body">
-        <div class="control-item">🖱️ Przeciągnij - Przesuń mapę</div>
-        <div class="control-item">⌨️ A / D - Przesuń mapę</div>
-        <div class="control-item">🖱️ Klik - Postaw budynek</div>
-        <div class="control-item">⌨️ ESC - Anuluj</div>
       </div>
     </div>
   </div>
 
   <div id="exchange">
-    <div class="control-title" style="color: #d4af37; font-size: 12px;">💱 Wymiana</div>
+    <div style="color: #d4af37; font-weight: bold; font-size: 12px; margin-bottom: 5px;">💱 Wymiana</div>
     <button class="exchange-btn" onclick="exchange('goldToWood')">💰→🪵<br><small>20→10</small></button>
     <button class="exchange-btn" onclick="exchange('woodToGold')">🪵→💰<br><small>10→20</small></button>
   </div>
@@ -150,39 +119,26 @@
   <div id="buildings">
     <button class="building-btn" onclick="selectBuilding('wall')"><span class="building-icon">✖️</span><div class="building-name">Zasieki</div><div class="building-cost">10 🪵</div></button>
     <button class="building-btn" onclick="selectBuilding('bigwall')"><span class="building-icon">🏗️</span><div class="building-name">Mur</div><div class="building-cost">25 🪵</div></button>
-    <button class="building-btn special" onclick="buyWielkaArmata()" id="wielkaArmataBtn"><span class="building-icon">🎯</span><div class="building-name">Wielka Armata</div><div class="building-cost">2000 🪵, 2000 💰</div></button>
+    <button class="building-btn special" onclick="buyWielkaArmata()" id="wielkaArmataBtn"><span class="building-icon">🎯</span><div class="building-name">Wielka Armata</div><div class="building-cost">2000 🪵 2000 💰</div></button>
     <button class="building-btn" onclick="selectBuilding('cannon')"><span class="building-icon">💥</span><div class="building-name">Armata</div><div class="building-cost">30 🪵, 25 💰</div></button>
     <button class="building-btn special" onclick="selectBuilding('soldier')"><span class="building-icon">🪖</span><div class="building-name">Żołnierz</div><div class="building-cost">100 🪵, 150 💰</div></button>
-    <button class="building-btn special" onclick="selectBuilding('koszary')" id="koszaryBtn"><span class="building-icon">🏰</span><div class="building-name">Koszary</div><div class="building-cost">500 🪵, 500 💰</div></button>
-    <button class="building-btn special" onclick="selectBuilding('factory')"><span class="building-icon">⚙️</span><div class="building-name">Fabryka</div><div class="building-cost">1000 🪵, 1000 💰</div></button>
     <button class="building-btn" style="background: rgba(95, 95, 45, 0.95); border-color: #d4af37;" onclick="selectBuilding('sawmill')"><span class="building-icon">🏭</span><div class="building-name">Tartak</div><div class="building-cost">25 🪵, 20 💰</div></button>
     <button class="building-btn" style="background: rgba(95, 95, 45, 0.95); border-color: #d4af37;" onclick="selectBuilding('mine')"><span class="building-icon">⛏️</span><div class="building-name">Kopalnia</div><div class="building-cost">25 🪵, 20 💰</div></button>
   </div>
 
-  <div id="level-complete">
-    <div class="level-complete-content">
+  <div id="level-complete" class="modal-overlay">
+    <div class="modal-content">
       <h2>🎉 POZIOM UKOŃCZONY! 🎉</h2>
       <p style="color: white; margin-bottom: 10px;">Poziom <span id="completedLevel">1</span> zakończony!</p>
-      <p style="color: white;">🏆 Nagroda: <span id="completedReward"></span></p>
       <button class="next-level-btn" onclick="nextLevel()">NASTĘPNY POZIOM ➜</button>
     </div>
   </div>
 
   <div id="game-over-modal" class="modal-overlay" style="z-index: 600;">
-    <div class="modal-content" style="border-color: #ff4444; box-shadow: 0 0 40px rgba(255,68,68,0.6);">
+    <div class="modal-content" style="border-color: #ff4444;">
       <h2 style="color: #ff4444;">💀 GAME OVER 💀</h2>
-      <p style="margin: 15px 0; font-size: 16px; color:white;">Twoja baza została zniszczona!</p>
-      <div id="gameOverStats"></div>
+      <p style="margin: 15px 0; font-size: 16px; color:white;">Baza zniszczona!</p>
       <button class="next-level-btn" style="background: #ff4444;" onclick="restartGame()">🔄 NOWA GRA</button>
-    </div>
-  </div>
-
-  <div id="upgrade-modal" class="modal-overlay">
-    <div class="modal-content">
-      <button class="modal-close" onclick="closeUpgradeModal()">✖</button>
-      <h2 id="upgradeTitle">Ulepszenie</h2>
-      <div id="upgradeInfo" style="color:white;"></div>
-      <div id="upgradeTiers"></div>
     </div>
   </div>
 
@@ -199,25 +155,20 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // ========== SETTINGS ==========
-    const settings = { shadows: false, particles: true, maxParticles: 60 };
+    // ========== CONFIG ==========
     const MAP_WIDTH = 130;  
     const MAP_DEPTH = 70;   
     const BASE_X = MAP_WIDTH / 2 - 6;   
-    const BASE_Z = 0;
     const ZOMBIE_SPAWN_X = -MAP_WIDTH / 2 + 5; 
-    const MAP_TILT = 0.35; // NIESAMOWITY WYGLĄD: 35% pochylenia do góry w osi X
-    
-    // Ustalona kamera do blokady ruchów góra-dół
+    const MAP_TILT = 0.35; // 35% nachylenia
     const CAM_Y = 32;
     const CAM_Z = 45;
 
-    // ========== SCENE SETUP ==========
     const container = document.getElementById('container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x45456e);
+    scene.background = new THREE.Color(0x2a2a4a);
 
-    // GŁÓWNA GRUPA - pochylona cała mapa, aby wszystko na niej stało idealnie pionowo względem mapy
+    // GŁÓWNY ŚWIAT POCHYLONY
     const worldGroup = new THREE.Group();
     worldGroup.rotation.x = MAP_TILT;
     scene.add(worldGroup);
@@ -225,97 +176,118 @@
     const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
     camera.position.set(BASE_X + 5, CAM_Y, CAM_Z);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = settings.shadows;
     container.appendChild(renderer.domElement);
+    
     const clock = new THREE.Clock();
-
-    // Controls (ZABLOKOWANY OBRÓT - Tylko przesuwanie prawo-lewo)
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableRotate = false; // Blokada obrotu!
-    controls.enableZoom = false;   // Zablokowany zoom by nie popsuć układu
+    controls.enableRotate = false; // blokada rotacji
+    controls.enableZoom = false;   // blokada zooma
     controls.enablePan = true;
     controls.mouseButtons = { LEFT: THREE.MOUSE.PAN, MIDDLE: null, RIGHT: null }; 
-    controls.target.set(BASE_X - 10, 0, 0);
-    const panKeys = { left: false, right: false };
-
-    // Lighting
+    
     const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    directionalLight.position.set(30, 50, 20);
-    scene.add(directionalLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    dirLight.position.set(30, 50, 20);
+    scene.add(dirLight);
 
-    // ========== GAME STATE ==========
-    let isGameOver = false;
+    // ========== DIFFICULTY & WAVES ==========
     let difficultyIndex = 2; 
-    const DIFFICULTY_LEVELS = [ { name: 'Łatwa', scale: 0.60 }, { name: 'Średnia', scale: 0.85 }, { name: 'Ogień w szopie', scale: 1.0 } ];
-    
+    const DIFFICULTY_LEVELS = [ 
+      { name: 'Łatwa', scale: 0.60, waveInterval: 60 }, 
+      { name: 'Średnia', scale: 0.85, waveInterval: 40 }, 
+      { name: 'Ogień w szopie', scale: 1.0, waveInterval: 20 } 
+    ];
+
     const game = {
-      baseHP: 100, maxBaseHP: 100, gold: 150, wood: 100, wave: 1, zombieKilled: 0,
+      baseHP: 100, maxBaseHP: 100, gold: 150, wood: 100, zombieKilled: 0,
       selectedBuilding: null, isPlacingBuilding: false, buildingPreview: null,
-      woodPerSecond: 0, goldPerSecond: 0, resourceTimer: 0,
-      level: 1, levelKills: 0, levelGoal: 10, zombiesSpawnedThisLevel: 0, // DOKŁADNY LIMIT
-      bossSpawned: false, bossDefeated: false, zombiesPerWave: 3,
-      difficultyMultiplier: 1, difficultyScale: DIFFICULTY_LEVELS[2].scale,
-      lockedBoss: null, cageGroup: null
+      resourceTimer: 0,
+      
+      level: 1, levelKills: 0, levelGoal: 15,
+      zombiesSpawnedThisLevel: 0,
+      
+      // System Fal
+      totalWaves: 2, currentWave: 1, 
+      waveTimer: 5, // Pierwsza fala startuje szybciej (za 5s)
+      zombiesToSpawnThisWave: 0, spawnSubTimer: 0,
+      
+      bossSpawned: false, difficultyScale: DIFFICULTY_LEVELS[2].scale,
+      cageGroup: null, lockedBoss: null,
+      wielkaArmataCount: 0
     };
 
     window.toggleDifficulty = function() {
       difficultyIndex = (difficultyIndex + 1) % DIFFICULTY_LEVELS.length;
       game.difficultyScale = DIFFICULTY_LEVELS[difficultyIndex].scale;
       document.getElementById('difficultyToggle').textContent = DIFFICULTY_LEVELS[difficultyIndex].name;
+      showNotification(`Trudność: ${DIFFICULTY_LEVELS[difficultyIndex].name} (Fale co ${DIFFICULTY_LEVELS[difficultyIndex].waveInterval}s)`);
     };
 
-    // ========== WORLD OBJECTS ==========
+    window.exchange = function(type) {
+      if (type === 'goldToWood' && game.gold >= 20) { game.gold -= 20; game.wood += 10; }
+      if (type === 'woodToGold' && game.wood >= 10) { game.wood -= 10; game.gold += 20; }
+      updateUI();
+    };
+
+    // ========== MESHES ==========
     const ground = new THREE.Mesh(
       new THREE.PlaneGeometry(MAP_WIDTH, MAP_DEPTH),
       new THREE.MeshStandardMaterial({ color: 0x1a3a1a, roughness: 0.9 })
     );
-    ground.rotation.x = -Math.PI / 2; // Płasko wewnątrz pochylonego worldGroup
+    ground.rotation.x = -Math.PI / 2;
     worldGroup.add(ground);
     
     const gridHelper = new THREE.GridHelper(100, 50, 0x444444, 0x222222);
     gridHelper.scale.set(MAP_WIDTH / 100, 1, MAP_DEPTH / 100);
     worldGroup.add(gridHelper);
 
-    // ========== KLATKA DLA BOSSA (PEŁNA Z 4 ŚCIANAMI) ==========
     function createFullCage() {
       const group = new THREE.Group();
       const barMat = new THREE.MeshStandardMaterial({ color: 0x444444, metalness: 0.8 });
       const barGeo = new THREE.CylinderGeometry(0.12, 0.12, 5, 6);
-      
-      // Tworzymy ściany z kratek (kwadrat 5x5)
       for (let x = -2.5; x <= 2.5; x += 1) {
         for (let z = -2.5; z <= 2.5; z += 1) {
           if (Math.abs(x) === 2.5 || Math.abs(z) === 2.5) {
             const bar = new THREE.Mesh(barGeo, barMat);
-            bar.position.set(x, 2.5, z);
-            group.add(bar);
+            bar.position.set(x, 2.5, z); group.add(bar);
           }
         }
       }
-      // Dach klatki
       const roof = new THREE.Mesh(new THREE.BoxGeometry(5.2, 0.4, 5.2), barMat);
-      roof.position.set(0, 5, 0);
-      group.add(roof);
+      roof.position.set(0, 5, 0); group.add(roof);
       return group;
     }
 
-    // Instalacja klatki i bossa na start poziomu
-    function setupBossAndCage() {
+    function createZombieMesh() {
+      const g = new THREE.Group();
+      const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.4), new THREE.MeshStandardMaterial({ color: 0x228B22 })); body.position.y = 1.2; g.add(body);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.35), new THREE.MeshStandardMaterial({ color: 0x90EE90 })); head.position.y = 2.3; g.add(head);
+      return g;
+    }
+
+    function setupLevel() {
+      game.levelGoal = (game.level === 1) ? 15 : game.level * 10;
+      game.totalWaves = Math.ceil(game.levelGoal / 10);
+      game.currentWave = 1;
+      game.zombiesSpawnedThisLevel = 0;
+      game.zombiesToSpawnThisWave = 0; 
+      game.waveTimer = 3; // Pierwsza fala szybko wchodzi
+      game.bossSpawned = false;
+
       if (game.cageGroup) worldGroup.remove(game.cageGroup);
-      if (game.lockedBoss) { worldGroup.remove(game.lockedBoss.mesh); }
+      if (game.lockedBoss) worldGroup.remove(game.lockedBoss.mesh);
       
       game.cageGroup = createFullCage();
       game.cageGroup.position.set(ZOMBIE_SPAWN_X, 0, 0);
       worldGroup.add(game.cageGroup);
 
-      // Zablokowany Boss w klatce
-      const zCount = game.level * 10;
-      const bossHP = zCount * (50 + game.level * 20) * 0.5 * game.difficultyScale;
+      // BALANS BOSSA (Zależy od poziomu i trudności)
+      const bossHP = game.levelGoal * 35 * game.level * game.difficultyScale;
+      const bossDamage = (30 + game.level * 15) * game.difficultyScale;
       
       const mesh = createZombieMesh();
       mesh.scale.set(3.5, 3.5, 3.5);
@@ -323,19 +295,12 @@
       worldGroup.add(mesh);
 
       game.lockedBoss = {
-        mesh: mesh, hp: bossHP, maxHP: bossHP, speed: 0.05, damage: 50,
-        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, 0),
-        animationTime: 0, isBoss: true, isActive: false // Zablokowany!
+        mesh: mesh, hp: bossHP, maxHP: bossHP, speed: 0.05, damage: bossDamage,
+        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, 0), isBoss: true, isActive: false 
       };
       zombies.push(game.lockedBoss);
-    }
-
-    function releaseBoss() {
-      game.bossSpawned = true;
-      game.lockedBoss.isActive = true; // Wypuszczenie Bossa
-      worldGroup.remove(game.cageGroup);
-      game.cageGroup = null;
-      showNotification(`👑 KLATKA OTWARTA! BOSS ATAKUJE!`);
+      
+      updateUI();
     }
 
     const armataSlots = [
@@ -344,80 +309,84 @@
       { x: 0, z: -MAP_DEPTH / 2 + 3 },
       { x: 0, z: MAP_DEPTH / 2 - 3 }
     ];
-    armataSlots.forEach(slot => {
-      const block = new THREE.Mesh(new THREE.BoxGeometry(3, 1, 3), new THREE.MeshStandardMaterial({ color: 0x555555 }));
-      block.position.set(slot.x, 0.5, slot.z);
-      worldGroup.add(block);
-    });
 
-    const geometryCache = { base: new THREE.BoxGeometry(4, 5, 4), roof: new THREE.ConeGeometry(3, 2.5, 4) };
-    const materialCache = { base: new THREE.MeshStandardMaterial({ color: 0x4169e1 }), roof: new THREE.MeshStandardMaterial({ color: 0x8b0000 }) };
-    
-    // Budynki i struktury
     const buildingTypes = {
-      wall: { cost: { wood: 10 }, hp: 100, height: 2.5, category: 'defense' },
-      bigwall: { cost: { wood: 25 }, hp: 250, height: 4, width: 2, category: 'defense' },
-      wielkaArmata: { cost: { wood: 2000, gold: 2000 }, hp: 200, height: 4, range: 35, damage: 200, fireRate: 50 },
-      cannon: { cost: { wood: 30, gold: 25 }, hp: 70, height: 3, range: 22, damage: 60, fireRate: 80 },
-      soldier: { cost: { wood: 100, gold: 150 }, hp: 120, height: 1.8, range: 18, damage: 40, fireRate: 30, moveSpeed: 0.05 },
-      factory: { cost: { wood: 1000, gold: 1000 }, hp: 120, height: 3, productionInterval: 60000 },
-      sawmill: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, woodPerSecond: 2 },
-      mine: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, goldPerSecond: 3 },
-      koszary: { cost: { wood: 500, gold: 500 }, hp: 200, height: 3, productionInterval: 30000 }
+      wall: { cost: { wood: 10, gold: 0 }, hp: 100, h: 2.5, w: 1.5, type: 'block' },
+      bigwall: { cost: { wood: 25, gold: 0 }, hp: 250, h: 4, w: 2, type: 'block' },
+      wielkaArmata: { cost: { wood: 2000, gold: 2000 }, hp: 300, range: 35, damage: 200, fireRate: 40 },
+      cannon: { cost: { wood: 30, gold: 25 }, hp: 70, h: 3, range: 22, damage: 60, fireRate: 70 },
+      soldier: { cost: { wood: 100, gold: 150 }, hp: 120, h: 1.8, range: 18, damage: 40, fireRate: 30 },
+      sawmill: { cost: { wood: 25, gold: 20 }, hp: 60, h: 2.5, woodPS: 2 },
+      mine: { cost: { wood: 25, gold: 20 }, hp: 60, h: 2.5, goldPS: 3 }
     };
 
     const baseGroup = new THREE.Group();
-    const baseMesh = new THREE.Mesh(geometryCache.base, materialCache.base); baseMesh.position.y = 2.5; baseGroup.add(baseMesh);
-    const roof = new THREE.Mesh(geometryCache.roof, materialCache.roof); roof.position.y = 6; roof.rotation.y = Math.PI/4; baseGroup.add(roof);
+    const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(4,5,4), new THREE.MeshStandardMaterial({ color: 0x4169e1 })); baseMesh.position.y = 2.5; baseGroup.add(baseMesh);
     worldGroup.add(baseGroup);
-    baseGroup.position.set(BASE_X, 0, BASE_Z);
-    baseGroup.userData = { type: 'base', hp: game.baseHP };
+    baseGroup.position.set(BASE_X, 0, 0);
 
-    const zombies = []; const buildings = []; const projectiles = []; const particles = [];
-
-    // MESH GENERATORS
-    function createZombieMesh() {
-      const g = new THREE.Group();
-      const body = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.8, 0.4), new THREE.MeshStandardMaterial({ color: 0x228B22 })); body.position.y = 1.2; g.add(body);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.35), new THREE.MeshStandardMaterial({ color: 0x90EE90 })); head.position.y = 2.3; g.add(head);
-      return g;
-    }
+    const zombies = []; const buildings = []; const projectiles = [];
 
     function createBuildingMesh(type) {
       const def = buildingTypes[type];
       const g = new THREE.Group();
-      const mat = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
-      if (type === 'wall' || type === 'bigwall') {
-        const mesh = new THREE.Mesh(new THREE.BoxGeometry(def.width||1.5, def.height, def.width||1.5), mat);
-        mesh.position.y = def.height/2; g.add(mesh);
-      } else if (type === 'cannon' || type === 'wielkaArmata') {
-        const base = new THREE.Mesh(new THREE.CylinderGeometry(1,1,2), new THREE.MeshStandardMaterial({color:0x444})); base.position.y=1; g.add(base);
+      if(type === 'cannon' || type === 'wielkaArmata') {
+        const c = new THREE.Mesh(new THREE.CylinderGeometry(1,1,2), new THREE.MeshStandardMaterial({color:0x444})); c.position.y=1; g.add(c);
       } else {
-        const box = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), new THREE.MeshStandardMaterial({color:0x666})); box.position.y=1; g.add(box);
+        const c = new THREE.Mesh(new THREE.BoxGeometry(def.w||2, def.h||2, def.w||2), new THREE.MeshStandardMaterial({color:0x8b4513})); c.position.y=(def.h||2)/2; g.add(c);
       }
       return g;
     }
 
+    // ========== SYSTEM BUDOWANIA Z PODGLĄDEM ==========
+    function canAfford(type) {
+      const cost = buildingTypes[type].cost;
+      return game.wood >= cost.wood && game.gold >= cost.gold;
+    }
+
     window.selectBuilding = function(type) {
-      if (game.wood < buildingTypes[type].cost.wood) return;
+      if (!canAfford(type)) return;
       game.selectedBuilding = type;
       game.isPlacingBuilding = true;
       if (game.buildingPreview) worldGroup.remove(game.buildingPreview);
+      
       game.buildingPreview = createBuildingMesh(type);
+      // Półprzezroczysty materiał podglądu
+      game.buildingPreview.traverse((child) => {
+        if (child.isMesh) {
+          child.material = child.material.clone();
+          child.material.transparent = true; child.material.opacity = 0.6;
+          child.material.emissive = new THREE.Color(0x00ff00);
+          child.material.emissiveIntensity = 0.3;
+        }
+      });
       worldGroup.add(game.buildingPreview);
     };
 
-    window.buyWielkaArmata = function() {
-        if(game.wood >= 2000 && game.gold >= 2000) {
-            game.wood -= 2000; game.gold -= 2000;
-            const mesh = createBuildingMesh('wielkaArmata');
-            mesh.position.set(armataSlots[0].x, 1, armataSlots[0].z);
-            worldGroup.add(mesh);
-            buildings.push({ mesh, type: 'wielkaArmata', hp: 200, cooldown: 0, position: mesh.position.clone() });
-        }
+    function cancelBuilding() {
+      game.isPlacingBuilding = false;
+      game.selectedBuilding = null;
+      if (game.buildingPreview) {
+        worldGroup.remove(game.buildingPreview);
+        game.buildingPreview = null;
+      }
     }
 
-    // ========== RAYCASTING & CLICK ==========
+    window.buyWielkaArmata = function() {
+      if(game.wielkaArmataCount >= 4) return showNotification("Limit wielkich armat osiągnięty!");
+      if(canAfford('wielkaArmata')) {
+        game.wood -= 2000; game.gold -= 2000;
+        const slot = armataSlots[game.wielkaArmataCount];
+        const mesh = createBuildingMesh('wielkaArmata');
+        mesh.position.set(slot.x, 1, slot.z);
+        worldGroup.add(mesh);
+        buildings.push({ mesh, type: 'wielkaArmata', hp: 300, cooldown: 0, position: mesh.position.clone() });
+        game.wielkaArmataCount++;
+        updateUI();
+      }
+    }
+
+    // Nasłuchiwanie myszki do podglądu budowania na pochylonej mapie
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let mousePos3D = new THREE.Vector3();
@@ -430,10 +399,10 @@
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObject(ground);
         if (intersects.length > 0) {
-          // KONWERSJA DO LOKALNYCH WSPÓŁRZĘDNYCH POCHYLONEJ MAPY
-          const point = worldGroup.worldToLocal(intersects[0].point.clone());
-          const x = Math.round(point.x / 2) * 2;
-          const z = Math.round(point.z / 2) * 2;
+          // Transformacja punktu 3D do zrotowanej grupy worldGroup
+          const localPoint = worldGroup.worldToLocal(intersects[0].point.clone());
+          const x = Math.round(localPoint.x / 2) * 2;
+          const z = Math.round(localPoint.z / 2) * 2;
           game.buildingPreview.position.set(x, 0, z);
           mousePos3D.set(x, 0, z);
         }
@@ -441,45 +410,28 @@
     });
 
     window.addEventListener('click', (e) => {
+      if (e.target !== renderer.domElement) return; // Zapobiega klikaniu przez UI
+      
       if (game.isPlacingBuilding && game.selectedBuilding) {
         const type = game.selectedBuilding;
-        game.wood -= buildingTypes[type].cost.wood;
-        const b = createBuildingMesh(type);
-        b.position.copy(mousePos3D);
-        worldGroup.add(b);
-        buildings.push({ mesh: b, type: type, hp: buildingTypes[type].hp, cooldown: 0, position: b.position.clone() });
-        worldGroup.remove(game.buildingPreview);
-        game.isPlacingBuilding = false;
-        game.buildingPreview = null;
+        if (canAfford(type)) {
+          game.wood -= buildingTypes[type].cost.wood;
+          game.gold -= buildingTypes[type].cost.gold;
+          
+          const b = createBuildingMesh(type);
+          b.position.copy(mousePos3D);
+          worldGroup.add(b);
+          buildings.push({ mesh: b, type: type, hp: buildingTypes[type].hp, cooldown: 0, position: b.position.clone() });
+          
+          cancelBuilding();
+          updateUI();
+        }
       }
     });
 
-    // Klawiatura Panowanie
-    window.addEventListener('keydown', (e) => {
-      if (e.key === 'a') panKeys.left = true;
-      if (e.key === 'd') panKeys.right = true;
-    });
-    window.addEventListener('keyup', (e) => {
-      if (e.key === 'a') panKeys.left = false;
-      if (e.key === 'd') panKeys.right = false;
-    });
+    window.addEventListener('keydown', (e) => { if(e.key === 'Escape') cancelBuilding(); });
 
-    // ========== SPAWN ZOMBIE Z LIMITEM ==========
-    function spawnZombie() {
-      if (game.zombiesSpawnedThisLevel >= game.levelGoal) return; // BLOKADA LIMITU ZOMBIE
-      
-      const z = (Math.random() - 0.5) * (MAP_DEPTH - 10);
-      const mesh = createZombieMesh();
-      mesh.position.set(ZOMBIE_SPAWN_X, 0, z);
-      worldGroup.add(mesh); // dodajemy do pochylonego świata
-      
-      game.zombiesSpawnedThisLevel++;
-      zombies.push({
-        mesh: mesh, hp: 50 * game.difficultyScale, maxHP: 50, speed: 0.04, damage: 10,
-        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, z), isActive: true
-      });
-    }
-
+    // ========== GAME LOOP ==========
     function showNotification(text) {
       const n = document.getElementById('notification');
       n.textContent = text; n.style.display = 'block';
@@ -489,139 +441,195 @@
     const tempVec = new THREE.Vector3();
 
     function update(delta) {
-      if (isGameOver) return;
-      
-      // Ekonomia
-      game.resourceTimer++;
-      if (game.resourceTimer >= 60) {
-        buildings.forEach(b => {
-          if (b.type === 'sawmill') game.wood += 2;
-          if (b.type === 'mine') game.gold += 3;
-        });
-        game.resourceTimer = 0;
+      if (game.baseHP <= 0 && !isGameOver) { 
+        isGameOver = true; 
+        document.getElementById('game-over-modal').style.display = 'flex'; 
+        return; 
       }
 
-      // Spawning
-      if (Math.random() < 0.02 && game.zombiesSpawnedThisLevel < game.levelGoal) {
-        spawnZombie();
+      // Ekonomia (co 60 klatek przy 60FPS)
+      game.resourceTimer += delta;
+      if (game.resourceTimer >= 1) {
+        buildings.forEach(b => {
+          if (b.type === 'sawmill') game.wood += buildingTypes.sawmill.woodPS;
+          if (b.type === 'mine') game.gold += buildingTypes.mine.goldPS;
+        });
+        game.resourceTimer = 0;
+        updateUI();
+      }
+
+      // ========== SYSTEM FAL ZOMBIE ==========
+      if (!game.bossSpawned) {
+        if (game.zombiesToSpawnThisWave > 0) {
+          game.spawnSubTimer -= delta;
+          if (game.spawnSubTimer <= 0) {
+            // Wyrzuć jednego zombie na mapę
+            const zPos = (Math.random() - 0.5) * (MAP_DEPTH - 10);
+            const mesh = createZombieMesh();
+            mesh.position.set(ZOMBIE_SPAWN_X, 0, zPos);
+            worldGroup.add(mesh);
+            zombies.push({ mesh: mesh, hp: 50 * game.difficultyScale, speed: 0.04, damage: 10 * game.difficultyScale, position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, zPos), isActive: true });
+            
+            game.zombiesSpawnedThisLevel++;
+            game.zombiesToSpawnThisWave--;
+            game.spawnSubTimer = 0.5; // Co 0.5 sekundy wychodzi kolejny, aż wystrzela limit fali
+            updateUI();
+          }
+        } 
+        else if (game.zombiesSpawnedThisLevel < game.levelGoal) {
+          // Oczekiwanie na nową falę
+          game.waveTimer -= delta;
+          if (game.waveTimer <= 0) {
+            game.currentWave++;
+            const interval = DIFFICULTY_LEVELS[difficultyIndex].waveInterval;
+            game.waveTimer = interval;
+            game.zombiesToSpawnThisWave = Math.min(10, game.levelGoal - game.zombiesSpawnedThisLevel);
+            showNotification(`🌊 FALA ${game.currentWave}/${game.totalWaves} ROZPOCZĘTA!`);
+            updateUI();
+          }
+        }
       }
 
       // Otwarcie klatki gdy zabijemy cel zombie
       if (!game.bossSpawned && game.levelKills >= game.levelGoal && game.lockedBoss) {
-        releaseBoss();
+        game.bossSpawned = true;
+        game.lockedBoss.isActive = true;
+        worldGroup.remove(game.cageGroup);
+        game.cageGroup = null;
+        showNotification(`👑 KLATKA OTWARTA! BOSS ATAKUJE!`);
       }
 
-      // Zombie
+      // Zombie ruch
       for (let i = zombies.length - 1; i >= 0; i--) {
         const z = zombies[i];
-        if (!z.isActive) continue; // BOSS W KLATCE CZEKA
+        if (!z.isActive) continue; 
+
+        // Znajdź najbliższy budynek LUB bazę
+        let targetPos = baseGroup.position;
+        let targetObj = { hpContainer: game, isBase: true };
+        let minDistSq = z.position.distanceToSquared(baseGroup.position);
+
+        buildings.forEach(b => {
+            const d = z.position.distanceToSquared(b.position);
+            if(d < minDistSq) { minDistSq = d; targetPos = b.position; targetObj = { hpContainer: b, isBase: false }; }
+        });
+
+        tempVec.subVectors(targetPos, z.position).normalize();
         
-        let closestDistSq = z.position.distanceToSquared(baseGroup.position);
-        tempVec.subVectors(baseGroup.position, z.position).normalize();
-        
-        if (closestDistSq > 4) {
+        if (minDistSq > 5) {
           z.position.add(tempVec.multiplyScalar(z.speed));
           z.mesh.position.copy(z.position);
           z.mesh.rotation.y = Math.atan2(tempVec.x, tempVec.z);
         } else {
-          game.baseHP -= z.damage * 0.02;
-          if (game.baseHP <= 0) { isGameOver = true; document.getElementById('game-over-modal').style.display = 'flex'; }
+          // Obrażenia dla bazy lub budynku
+          if(targetObj.isBase) {
+             game.baseHP -= z.damage * delta;
+          } else {
+             targetObj.hpContainer.hp -= z.damage * delta;
+             if(targetObj.hpContainer.hp <= 0) {
+                 worldGroup.remove(targetObj.hpContainer.mesh);
+                 buildings.splice(buildings.indexOf(targetObj.hpContainer), 1);
+             }
+          }
         }
 
         if (z.hp <= 0) {
           worldGroup.remove(z.mesh);
           zombies.splice(i, 1);
           if (z.isBoss) {
-            game.gold += 300; game.wood += 200;
+            game.gold += 300 * game.level; game.wood += 200 * game.level;
             document.getElementById('level-complete').style.display = 'flex';
           } else {
             game.zombieKilled++; game.levelKills++;
             game.gold += 5;
           }
+          updateUI();
         }
       }
 
       // Wieże strzelają
       buildings.forEach(b => {
-        if(b.type === 'cannon' || b.type === 'wielkaArmata') {
-          b.cooldown--;
-          if (b.cooldown <= 0 && zombies.length > 0) {
-            // strzał w pierwszego z brzegu
-            const targetZ = zombies.find(zmb => zmb.isActive);
-            if(targetZ && b.position.distanceTo(targetZ.position) < 25) {
+        const def = buildingTypes[b.type];
+        if(def.range) {
+          b.cooldown -= delta * 60; // cooldown w 'klatkach' dla wstecznej kompatybilności
+          if (b.cooldown <= 0) {
+            const targetZ = zombies.find(zmb => zmb.isActive && b.position.distanceTo(zmb.position) < def.range);
+            if(targetZ) {
               const pMesh = new THREE.Mesh(new THREE.SphereGeometry(0.3), new THREE.MeshStandardMaterial({color:0xff0000}));
               pMesh.position.copy(b.position); pMesh.position.y += 2;
               worldGroup.add(pMesh);
-              projectiles.push({ mesh: pMesh, pos: pMesh.position.clone(), target: targetZ.position.clone(), life: 60 });
-              b.cooldown = 50;
+              projectiles.push({ mesh: pMesh, pos: pMesh.position.clone(), target: targetZ, dmg: def.damage, life: 60 });
+              b.cooldown = def.fireRate;
             }
           }
         }
       });
 
+      // Pociski
       for (let i = projectiles.length - 1; i >= 0; i--) {
         const p = projectiles[i];
         p.life--;
-        tempVec.subVectors(p.target, p.pos).normalize();
-        p.pos.add(tempVec.multiplyScalar(0.8));
-        p.mesh.position.copy(p.pos);
-        if(p.pos.distanceTo(p.target) < 1 || p.life<=0) {
-           zombies.forEach(z=>{ if(p.pos.distanceTo(z.position)<3) z.hp -= 40; });
-           worldGroup.remove(p.mesh); projectiles.splice(i,1);
+        // Śledzenie celu
+        if(p.target && p.target.isActive) {
+           tempVec.subVectors(p.target.position, p.pos).normalize();
+           p.pos.add(tempVec.multiplyScalar(0.8));
+           p.mesh.position.copy(p.pos);
+           if(p.pos.distanceTo(p.target.position) < 2) {
+              p.target.hp -= p.dmg;
+              worldGroup.remove(p.mesh); projectiles.splice(i,1);
+           }
+        } else {
+           worldGroup.remove(p.mesh); projectiles.splice(i,1); // Cel zginął zanim pocisk doleciał
         }
       }
+    }
 
-      // Aktualizacja interfejsu
+    function updateUI() {
       document.getElementById('baseHP').querySelector('.stat-value').textContent = Math.max(0, Math.floor(game.baseHP));
       document.getElementById('gold').textContent = Math.floor(game.gold);
       document.getElementById('wood').textContent = Math.floor(game.wood);
       document.getElementById('zombieCount').textContent = zombies.filter(z=>z.isActive).length;
       document.getElementById('killed').textContent = game.zombieKilled;
+      document.getElementById('wave').textContent = `${game.currentWave} / ${game.totalWaves}`;
       document.getElementById('levelProgress').style.width = Math.min(100, (game.levelKills/game.levelGoal)*100) + '%';
     }
 
     window.nextLevel = function() {
-      game.level++; game.levelKills = 0; game.zombiesSpawnedThisLevel = 0;
-      game.levelGoal = game.level * 10;
-      game.bossSpawned = false; game.difficultyScale += 0.15;
+      game.level++; 
       document.getElementById('level-complete').style.display = 'none';
       document.getElementById('currentLevel').textContent = game.level;
-      document.getElementById('levelGoal').textContent = game.levelGoal;
-      setupBossAndCage();
+      setupLevel();
     };
 
-    window.restartGame = function() {
-      location.reload(); // Najszybszy hard reset
-    };
+    window.restartGame = function() { location.reload(); };
 
     // ========== MAIN LOOP ==========
-    function animate() {
+    let isGameOver = false;
+    let lastTime = 0;
+
+    function animate(time) {
       requestAnimationFrame(animate);
+      const delta = (time - lastTime) / 1000 || 0.016;
+      lastTime = time;
       
-      // ZABLOKOWANIE KAMERY TYLKO NA OŚ X
-      if (panKeys.left) camera.position.x -= 1;
-      if (panKeys.right) camera.position.x += 1;
+      // Sterowanie kamerą tylko X
+      if (panKeys.left) camera.position.x -= 30 * delta;
+      if (panKeys.right) camera.position.x += 30 * delta;
       
-      // Wymuszenie stałej osi Z i Y aby mapa nie rotowała góra-dół
       camera.position.y = CAM_Y;
       camera.position.z = CAM_Z;
-      controls.target.y = 0;
-      controls.target.z = 0;
-
-      // Blokada wyjazdu kamery za krawędzie mapy
       if(camera.position.x > MAP_WIDTH/2 + 5) camera.position.x = MAP_WIDTH/2 + 5;
       if(camera.position.x < -MAP_WIDTH/2 - 5) camera.position.x = -MAP_WIDTH/2 - 5;
-      controls.target.x = camera.position.x - 15; // Patrzy zawsze pod tym samym kątem
+      controls.target.set(camera.position.x - 15, 0, 0);
 
-      update(0.016);
+      update(Math.min(delta, 0.1)); // Max cap
       controls.update();
       renderer.render(scene, camera);
     }
     
-    // Inicjalizacja Startowa
     document.getElementById('loading').style.display = 'none';
-    setupBossAndCage();
-    animate();
+    setupLevel();
+    animate(performance.now());
   </script>
 </body>
 </html>
