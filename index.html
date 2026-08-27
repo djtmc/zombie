@@ -9,6 +9,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#1a1a2e">
   <meta name="description" content="Zombie Survival 3D - Broń swojej bazy przed hordami zombie!">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon-192.png">
   <title>Zombie Survival 3D - Ultimate Edition</title>
   <style>
     * {
@@ -54,8 +56,15 @@
     }
 
     @keyframes titleGlow {
-      0%, 100% { text-shadow: 3px 3px 6px #000, 0 0 10px #ff0000; }
-      50% { text-shadow: 3px 3px 6px #000, 0 0 20px #ff0000; }
+
+      0%,
+      100% {
+        text-shadow: 3px 3px 6px #000, 0 0 10px #ff0000;
+      }
+
+      50% {
+        text-shadow: 3px 3px 6px #000, 0 0 20px #ff0000;
+      }
     }
 
     .stats {
@@ -87,8 +96,15 @@
     }
 
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.7; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.7;
+      }
     }
 
     .stat-value {
@@ -156,6 +172,7 @@
       backdrop-filter: blur(10px);
       min-width: 80px;
       text-align: center;
+      pointer-events: auto;
     }
 
     .building-btn:hover:not(:disabled) {
@@ -213,6 +230,7 @@
       flex-direction: column;
       gap: 8px;
       max-width: 240px;
+      pointer-events: auto;
     }
 
     .panel {
@@ -305,29 +323,7 @@
       font-size: 15px;
       color: #4CAF50;
       font-weight: bold;
-    }
-
-    /* Notifications */
-    #notification {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0, 0, 0, 0.95);
-      padding: 25px 45px;
-      border-radius: 12px;
-      border: 3px solid #4CAF50;
-      font-size: 20px;
-      font-weight: bold;
-      display: none;
-      z-index: 300;
-      text-align: center;
-      animation: fadeInOut 3s;
-    }
-
-    @keyframes fadeInOut {
-      0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-      10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      pointer-events: none;
     }
 
     /* Boss HP Overlay (3D do 2D Tracker) */
@@ -360,6 +356,40 @@
       height: 100%;
       background: linear-gradient(90deg, #ff0000, #ff5555);
       transition: width 0.1s linear;
+    }
+
+    /* Notifications */
+    #notification {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.95);
+      padding: 25px 45px;
+      border-radius: 12px;
+      border: 3px solid #4CAF50;
+      font-size: 20px;
+      font-weight: bold;
+      display: none;
+      z-index: 300;
+      text-align: center;
+      animation: fadeInOut 3s;
+      pointer-events: none;
+    }
+
+    @keyframes fadeInOut {
+
+      0%,
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.8);
+      }
+
+      10%,
+      90% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
     }
 
     /* Level Complete */
@@ -438,7 +468,9 @@
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     /* Exchange Panel */
@@ -451,6 +483,7 @@
       border-radius: 8px;
       border: 2px solid #d4af37;
       z-index: 100;
+      pointer-events: auto;
     }
 
     .exchange-btn {
@@ -611,7 +644,7 @@
   </div>
 
   <div id="container"></div>
-
+  
   <!-- Pasek zdrowia Bossa 3D -> 2D -->
   <div id="boss-hp-container">
     <div id="boss-hp-name">👑 BOSS</div>
@@ -654,7 +687,7 @@
         <span class="stat-value" id="wave">1 / 1</span>
       </div>
       <div class="stat">
-        🧟 Na mapie<br>
+        🧟 Zombie<br>
         <span class="stat-value" id="zombieCount">0</span>
       </div>
       <div class="stat">
@@ -698,10 +731,10 @@
         <span>⌨️ Sterowanie</span><span class="arrow">▼</span>
       </div>
       <div class="panel-body">
-        <div class="control-item">🖱️ Przeciągnij - Przesuń (Prawo/Lewo)</div>
-        <div class="control-item">🖱️ Klik - Postaw</div>
+        <div class="control-item">🖱️ Przeciągnij - Przesuń (Tylko w boki)</div>
+        <div class="control-item">🖱️ Klik - Postaw / Ulepsz</div>
         <div class="control-item">⌨️ A/D lub Strzałki - Przesuń mapę</div>
-        <div class="control-item">⌨️ ESC - Anuluj</div>
+        <div class="control-item">⌨️ ESC - Anuluj budowanie</div>
         <br>
         <div class="control-title">💡 Wskazówki</div>
         <div class="control-item" style="font-size: 11px;">
@@ -711,6 +744,7 @@
           • Koszary produkują żołnierzy co 30s<br>
           • Fabryki produkują czołgi co 60s<br>
           • Kliknij armatę/tartak/kopalnię/koszary aby ulepszyć<br>
+          • Tylko 1 koszary naraz<br>
           • Fale zależą od poziomu trudności
         </div>
       </div>
@@ -719,7 +753,7 @@
 
   
   <div id="exchange">
-    <div class="control-title" style="color: #d4af37; font-size: 12px;">💱 Wymiana</div>
+    <div class="control-title" style="color: #d4af37; font-size: 12px; margin-bottom: 4px;">💱 Wymiana</div>
     <button class="exchange-btn" onclick="exchange('goldToWood')">
       💰→🪵<br>
       <small>20→10</small>
@@ -779,7 +813,6 @@
       <div class="building-name">Kopalnia</div>
       <div class="building-cost">25 🪵, 20 💰</div>
     </button>
-
   </div>
 
   <div id="level-complete">
@@ -827,7 +860,7 @@
     const settings = {
       shadows: false,
       particles: true,
-      maxZombies: 60,
+      maxZombies: 50,
       maxParticles: 60
     };
     
@@ -843,9 +876,9 @@
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f0f27);
 
-    // GŁÓWNA GRUPA DLA POCHYLENIA MAPY
+    // GŁÓWNA GRUPA - pochylona cała mapa o 35% do gracza
     const worldGroup = new THREE.Group();
-    worldGroup.rotation.x = 0.35; // 35% nachylenia
+    worldGroup.rotation.x = 0.35;
     scene.add(worldGroup);
 
     // Camera
@@ -863,7 +896,7 @@
     container.appendChild(renderer.domElement);
     const clock = new THREE.Clock();
     
-    // Controls - Zablokowany obrót i zoom (tylko przesuwanie - Pan)
+    // Controls - Zablokowana kamera, używana tylko do przesuwania na boki
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableRotate = false;
     controls.enableZoom = false;
@@ -901,11 +934,11 @@
       showNotification(`💡 Jasność: ${BRIGHTNESS_LEVELS[nextIndex].name}`);
     };
 
-    // ========== DIFFICULTY TOGGLE (Mnożnik Szybkości i Fal) ==========
+    // ========== DIFFICULTY SYSTEM (Mnożnik Szybkości i Fal) ==========
     const DIFFICULTY_LEVELS = [
-      { name: 'Łatwa', scale: 0.60, waveInterval: 60, speedMult: 0.65 },
-      { name: 'Średnia', scale: 0.85, waveInterval: 40, speedMult: 0.85 },
-      { name: 'Ogień w szopie', scale: 1.0, waveInterval: 20, speedMult: 1.20 }
+      { name: 'Łatwa', scale: 0.60, waveTime: 60, speedMult: 0.65 },
+      { name: 'Średnia', scale: 0.85, waveTime: 40, speedMult: 0.85 },
+      { name: 'Ogień w szopie', scale: 1.0, waveTime: 20, speedMult: 1.20 }
     ];
     let difficultyIndex = 2; // domyślnie: Ogień w szopie
     
@@ -916,24 +949,8 @@
       game.speedMult = level.speedMult;
       const btn = document.getElementById('difficultyToggle');
       if (btn) btn.textContent = level.name;
-      showNotification(`🎚️ Trudność: ${level.name}`);
+      showNotification(`🎚️ Trudność: ${level.name} (Fale co ${level.waveTime}s)`);
     };
-
-    // ========== CAMERA PAN SYSTEM ==========
-    const PAN_SPEED = 25; // jednostek na sekundę
-    function updateCameraPan(delta) {
-      let dir = 0;
-      if (panKeys.left) dir -= 1;
-      if (panKeys.right) dir += 1;
-      const move = dir * PAN_SPEED * delta;
-      camera.position.x += move;
-      
-      // Zabezpieczenie przed ucieczką kamery z mapy
-      if (camera.position.x < BASE_X - 60) camera.position.x = BASE_X - 60;
-      if (camera.position.x > BASE_X + 25) camera.position.x = BASE_X + 25;
-      
-      controls.target.x = camera.position.x - 20;
-    }
 
     // ========== GROUND ==========
     const groundGeometry = new THREE.PlaneGeometry(MAP_WIDTH, MAP_DEPTH);
@@ -947,24 +964,24 @@
     gridHelper.scale.set(MAP_WIDTH / 100, 1, MAP_DEPTH / 100);
     worldGroup.add(gridHelper);
 
-    // ========== KLATKA ==========
-    let cageMesh = null;
-    function createCageMesh() {
+    // ========== KLATKA DLA BOSSA (4 ŚCIANY) ==========
+    let cageGroup = null;
+    function createFullCage() {
       const group = new THREE.Group();
       const barMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.4 });
-      const barGeo = new THREE.CylinderGeometry(0.12, 0.12, 4, 6);
+      const barGeo = new THREE.CylinderGeometry(0.12, 0.12, 4.5, 6);
+      
       for (let x = -2; x <= 2; x += 1) {
         for (let z = -2; z <= 2; z += 1) {
-          // Tworzymy pręty tylko po obwodzie (4 ściany)
           if (Math.abs(x) === 2 || Math.abs(z) === 2) {
              const bar = new THREE.Mesh(barGeo, barMat);
-             bar.position.set(x, 2, z);
+             bar.position.set(x, 2.25, z);
              group.add(bar);
           }
         }
       }
       const roof = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.2, 4.2), barMat);
-      roof.position.set(0, 4, 0);
+      roof.position.set(0, 4.5, 0);
       group.add(roof);
       return group;
     }
@@ -977,10 +994,7 @@
       { x: 0, z: MAP_DEPTH / 2 - 3 }
     ];
     armataSlots.forEach(slot => {
-      const block = new THREE.Mesh(
-        new THREE.BoxGeometry(3, 1, 3),
-        new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8 })
-      );
+      const block = new THREE.Mesh(new THREE.BoxGeometry(3, 1, 3), new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8 }));
       block.position.set(slot.x, 0.5, slot.z);
       worldGroup.add(block);
     });
@@ -1005,7 +1019,6 @@
       bigwall: new THREE.MeshStandardMaterial({ color: 0x696969, roughness: 0.9, metalness: 0.2 }),
       tower: new THREE.MeshStandardMaterial({ color: 0x666666, roughness: 0.7 }),
       cannon: new THREE.MeshStandardMaterial({ color: 0x444444, roughness: 0.6, metalness: 0.3 }),
-      trap: new THREE.MeshStandardMaterial({ color: 0x555555, metalness: 0.8 }),
       sawmill: new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.9 }),
       mine: new THREE.MeshStandardMaterial({ color: 0x808080, roughness: 0.7, metalness: 0.4 }),
       koszary: new THREE.MeshStandardMaterial({ color: 0x5c4a3a, roughness: 0.85 }),
@@ -1026,6 +1039,7 @@
       selectedBuilding: null, isPlacingBuilding: false, buildingPreview: null,
       woodPerSecond: 0, goldPerSecond: 0, resourceTimer: 0,
       
+      // LOGIKA POZIOMÓW (Level = 10 * Level Zombie)
       level: 1, levelKills: 0, levelGoal: 10,
       
       // LOGIKA FAL
@@ -1050,7 +1064,7 @@
       sawmill: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, woodPerSecond: 2, category: 'resource' },
       mine: { cost: { wood: 25, gold: 20 }, hp: 60, height: 2.5, goldPerSecond: 3, category: 'resource' },
       koszary: { cost: { wood: 500, gold: 500 }, hp: 200, height: 3, productionInterval: 30000, category: 'defense' },
-      tank: { cost: { wood: 0, gold: 0 }, hp: 360, height: 1.2, range: 18, damage: 120, fireRate: 30, moveSpeed: 0.025, category: 'defense' }
+      tank: { cost: { wood: 0, gold: 0 }, hp: 360, height: 1.2, range: 18, damage: 120, fireRate: 30, moveSpeed: 0.035, category: 'defense' }
     };
 
     // ========== UPGRADE CONFIG ==========
@@ -1291,7 +1305,7 @@
       showNotification(`⬆️ Ulepszono do poziomu ${level}!`); updateUI(); openUpgradeModal(building);
     };
 
-    // ========== RAYCASTING ==========
+    // ========== RAYCASTING (KOLIZJE UWZGLĘDNIAJĄCE NACHYLENIE) ==========
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
     let mousePos3D = new THREE.Vector3();
@@ -1309,6 +1323,7 @@
           const z = Math.round(localPoint.z / gridSize) * gridSize;
           game.buildingPreview.position.set(x, 0, z);
           mousePos3D.set(x, 0, z);
+          
           const canPlace = checkCanPlace(x, z);
           game.buildingPreview.traverse((child) => {
             if (child instanceof THREE.Mesh) child.material.emissive.setHex(canPlace ? 0x00ff00 : 0xff0000);
@@ -1395,6 +1410,7 @@
       showNotification(`🛡️ Fabryka wyprodukowała czołg!`);
     }
 
+    let wielkaArmataCount = 0;
     window.buyWielkaArmata = function() {
       if (wielkaArmataCount >= 4) { showNotification('🎯 Limit Wielkich Armat (4/4) osiągnięty!'); return; }
       const cost = buildingTypes.wielkaArmata.cost;
@@ -1433,55 +1449,48 @@
       game.zombiesSpawnedThisLevel++;
     }
 
-    function setupLevel() {
-      // 1 Poziom = X * 10 Zombie, podzielone na fale po 10 zombie
-      game.levelGoal = game.level * 10;
-      game.maxWaves = game.level;
-      game.currentWave = 1;
-      game.zombiesSpawnedThisLevel = 0;
-      game.zombiesToSpawnThisWave = 10;
-      game.waveTimer = 0;
-      game.spawnSubTimer = 0;
-      game.bossSpawned = false; // znaczy: Boss wypuszczony z klatki
-      game.bossLocked = true;
-      game.levelKills = 0;
+    function setupBossAndCage() {
+      if (cageGroup) { worldGroup.remove(cageGroup); cageGroup = null; }
+      const existingBoss = zombies.findIndex(z => z.isBoss);
+      if (existingBoss !== -1) { worldGroup.remove(zombies[existingBoss].mesh); zombies.splice(existingBoss, 1); }
 
-      // Zbuduj klatkę na nowo, jeśli jej nie ma
-      if (!cageMesh) {
-         cageMesh = createCageMesh();
-         cageMesh.position.set(ZOMBIE_SPAWN_X, 0, 0);
-         worldGroup.add(cageMesh);
-      }
+      cageGroup = createFullCage();
+      cageGroup.position.set(ZOMBIE_SPAWN_X, 0, 0);
+      worldGroup.add(cageGroup);
 
-      // Usunięcie poprzedniego Bossa jeśli został (np. zbugowany)
-      const bossIdx = zombies.findIndex(z => z.isBoss);
-      if (bossIdx !== -1) { worldGroup.remove(zombies[bossIdx].mesh); zombies.splice(bossIdx, 1); }
-
-      // Obliczanie trudności Bossa
       const zCount = game.levelGoal;
       const perZombieDamage = (8 + game.level * 3) * game.zombieDamageMultiplier * game.difficultyScale;
       const perZombieHP = (50 + game.level * 20) * game.zombieHPMultiplier * game.difficultyScale;
       
       const bossDamage = zCount * perZombieDamage * 0.15;
       const bossHP = zCount * perZombieHP * 0.5;
+      const bossSpeed = (0.04 + game.level * 0.005) * game.zombieSpeedMultiplier * game.speedMult * 0.8;
       
-      const zombieMesh = createZombieMesh();
-      zombieMesh.scale.set(3, 3, 3);
-      zombieMesh.position.set(ZOMBIE_SPAWN_X, 0, 0);
-      worldGroup.add(zombieMesh);
+      const bossMesh = createZombieMesh(); bossMesh.scale.set(3, 3, 3); bossMesh.position.set(ZOMBIE_SPAWN_X, 0, 0);
+      worldGroup.add(bossMesh);
       
       zombies.push({
-        mesh: zombieMesh,
-        hp: bossHP,
-        maxHP: bossHP,
-        speed: (0.04 + game.level * 0.003) * game.zombieSpeedMultiplier * 0.8 * game.speedMult,
-        damage: bossDamage,
-        target: null,
-        position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, 0),
-        animationTime: Math.random() * 100,
-        isBoss: true
+        mesh: bossMesh, hp: bossHP, maxHP: bossHP, speed: bossSpeed, damage: bossDamage,
+        target: null, position: new THREE.Vector3(ZOMBIE_SPAWN_X, 0, 0), animationTime: 0,
+        isBoss: true, isActive: false
       });
+      
       document.getElementById('boss-hp-container').style.display = 'none';
+    }
+
+    function setupLevel() {
+      // 1 Poziom = X * 10 Zombie, podzielone na fale po 10 zombie
+      game.levelGoal = game.level * 10;
+      game.maxWaves = game.level;
+      game.currentWave = 1;
+      game.zombiesSpawnedThisLevel = 0;
+      game.zombiesToSpawnThisWave = 10; // pierwsza fala z marszu
+      game.waveTimer = 0;
+      game.spawnSubTimer = 0;
+      game.bossSpawned = false; // oznacza wolność bossa
+      game.levelKills = 0;
+
+      setupBossAndCage();
       updateUI();
     }
 
@@ -1520,35 +1529,37 @@
         game.resourceTimer = 0;
       }
 
-      // Logika fal (Oparta na czasie / interwałach)
+      // Logika Fal
       if (!game.bossSpawned) {
         if (game.zombiesToSpawnThisWave > 0) {
           game.spawnSubTimer -= delta;
           if (game.spawnSubTimer <= 0) {
             spawnZombie();
             game.zombiesToSpawnThisWave--;
-            game.spawnSubTimer = 0.5; // Odstęp 0.5 sekundy na zombiaka w fali
+            game.spawnSubTimer = 0.5; // Odstęp między trupami 0.5s
+            updateUI();
           }
         } else if (game.zombiesSpawnedThisLevel < game.levelGoal) {
-          // Oczekiwanie na kolejną falę, chyba że limit levelu jest osiągnięty
-          game.waveTimer -= delta;
-          if (game.waveTimer <= 0) {
+          game.waveTimer += delta;
+          const targetTime = DIFFICULTY_LEVELS[difficultyIndex].waveTime;
+          if (game.waveTimer >= targetTime) {
+             game.waveTimer = 0;
              game.currentWave++;
              game.zombiesToSpawnThisWave = 10;
-             game.waveTimer = DIFFICULTY_LEVELS[difficultyIndex].waveInterval;
              showNotification(`🌊 FALA ${game.currentWave}/${game.maxWaves} ROZPOCZĘTA!`);
+             updateUI();
           }
         }
       }
 
-      // Boss HP Tracker 3D do 2D (HTML Overlay)
+      // Boss HP Tracker (HTML)
       const boss = zombies.find(z => z.isBoss);
       const hpUI = document.getElementById('boss-hp-container');
       const hpBar = document.getElementById('boss-hp-bar');
-      if (boss && game.bossSpawned) { // Pokaż dopiero po otwarciu klatki
+      if (boss && boss.isActive) { 
          const worldPos = new THREE.Vector3();
          boss.mesh.getWorldPosition(worldPos);
-         worldPos.y += 3.5;
+         worldPos.y += 4.5;
          worldPos.project(camera);
          const x = (worldPos.x * 0.5 + 0.5) * window.innerWidth;
          const y = (worldPos.y * -0.5 + 0.5) * window.innerHeight;
@@ -1563,9 +1574,7 @@
       // ZOMBIE RUCH & ATAK
       for (let i = zombies.length - 1; i >= 0; i--) {
         const zombie = zombies[i];
-        
-        // Zignoruj ruch, jeśli to zablokowany boss
-        if (zombie.isBoss && !game.bossSpawned) continue; 
+        if (zombie.isBoss && !zombie.isActive) continue; 
         
         zombie.animationTime += 0.1;
         zombie.retargetTimer = (zombie.retargetTimer || 0) - 1;
@@ -1625,11 +1634,12 @@
             // UWALNIANIE BOSSA
             if (game.levelKills >= game.levelGoal && !game.bossSpawned) {
               game.bossSpawned = true;
-              game.bossLocked = false;
-              if (cageMesh) { worldGroup.remove(cageMesh); cageMesh = null; }
+              if (cageGroup) { worldGroup.remove(cageGroup); cageGroup = null; }
+              const bz = zombies.find(z => z.isBoss); if (bz) bz.isActive = true;
               showNotification(`👑 KLATKA OTWARTA! BOSS ATAKUJE!`);
             }
           }
+          updateUI();
         }
       }
 
@@ -1664,7 +1674,7 @@
         if ((building.type === 'soldier' || building.type === 'tank') && def.moveSpeed) {
           let nearestZombie = null; let nearestDist = Infinity;
           for (let zombie of zombies) {
-            if (zombie.isBoss && !game.bossSpawned) continue; // nie atakuj bossa w klatce
+            if (zombie.isBoss && !game.bossSpawned) continue; 
             const dist = building.position.distanceTo(zombie.position);
             if (dist < 25 && dist < nearestDist) { nearestDist = dist; nearestZombie = zombie; }
           }
@@ -1683,7 +1693,7 @@
           building.cooldown--;
           if (building.cooldown <= 0) {
             for (let zombie of zombies) {
-              if (zombie.isBoss && !game.bossSpawned) continue; // ignoruj bossa w klatce
+              if (zombie.isBoss && !game.bossSpawned) continue; 
               const dist = building.position.distanceTo(zombie.position);
               if (dist < def.range) {
                 let damage = def.damage; let fireRate = def.fireRate; let dualShot = false;
@@ -1699,7 +1709,7 @@
                   building.mesh.userData.weapon.position.z = 0.5;
                   setTimeout(() => { if (building.mesh.userData.weapon) building.mesh.userData.weapon.position.z = 0.3; }, 100);
                 }
-                break; // wystrzel i przerwij (1 cel naraz)
+                break; 
               }
             }
           }
@@ -1715,9 +1725,10 @@
         
         if (proj.position.distanceTo(proj.target) < 0.8 || proj.life <= 0) {
           for (let zombie of zombies) {
-            if (zombie.isBoss && !game.bossSpawned) continue; // ignoruj bossa w klatce
-            if (proj.position.distanceTo(zombie.position) < 2) {
-              zombie.hp -= proj.damage; // Poprawiono z proj.damage zamiast proj.dmg by pasowało do kodu Original!
+            if (zombie.isBoss && !game.bossSpawned) continue; 
+            // POPRAWKA OBRAŻEŃ (ZMIENIONO proj.dmg NA proj.damage)
+            if (proj.position.distanceTo(zombie.position) < 2.5) {
+              zombie.hp -= proj.damage;
               if (settings.particles && Math.random() < 0.6) createParticleEffect(zombie.position.x, 1, zombie.position.z, 0xffff00);
             }
           }
@@ -1752,7 +1763,6 @@
     // ========== SYSTEM POZIOMÓW ==========
     window.nextLevel = function() {
       game.level++;
-      game.levelKills = 0;
       game.difficultyMultiplier += 0.15;
       game.zombieHPMultiplier += 0.2;
       game.zombieSpeedMultiplier += 0.05;
@@ -1815,7 +1825,7 @@
       wielkaArmataCount = 0;
 
       baseGroup.userData.hp = game.baseHP;
-      camera.position.set(BASE_X + 15, 32, 42); camera.lookAt(BASE_X - 20, 0, 0); controls.target.set(BASE_X - 20, 0, 0);
+      camera.position.set(BASE_X + 15, 32, 42);
       panKeys.left = panKeys.right = false;
       
       applyBrightness(2);
@@ -1856,25 +1866,33 @@
 
     // ========== MAIN LOOP ==========
     let animationHandle = null;
-    function animate() {
+    function animate(time) {
       animationHandle = requestAnimationFrame(animate);
       const delta = Math.min(clock.getDelta(), 0.1); 
-      update(delta); updateFPS(); updateCameraPan(delta);
       
-      if (controls.enabled) controls.update();
+      // Zablokowana kamera: tylko obrót Pan w osi X
+      let dir = 0;
+      if (panKeys.left) dir -= 1;
+      if (panKeys.right) dir += 1;
+      camera.position.x += dir * 30 * delta;
       
-      // Zablokowanie kamery na sztywno
-      camera.position.y = 32; camera.position.z = 42;
+      // Limity kamery, by nie uciekła z mapy
       if (camera.position.x < BASE_X - 60) camera.position.x = BASE_X - 60;
       if (camera.position.x > BASE_X + 25) camera.position.x = BASE_X + 25;
+      
+      camera.position.y = 32; 
+      camera.position.z = 42;
       controls.target.set(camera.position.x - 20, 0, 0);
+      
+      if (controls.enabled) controls.update();
 
+      update(delta); updateFPS(); 
       renderer.render(scene, camera);
     }
     
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) { if (animationHandle !== null) { cancelAnimationFrame(animationHandle); animationHandle = null; } } 
-      else if (animationHandle === null) animate();
+      else if (animationHandle === null) { clock.getDelta(); animate(performance.now()); }
     });
 
     // ========== START ==========
@@ -1882,7 +1900,8 @@
     document.getElementById('loading').style.display = 'none';
     setupLevel(); 
     updateUI(); 
-    animate();
+    clock.getDelta(); // zresetowanie zegara
+    animate(performance.now());
   </script>
 </body>
 </html>
