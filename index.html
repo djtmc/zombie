@@ -65,6 +65,30 @@
     #notification { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.95); padding: 25px 45px; border-radius: 12px; border: 3px solid #4CAF50; font-size: 20px; font-weight: bold; display: none; z-index: 300; text-align: center; animation: fadeInOut 3s; pointer-events: none; }
     @keyframes fadeInOut { 0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); } 10%, 90% { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
 
+    /* NOWY: Powiadomienie w lewym dolnym rogu (produkcja wojska) */
+    #notification-bottom-left {
+      position: absolute;
+      bottom: 100px;
+      left: 15px;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 2px solid #4B5320;
+      font-size: 13px;
+      font-weight: bold;
+      display: none;
+      z-index: 200;
+      pointer-events: none;
+      max-width: 260px;
+      color: #a8d08d;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+      animation: slideInBL 0.3s ease-out;
+    }
+    @keyframes slideInBL {
+      from { transform: translateX(-30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
     /* Boss HP Overlay */
     #boss-hp-container { position: absolute; width: 120px; transform: translate(-50%, -100%); display: none; z-index: 250; pointer-events: none; text-align: center; }
     #boss-hp-name { color: #ff3333; font-weight: bold; font-size: 14px; text-shadow: 2px 2px 4px #000; margin-bottom: 3px; }
@@ -74,7 +98,6 @@
     /* Modals */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.75); display: none; justify-content: center; align-items: center; z-index: 550; }
     .modal-content { background: linear-gradient(135deg, #2c2c54, #1a1a3a); padding: 25px; border-radius: 15px; border: 3px solid #d4af37; max-width: 400px; width: 90%; position: relative; box-shadow: 0 0 40px rgba(212, 175, 55, 0.5); }
-    /* FIX: brakująca definicja klasy używanej przez modal "Poziom ukończony" (był bez stylu) */
     .level-complete-content { background: linear-gradient(135deg, #2c2c54, #1a1a3a); padding: 25px; border-radius: 15px; border: 3px solid #4CAF50; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 0 40px rgba(76, 175, 80, 0.5); }
     .modal-close { position: absolute; top: 10px; right: 10px; background: #ff4444; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold; font-size: 14px; }
     .modal-close:hover { background: #ff6666; transform: scale(1.1); }
@@ -104,6 +127,7 @@
       #buildings { bottom: 10px; gap: 5px; } .building-btn { min-width: 56px; padding: 6px 8px; }
       .building-icon { font-size: 18px; } .building-name { font-size: 9px; } .building-cost { font-size: 7px; }
       #right-panels { max-width: 150px; font-size: 11px; }
+      #notification-bottom-left { bottom: 90px; max-width: 200px; font-size: 11px; padding: 8px 12px; }
     }
   </style>
 </head>
@@ -125,6 +149,8 @@
 
   <div id="fps">FPS: 60</div>
   <div id="notification"></div>
+  <!-- NOWY element: powiadomienia o produkcji wojska w lewym dolnym rogu -->
+  <div id="notification-bottom-left"></div>
 
   <div id="ui">
     <h1>🧟 ZOMBIE SURVIVAL 3D 🏰</h1>
@@ -326,6 +352,32 @@
       showNotification(`🎚️ Trudność: ${level.name} (Fale co ${level.waveTime}s)`);
     };
 
+    // ========== NOWY: TIEROWY SYSTEM PRĘDKOŚCI ZOMBIE (Zależny od przedziałów poziomów) ==========
+    // Każdy przedział poziomów ma swój WŁASNY przyrost prędkości na poziom (malejący wraz z postępem gry)
+    const SPEED_LEVEL_BRACKETS = [
+      { max: 10, increment: 0.01 },   // poziom 1-10:  +0.01 / poziom
+      { max: 20, increment: 0.005 },  // poziom 11-20: +0.005 / poziom
+      { max: 30, increment: 0.004 },  // poziom 21-30: +0.004 / poziom
+      { max: 40, increment: 0.003 },  // poziom 31-40: +0.003 / poziom
+      { max: 50, increment: 0.002 },  // poziom 41-50: +0.002 / poziom
+      { max: Infinity, increment: 0.001 } // poziom 51+:   +0.001 / poziom
+    ];
+
+    // Współczynnik proporcji prędkości bossa względem zwykłych zombie (analogiczne skalowanie, ustalone wcześniej jako 0.6)
+    const BOSS_SPEED_RATIO = 0.6;
+
+    function calculateLevelSpeedBonus(level) {
+      let bonus = 0;
+      let prevMax = 0;
+      for (const bracket of SPEED_LEVEL_BRACKETS) {
+        if (level <= prevMax) break;
+        const levelsInBracket = Math.min(level, bracket.max) - prevMax;
+        bonus += levelsInBracket * bracket.increment;
+        prevMax = bracket.max;
+      }
+      return bonus;
+    }
+
     // ========== GAME STATE ==========
     let isGameOver = false;
     const game = {
@@ -454,7 +506,6 @@
       return group;
     }
 
-    // FIX: Zwracanie zombie do puli (wcześniej pula nigdy nie była zasilana, więc pooling nie działał)
     function returnZombieToPool(mesh) {
       mesh.visible = false;
       mesh.scale.set(1, 1, 1);
@@ -715,7 +766,8 @@
       const m = createZombieMesh(); m.position.set(ZOMBIE_SPAWN_X, 0, z); worldGroup.add(m);
       
       const hp = (50 + game.level * 20) * game.difficultyScale;
-      const speed = (0.04 + game.level * 0.005) * game.speedMult;
+      // ZMIANA: prędkość zombie liczona z tierowego systemu przedziałów poziomów
+      const speed = (0.04 + calculateLevelSpeedBonus(game.level)) * game.speedMult;
       
       zombies.push({
         mesh: m, hp: hp, maxHP: hp, speed: speed,
@@ -727,9 +779,8 @@
     function setupLevel() {
       game.levelGoal = (game.level === 1) ? 10 : game.level * 10;
       game.maxWaves = Math.ceil(game.levelGoal / 10);
-      // FIX: fala zaczynała się od razu jako "2/x" przez błędny start od 1 (off-by-one)
       game.currentWave = 0;
-      game.waveTimer = DIFFICULTY_LEVELS[difficultyIndex].waveTime - 5; // Pierwsza fala szybciej
+      game.waveTimer = DIFFICULTY_LEVELS[difficultyIndex].waveTime - 5;
       game.zombiesToSpawnThisWave = 0;
       game.bossSpawned = false;
 
@@ -740,7 +791,8 @@
       const zCount = game.levelGoal;
       const bossHP = zCount * (50 + game.level * 20) * 0.7 * game.difficultyScale;
       const bossDamage = zCount * (8 + game.level * 3) * 0.15 * game.difficultyScale;
-      const bossSpeed = 0.035 * game.speedMult;
+      // ZMIANA: prędkość bossa skalowana analogicznie (tym samym systemem bracketów), proporcjonalnie (x0.6) do zwykłych zombie
+      const bossSpeed = (0.035 + calculateLevelSpeedBonus(game.level) * BOSS_SPEED_RATIO) * game.speedMult;
 
       const m = createZombieMesh(); m.scale.set(3, 3, 3); m.position.set(ZOMBIE_SPAWN_X, 0, 0); worldGroup.add(m);
       zombies.push({
@@ -760,7 +812,8 @@
         buildings.push({ mesh: m, type: 'soldier', hp: buildingTypes.soldier.hp, maxHP: buildingTypes.soldier.hp, cooldown: 0, position: new THREE.Vector3(x, 0, z), moveSpeed: buildingTypes.soldier.moveSpeed, target: null, upgradeLevel: 0 });
       }
       if(settings.particles) createParticleEffect(barracks.position.x, 0, barracks.position.z, 0x4B5320);
-      showNotification(`🪖 Koszary wyprodukowały ${count} żołnierzy!`);
+      // ZMIANA: powiadomienie o produkcji żołnierzy w lewym dolnym rogu (zamiast na środku ekranu)
+      showBottomLeftNotification(`🪖 Koszary wyprodukowały ${count} żołnierzy!`);
     }
     
     function spawnTanksFromFactory(factory, count) {
@@ -771,7 +824,8 @@
         buildings.push({ mesh: m, type: 'tank', hp: buildingTypes.tank.hp, maxHP: buildingTypes.tank.hp, cooldown: 0, position: new THREE.Vector3(x, 0, z), moveSpeed: buildingTypes.tank.moveSpeed, target: null, upgradeLevel: 0 });
       }
       if(settings.particles) createParticleEffect(factory.position.x, 0, factory.position.z, 0x556b2f);
-      showNotification(`🛡️ Fabryka wyprodukowała czołg!`);
+      // ZMIANA: powiadomienie o produkcji czołgu w lewym dolnym rogu (zamiast na środku ekranu)
+      showBottomLeftNotification(`🛡️ Fabryka wyprodukowała czołg!`);
     }
 
     // ========== PARTICLES ==========
@@ -803,7 +857,6 @@
     window.addEventListener('keydown', (e) => {
       if (e.key === 'a' || e.key === 'ArrowLeft') panKeys.left = true;
       if (e.key === 'd' || e.key === 'ArrowRight') panKeys.right = true;
-      // FIX: brakująca obsługa ESC opisana w panelu sterowania, a nieistniejąca w kodzie
       if (e.key === 'Escape') cancelBuilding();
     });
     window.addEventListener('keyup', (e) => {
@@ -825,6 +878,26 @@
       setTimeout(() => n.style.display = 'none', 3000);
     }
 
+    // ========== NOWY: System powiadomień w lewym dolnym rogu (kolejka, żeby się nie nadpisywały) ==========
+    let bottomLeftQueue = [];
+    let bottomLeftShowing = false;
+    function showBottomLeftNotification(text) {
+      bottomLeftQueue.push(text);
+      if (!bottomLeftShowing) processBottomLeftQueue();
+    }
+    function processBottomLeftQueue() {
+      if (bottomLeftQueue.length === 0) { bottomLeftShowing = false; return; }
+      bottomLeftShowing = true;
+      const text = bottomLeftQueue.shift();
+      const n = document.getElementById('notification-bottom-left');
+      n.textContent = text;
+      n.style.display = 'block';
+      setTimeout(() => {
+        n.style.display = 'none';
+        setTimeout(processBottomLeftQueue, 200);
+      }, 2500);
+    }
+
     function update(delta) {
       if (isGameOver) return;
       frameCount++; const deltaMs = delta * 1000;
@@ -841,7 +914,6 @@
         if (game.zombiesToSpawnThisWave > 0) {
           game.spawnSubTimer -= delta;
           if (game.spawnSubTimer <= 0) {
-             // FIX: limit jednoczesnych zombie (settings.maxZombies był zadeklarowany, ale nigdy nieużywany)
              if (zombies.length < settings.maxZombies) {
                spawnZombie();
                game.zombiesToSpawnThisWave--;
@@ -918,7 +990,6 @@
             game.baseHP -= z.damage * 0.018;
             if (game.baseHP <= 0) {
               isGameOver = true;
-              // FIX: statystyki końca gry nigdy nie były wypełniane
               document.getElementById('gameOverStats').innerHTML = `🏆 Osiągnięty poziom: ${game.level}<br>💀 Zabitych zombie: ${game.zombieKilled}<br>🌊 Fala: ${game.currentWave} / ${game.maxWaves}`;
               document.getElementById('game-over-modal').style.display = 'flex';
             }
@@ -933,14 +1004,12 @@
 
         // ŚMIERĆ ZOMBIE
         if (z.hp <= 0) {
-          // FIX: zwracanie mesha do puli zamiast bezpowrotnego porzucania (pooling teraz realnie działa)
           returnZombieToPool(z.mesh); zombies.splice(i, 1);
           if (settings.particles) createParticleEffect(z.position.x, 0, z.position.z, z.isBoss ? 0xff0000 : 0x00ff00);
           
           if (z.isBoss) {
             const bossRewardGold = 200 + game.level * 50; const bossRewardWood = 150 + game.level * 40;
             game.gold += bossRewardGold; game.wood += bossRewardWood;
-            // FIX: modal "Poziom ukończony" nigdy nie był wypełniany danymi
             document.getElementById('completedLevel').textContent = game.level;
             document.getElementById('completedKills').textContent = game.levelKills;
             document.getElementById('completedReward').textContent = `${bossRewardWood} 🪵, ${bossRewardGold} 💰`;
@@ -1039,8 +1108,6 @@
           tempVec.subVectors(p.target.position, p.pos).normalize(); 
           p.pos.add(tempVec.multiplyScalar(p.speed)); p.mesh.position.copy(p.pos);
           if (p.pos.distanceTo(p.target.position) < 2 || p.life <= 0) {
-            // FIX KRYTYCZNY: było "p.dmg" (undefined -> NaN), obiekt ma pole "damage".
-            // To sprawiało, że HP zombie stawało się NaN i zombie były NIEŚMIERTELNE po pierwszym trafieniu!
             p.target.hp -= p.damage;
             if(settings.particles && Math.random()<0.5) createParticleEffect(p.target.position.x, 1, p.target.position.z, 0xffff00);
             worldGroup.remove(p.mesh); projectiles.splice(i, 1);
@@ -1079,7 +1146,6 @@
       document.getElementById('zombieCount').textContent = zombies.filter(z => !z.isLocked).length;
       document.getElementById('killed').textContent = game.zombieKilled;
       document.getElementById('wave').textContent = `${game.currentWave} / ${game.maxWaves}`;
-      // FIX: brakująca aktualizacja celu poziomu (zawsze pokazywało statyczne "15" z HTML)
       document.getElementById('levelGoal').textContent = game.levelGoal;
       document.getElementById('levelProgress').style.width = Math.min(100, (game.levelKills / game.levelGoal) * 100) + '%';
       
@@ -1126,8 +1192,6 @@
       
       camera.position.y = 32; camera.position.z = 42;
       if(camera.position.x > BASE_X + 25) camera.position.x = BASE_X + 25;
-      // FIX: błędny limit lewej granicy kamery ("BASE_X - 60" nie miało związku z punktem spawnu zombie
-      // i uniemożliwiało dopanowanie do klatki/bossa). Teraz odniesienie do ZOMBIE_SPAWN_X.
       if(camera.position.x < ZOMBIE_SPAWN_X - 10) camera.position.x = ZOMBIE_SPAWN_X - 10;
       controls.target.set(camera.position.x - 20, 0, 0);
 
