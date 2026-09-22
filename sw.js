@@ -1,9 +1,13 @@
-const CACHE_NAME = 'zombie-survival-v1.0';
+// Podbij wersję przy każdej zmianie gry - inaczej gracze dostaną starą wersję z cache
+const CACHE_NAME = 'zombie-survival-v1.1';
+const THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const urlsToCache = [
   'index.html',
   'manifest.json',
   'icon-192.png',
-  'icon-512.png'
+  'icon-512.png',
+  THREE_CDN + 'build/three.module.js',
+  THREE_CDN + 'examples/jsm/controls/OrbitControls.js'
 ];
 
 // Instalacja - cachowanie plików
@@ -37,6 +41,8 @@ self.addEventListener('activate', (event) => {
 
 // Fetch - obsługa requestów (offline first)
 self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
@@ -47,8 +53,8 @@ self.addEventListener('fetch', (event) => {
 
         // Jeśli nie ma w cache, pobierz z sieci
         return fetch(event.request).then((response) => {
-          // Nie cachuj jeśli nieprawidłowa odpowiedź
-          if (!response || response.status !== 200 || response.type !== 'basic') {
+          // Cachujemy własne pliki (basic) i biblioteki z CDN (cors); resztę przepuszczamy
+          if (!response || response.status !== 200 || (response.type !== 'basic' && response.type !== 'cors')) {
             return response;
           }
 
@@ -64,8 +70,8 @@ self.addEventListener('fetch', (event) => {
         });
       })
       .catch(() => {
-        // Offline fallback
-        return caches.match('index.html');
+        // Offline fallback - tylko dla nawigacji, nie dla obrazków czy skryptów
+        if (event.request.mode === 'navigate') return caches.match('index.html');
       })
   );
 });
