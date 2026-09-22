@@ -623,7 +623,7 @@
       if (game.selectedBuilding === type) { cancelBuilding(); return; }
       
       game.selectedBuilding = type;
-      game.isPlacingBuilding = true;
+      game.isPlacingBuilding = true; touchPreviewCell = null;
       if (game.buildingPreview) { worldGroup.remove(game.buildingPreview); disposeObject(game.buildingPreview); }
       
       game.buildingPreview = createBuildingMesh(type);
@@ -640,7 +640,7 @@
     };
 
     function cancelBuilding() {
-      game.selectedBuilding = null; game.isPlacingBuilding = false;
+      game.selectedBuilding = null; game.isPlacingBuilding = false; touchPreviewCell = null;
       if (game.buildingPreview) { worldGroup.remove(game.buildingPreview); disposeObject(game.buildingPreview); game.buildingPreview = null; }
       document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('selected'));
     }
@@ -666,7 +666,12 @@
     const DRAG_THRESHOLD_PX = 6;
     let pointerDownPos = null;
     let pointerDragged = false;
-    renderer.domElement.addEventListener('pointerdown', (e) => { pointerDownPos = { x: e.clientX, y: e.clientY }; pointerDragged = false; });
+    let lastPointerType = 'mouse';
+    renderer.domElement.addEventListener('pointerdown', (e) => { pointerDownPos = { x: e.clientX, y: e.clientY }; pointerDragged = false; lastPointerType = e.pointerType; });
+
+    // Dotyk nie ma "najechania" - pierwsze stuknięcie pokazuje poświatę (zielona = można, czerwona = nie),
+    // drugie stuknięcie w to samo pole stawia budynek. Myszka: poświata idzie za kursorem, klik stawia.
+    let touchPreviewCell = null;
     window.addEventListener('pointermove', (e) => {
       if (pointerDownPos && Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > DRAG_THRESHOLD_PX) pointerDragged = true;
     });
@@ -698,12 +703,16 @@
     window.addEventListener('click', (e) => {
       if (e.target !== renderer.domElement) return;
       if (pointerDragged) { pointerDragged = false; return; }
-      // Na dotyku nie ma ruchu myszy przed kliknięciem - pozycję liczymy z samego kliknięcia
       updatePointer(e.clientX, e.clientY);
 
       // STAWIANIE BUDYNKU
       if (game.isPlacingBuilding && game.selectedBuilding) {
         const x = mousePos3D.x; const z = mousePos3D.z;
+        if (lastPointerType !== 'mouse') {
+          const sameCell = touchPreviewCell && touchPreviewCell.x === x && touchPreviewCell.z === z;
+          if (!sameCell) { touchPreviewCell = { x, z }; return; } // tylko pokaż poświatę
+        }
+        touchPreviewCell = null;
         if (checkCanPlace(x, z) && canAfford(game.selectedBuilding)) {
           const type = game.selectedBuilding; const def = buildingTypes[type];
           if (def.cost.wood) game.wood -= def.cost.wood; if (def.cost.gold) game.gold -= def.cost.gold;
