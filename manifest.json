@@ -21,12 +21,5 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["games", "entertainment"],
-  "screenshots": [
-    {
-      "src": "screenshot.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    }
-  ]
+  "categories": ["games", "entertainment"]
 }
