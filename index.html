@@ -10,6 +10,9 @@
   <meta name="theme-color" content="#1a1a2e">
   <meta name="description" content="Zombie Survival 3D - Broń swojej bazy przed hordami zombie!">
   <title>Zombie Survival 3D - Ultimate Edition</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { font-family: 'Arial', sans-serif; background: #000; color: white; overflow: hidden; }
@@ -158,7 +161,7 @@
     <div id="level-display">
       <div>POZIOM <span id="currentLevel">1</span></div>
       <div style="font-size: 10px; opacity: 0.9; margin-top: 2px;">
-        Cel: <span id="levelGoal">15</span> zombie
+        Cel: <span id="levelGoal">10</span> zombie
       </div>
       <div class="level-progress">
         <div class="level-progress-bar" id="levelProgress"></div>
@@ -274,7 +277,11 @@
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     // ========== SETTINGS & MAP ==========
-    const settings = { shadows: false, particles: true, maxZombies: 30, maxParticles: 60, performanceMode: false };
+    // Cienie zapamiętywane między uruchomieniami (localStorage może być niedostępny)
+    let savedShadows = false;
+    try { savedShadows = localStorage.getItem('zombie3d.shadows') === '1'; } catch (e) {}
+    const settings = { shadows: savedShadows, particles: true, maxZombies: 30, maxParticles: 60, performanceMode: false };
+    let particlesUserPref = true; // wybór gracza, przywracany po wyłączeniu trybu wydajności
     
     const MAP_WIDTH = 130;  
     const MAP_DEPTH = 70;   
@@ -314,6 +321,10 @@
     const LIGHT_BASE = { ambient: 0.6, directional: 0.6, point: 1.5 };
     const ambientLight = new THREE.AmbientLight(0xffffff, LIGHT_BASE.ambient); scene.add(ambientLight);
     const directionalLight = new THREE.DirectionalLight(0xffffff, LIGHT_BASE.directional); directionalLight.position.set(30, 50, 20); scene.add(directionalLight);
+    directionalLight.castShadow = settings.shadows;
+    directionalLight.shadow.mapSize.set(2048, 2048);
+    Object.assign(directionalLight.shadow.camera, { left: -80, right: 80, top: 60, bottom: -60, near: 1, far: 200 });
+    directionalLight.shadow.camera.updateProjectionMatrix();
     const pointLight = new THREE.PointLight(0x4169e1, LIGHT_BASE.point, 30); pointLight.position.set(0, 15, 0); scene.add(pointLight);
 
     // ========== BRIGHTNESS ==========
@@ -342,11 +353,12 @@
       { name: 'Ogień w szopie', scale: 1.0, waveTime: 20, speedMult: 1.20 }
     ];
     let difficultyIndex = 2; // Domyślnie najtrudniejsza
+    const DIFFICULTY_PER_LEVEL = 0.15; // przyrost siły zombie z każdym ukończonym poziomem
 
     window.toggleDifficulty = function() {
       difficultyIndex = (difficultyIndex + 1) % DIFFICULTY_LEVELS.length;
       const level = DIFFICULTY_LEVELS[difficultyIndex];
-      game.difficultyScale = level.scale;
+      game.difficultyScale = level.scale + (game.level - 1) * DIFFICULTY_PER_LEVEL;
       game.speedMult = level.speedMult;
       document.getElementById('difficultyToggle').textContent = level.name;
       showNotification(`🎚️ Trudność: ${level.name} (Fale co ${level.waveTime}s)`);
@@ -559,8 +571,20 @@
         const barracksFlag = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.4), new THREE.MeshStandardMaterial({ color: 0x4B5320, side: THREE.DoubleSide })); barracksFlag.position.set(1.3, def.height + 1.7, 0); group.add(barracksFlag);
         group.userData.flag = barracksFlag;
       }
+      if (group.userData.weapon) group.userData.weaponZ = group.userData.weapon.position.z;
       group.traverse(c => { if(c.isMesh) { c.castShadow = settings.shadows; c.receiveShadow = settings.shadows; } });
       return group;
+    }
+
+    // Zwalnia geometrie/materiały tworzone dla pojedynczego budynku (współdzielonych z cache nie ruszamy)
+    const sharedGeometries = new Set(Object.values(geometryCache));
+    const sharedMaterials = new Set(Object.values(materialCache));
+    function disposeObject(obj) {
+      obj.traverse(c => {
+        if (!c.isMesh) return;
+        if (!sharedGeometries.has(c.geometry)) c.geometry.dispose();
+        if (!sharedMaterials.has(c.material)) c.material.dispose();
+      });
     }
 
     // ========== SYSTEM KOLIZJI ==========
@@ -600,7 +624,7 @@
       
       game.selectedBuilding = type;
       game.isPlacingBuilding = true;
-      if (game.buildingPreview) worldGroup.remove(game.buildingPreview);
+      if (game.buildingPreview) { worldGroup.remove(game.buildingPreview); disposeObject(game.buildingPreview); }
       
       game.buildingPreview = createBuildingMesh(type);
       game.buildingPreview.traverse((child) => {
@@ -617,7 +641,7 @@
 
     function cancelBuilding() {
       game.selectedBuilding = null; game.isPlacingBuilding = false;
-      if (game.buildingPreview) { worldGroup.remove(game.buildingPreview); game.buildingPreview = null; }
+      if (game.buildingPreview) { worldGroup.remove(game.buildingPreview); disposeObject(game.buildingPreview); game.buildingPreview = null; }
       document.querySelectorAll('.building-btn').forEach(btn => btn.classList.remove('selected'));
     }
 
@@ -638,8 +662,20 @@
     const mouse = new THREE.Vector2();
     let mousePos3D = new THREE.Vector3();
 
-    window.addEventListener('mousemove', (e) => {
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1; mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    // Przeciągnięcie mapy nie może być traktowane jak kliknięcie (postawienie budynku / otwarcie ulepszeń)
+    const DRAG_THRESHOLD_PX = 6;
+    let pointerDownPos = null;
+    let pointerDragged = false;
+    renderer.domElement.addEventListener('pointerdown', (e) => { pointerDownPos = { x: e.clientX, y: e.clientY }; pointerDragged = false; });
+    window.addEventListener('pointermove', (e) => {
+      if (pointerDownPos && Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y) > DRAG_THRESHOLD_PX) pointerDragged = true;
+    });
+    window.addEventListener('pointerup', () => { pointerDownPos = null; });
+
+    window.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
+
+    function updatePointer(clientX, clientY) {
+      mouse.x = (clientX / window.innerWidth) * 2 - 1; mouse.y = -(clientY / window.innerHeight) * 2 + 1;
       if (game.isPlacingBuilding && game.buildingPreview) {
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObject(ground);
@@ -657,10 +693,13 @@
           });
         }
       }
-    });
+    }
 
     window.addEventListener('click', (e) => {
       if (e.target !== renderer.domElement) return;
+      if (pointerDragged) { pointerDragged = false; return; }
+      // Na dotyku nie ma ruchu myszy przed kliknięciem - pozycję liczymy z samego kliknięcia
+      updatePointer(e.clientX, e.clientY);
 
       // STAWIANIE BUDYNKU
       if (game.isPlacingBuilding && game.selectedBuilding) {
@@ -855,13 +894,15 @@
     }
 
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'a' || e.key === 'ArrowLeft') panKeys.left = true;
-      if (e.key === 'd' || e.key === 'ArrowRight') panKeys.right = true;
-      if (e.key === 'Escape') cancelBuilding();
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key; // działa też z Caps Lock
+      if (key === 'a' || key === 'ArrowLeft') panKeys.left = true;
+      if (key === 'd' || key === 'ArrowRight') panKeys.right = true;
+      if (key === 'Escape') cancelBuilding();
     });
     window.addEventListener('keyup', (e) => {
-      if (e.key === 'a' || e.key === 'ArrowLeft') panKeys.left = false;
-      if (e.key === 'd' || e.key === 'ArrowRight') panKeys.right = false;
+      const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      if (key === 'a' || key === 'ArrowLeft') panKeys.left = false;
+      if (key === 'd' || key === 'ArrowRight') panKeys.right = false;
     });
     window.exchange = function(type) {
       if (type === 'goldToWood' && game.gold >= 20) { game.gold -= 20; game.wood += 10; }
@@ -873,9 +914,13 @@
     const tempVec = new THREE.Vector3();
     let frameCount = 0;
 
+    let notificationTimeout = null;
     function showNotification(text) {
-      const n = document.getElementById('notification'); n.textContent = text; n.style.display = 'block';
-      setTimeout(() => n.style.display = 'none', 3000);
+      const n = document.getElementById('notification'); n.textContent = text;
+      // Restart animacji i timera, żeby nowy komunikat nie znikał razem z poprzednim
+      n.style.display = 'none'; void n.offsetWidth; n.style.display = 'block';
+      clearTimeout(notificationTimeout);
+      notificationTimeout = setTimeout(() => n.style.display = 'none', 3000);
     }
 
     // ========== NOWY: System powiadomień w lewym dolnym rogu (kolejka, żeby się nie nadpisywały) ==========
@@ -900,7 +945,10 @@
 
     function update(delta) {
       if (isGameOver) return;
-      frameCount++; const deltaMs = delta * 1000;
+      // Wartości ruchu/obrażeń/cooldownów były strojone "na klatkę" przy 60 FPS.
+      // f przelicza je na czas rzeczywisty, żeby gra działała tak samo przy 30, 60 i 144 Hz.
+      const f = delta * 60;
+      frameCount += f; const deltaMs = delta * 1000;
       
       // Ekonomia (Surowce w czasie)
       game.resourceTimer += delta;
@@ -958,10 +1006,10 @@
       for (let i = zombies.length - 1; i >= 0; i--) {
         const z = zombies[i];
         if (z.isLocked) continue; 
-        z.animationTime += 0.1;
+        z.animationTime += 0.1 * f;
 
         // Szukanie najbliższego celu (baza lub budynek)
-        z.retargetTimer = (z.retargetTimer || 0) - 1;
+        z.retargetTimer = (z.retargetTimer || 0) - f;
         if (!z.cachedTarget || z.retargetTimer <= 0) {
           let t = baseGroup; let d = z.position.distanceToSquared(baseGroup.position);
           buildings.forEach(b => {
@@ -973,8 +1021,10 @@
 
         const target = z.cachedTarget;
         tempVec.subVectors(target.position, z.position).normalize();
-        if (z.position.distanceTo(target.position) > 2.5) {
-          z.position.add(tempVec.multiplyScalar(z.speed)); 
+        // Zombie zatrzymuje się przy ścianie bazy (4x4), a nie w jej środku; boss jest 3x większy
+        const stopDist = (target === baseGroup ? 3.5 : 2.5) + (z.isBoss ? 1.5 : 0);
+        if (z.position.distanceTo(target.position) > stopDist) {
+          z.position.add(tempVec.multiplyScalar(z.speed * f));
           z.mesh.position.copy(z.position);
           z.mesh.rotation.y = Math.atan2(tempVec.x, tempVec.z);
           // Animacja chodu
@@ -987,14 +1037,14 @@
         } else {
           // Atak
           if (target === baseGroup) {
-            game.baseHP -= z.damage * 0.018;
+            game.baseHP -= z.damage * 0.018 * f;
             if (game.baseHP <= 0) {
-              isGameOver = true;
+              isGameOver = true; game.baseHP = 0; updateUI();
               document.getElementById('gameOverStats').innerHTML = `🏆 Osiągnięty poziom: ${game.level}<br>💀 Zabitych zombie: ${game.zombieKilled}<br>🌊 Fala: ${game.currentWave} / ${game.maxWaves}`;
               document.getElementById('game-over-modal').style.display = 'flex';
             }
           } else {
-            const bd = buildings.find(b => b.mesh === target); if (bd) bd.hp -= z.damage * 0.018;
+            const bd = buildings.find(b => b.mesh === target); if (bd) bd.hp -= z.damage * 0.018 * f;
           }
           if (z.mesh.userData.leftArm) {
             z.mesh.userData.leftArm.rotation.x = Math.sin(z.animationTime * 0.5) * 0.8 - 0.5;
@@ -1034,7 +1084,7 @@
       for (let i = buildings.length - 1; i >= 0; i--) {
         const b = buildings[i];
         if (b.hp <= 0) {
-          worldGroup.remove(b.mesh); buildings.splice(i, 1); updateResourceProduction();
+          worldGroup.remove(b.mesh); disposeObject(b.mesh); buildings.splice(i, 1); updateResourceProduction();
           if (settings.particles) createParticleEffect(b.position.x, 0, b.position.z, 0xff0000);
           continue;
         }
@@ -1042,8 +1092,8 @@
         const def = buildingTypes[b.type];
         
         // Animacje młyna/tartaku/flagi
-        if (b.type === 'sawmill' && b.mesh.userData.saw) b.mesh.userData.saw.rotation.z += 0.15;
-        if (b.type === 'mine' && b.mesh.userData.wheel) b.mesh.userData.wheel.rotation.z += 0.03;
+        if (b.type === 'sawmill' && b.mesh.userData.saw) b.mesh.userData.saw.rotation.z += 0.15 * f;
+        if (b.type === 'mine' && b.mesh.userData.wheel) b.mesh.userData.wheel.rotation.z += 0.03 * f;
         if (b.type === 'koszary' && b.mesh.userData.flag) b.mesh.userData.flag.rotation.y = Math.sin(frameCount * 0.05) * 0.3;
 
         // Produkcja
@@ -1072,7 +1122,7 @@
           if (nearestZ) {
             tempVec.subVectors(nearestZ.position, b.position).normalize();
             if (nearestD > def.range - 2) {
-              b.position.add(tempVec.multiplyScalar(def.moveSpeed));
+              b.position.add(tempVec.multiplyScalar(def.moveSpeed * f));
               b.mesh.position.copy(b.position);
               b.mesh.rotation.y = Math.atan2(tempVec.x, tempVec.z);
             }
@@ -1081,7 +1131,7 @@
 
         // Strzelanie
         if (def.range) {
-          b.cooldown--;
+          b.cooldown -= f;
           if (b.cooldown <= 0) {
             const zTarget = zombies.find(zmb => !zmb.isLocked && b.position.distanceTo(zmb.position) < def.range);
             if (zTarget) {
@@ -1092,9 +1142,11 @@
               if (dual) createProjectile(b.position, zTarget, dmg, b.type);
               b.cooldown = fr;
 
-              if ((b.type === 'soldier' || b.type === 'tank') && b.mesh.userData.weapon) {
-                b.mesh.userData.weapon.position.z = 0.5;
-                setTimeout(() => { if (b.mesh.userData.weapon) b.mesh.userData.weapon.position.z = 0.3; }, 100);
+              // Odrzut broni - wraca do własnej pozycji (lufa czołgu ma inną niż karabin żołnierza)
+              const ud = b.mesh.userData;
+              if ((b.type === 'soldier' || b.type === 'tank') && ud.weapon) {
+                ud.weapon.position.z = ud.weaponZ - 0.2;
+                setTimeout(() => { ud.weapon.position.z = ud.weaponZ; }, 100);
               }
             }
           }
@@ -1103,10 +1155,10 @@
 
       // POCISKI
       for (let i = projectiles.length - 1; i >= 0; i--) {
-        const p = projectiles[i]; p.life--;
+        const p = projectiles[i]; p.life -= f;
         if (p.target && !p.target.isLocked) {
-          tempVec.subVectors(p.target.position, p.pos).normalize(); 
-          p.pos.add(tempVec.multiplyScalar(p.speed)); p.mesh.position.copy(p.pos);
+          tempVec.subVectors(p.target.position, p.pos).normalize();
+          p.pos.add(tempVec.multiplyScalar(p.speed * f)); p.mesh.position.copy(p.pos);
           if (p.pos.distanceTo(p.target.position) < 2 || p.life <= 0) {
             p.target.hp -= p.damage;
             if(settings.particles && Math.random()<0.5) createParticleEffect(p.target.position.x, 1, p.target.position.z, 0xffff00);
@@ -1119,14 +1171,14 @@
 
       // CZĄSTECZKI
       for (let i = particles.length - 1; i >= 0; i--) {
-        const pt = particles[i]; pt.life--;
+        const pt = particles[i]; pt.life -= f;
         const pos = pt.entry.positions;
         for (let j = 0; j < pos.length; j += 3) {
-          pos[j] += pt.velocities[j]; pos[j+1] += pt.velocities[j+1]; pos[j+2] += pt.velocities[j+2];
-          pt.velocities[j+1] -= 0.015; // grawitacja czasteczek
+          pos[j] += pt.velocities[j] * f; pos[j+1] += pt.velocities[j+1] * f; pos[j+2] += pt.velocities[j+2] * f;
+          pt.velocities[j+1] -= 0.015 * f; // grawitacja czasteczek
         }
         pt.entry.system.geometry.attributes.position.needsUpdate = true;
-        pt.entry.system.material.opacity = pt.life / 40;
+        pt.entry.system.material.opacity = Math.max(0, pt.life / 40);
         if (pt.life <= 0) { returnParticleToPool(pt.entry); particles.splice(i, 1); }
       }
       flag.rotation.y = Math.sin(frameCount * 0.02) * 0.2;
@@ -1140,7 +1192,9 @@
     }
 
     function updateUI() {
-      document.getElementById('baseHP').querySelector('.stat-value').textContent = Math.max(0, Math.floor(game.baseHP));
+      const baseHPEl = document.getElementById('baseHP');
+      baseHPEl.querySelector('.stat-value').textContent = Math.max(0, Math.floor(game.baseHP));
+      baseHPEl.classList.toggle('danger', game.baseHP <= game.maxBaseHP * 0.3);
       document.getElementById('gold').textContent = Math.floor(game.gold);
       document.getElementById('wood').textContent = Math.floor(game.wood);
       document.getElementById('zombieCount').textContent = zombies.filter(z => !z.isLocked).length;
@@ -1158,7 +1212,8 @@
     }
 
     window.nextLevel = function() {
-      game.level++; game.levelKills = 0; game.difficultyScale += 0.15;
+      game.level++; game.levelKills = 0;
+      game.difficultyScale = DIFFICULTY_LEVELS[difficultyIndex].scale + (game.level - 1) * DIFFICULTY_PER_LEVEL;
       game.wood += 40; game.gold += 50;
       document.getElementById('level-complete').style.display = 'none';
       document.getElementById('currentLevel').textContent = game.level;
@@ -1167,17 +1222,48 @@
 
     window.restartGame = function() { location.reload(); };
 
+    function setToggleButton(id, on) {
+      const btn = document.getElementById(id);
+      btn.textContent = on ? 'WŁ' : 'WYŁ'; btn.className = on ? 'toggle-btn' : 'toggle-btn off';
+    }
+
     window.togglePerformanceMode = function() {
       settings.performanceMode = !settings.performanceMode;
-      const btn = document.getElementById('perfModeToggle');
+      setToggleButton('perfModeToggle', settings.performanceMode);
       if(settings.performanceMode) {
-        btn.textContent = 'WŁ'; btn.className = 'toggle-btn'; settings.particles = false; renderer.setPixelRatio(1);
+        settings.particles = false; renderer.setPixelRatio(1);
       } else {
-        btn.textContent = 'WYŁ'; btn.className = 'toggle-btn off'; settings.particles = true; renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
+        settings.particles = particlesUserPref; renderer.setPixelRatio(Math.min(window.devicePixelRatio, pixelRatioCap));
       }
+      setToggleButton('particleToggle', settings.particles);
     };
-    window.toggleShadows = function() { settings.shadows = !settings.shadows; location.reload(); };
-    window.toggleParticles = function() { settings.particles = !settings.particles; document.getElementById('particleToggle').textContent = settings.particles ? 'WŁ' : 'WYŁ'; document.getElementById('particleToggle').className = settings.particles ? 'toggle-btn' : 'toggle-btn off'; };
+
+    // Cienie przełączane na żywo - bez przeładowania strony i utraty postępu
+    function applyShadows(on) {
+      settings.shadows = on;
+      renderer.shadowMap.enabled = on;
+      directionalLight.castShadow = on;
+      worldGroup.traverse(c => {
+        if (!c.isMesh) return;
+        c.castShadow = on; c.receiveShadow = on;
+        c.material.needsUpdate = true;
+      });
+      setToggleButton('shadowToggle', on);
+    }
+    window.toggleShadows = function() {
+      applyShadows(!settings.shadows);
+      try { localStorage.setItem('zombie3d.shadows', settings.shadows ? '1' : '0'); } catch (e) {}
+    };
+    window.toggleParticles = function() {
+      settings.particles = !settings.particles; particlesUserPref = settings.particles;
+      setToggleButton('particleToggle', settings.particles);
+    };
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
 
     // ========== MAIN ANIMATION LOOP ==========
     let lastTime = performance.now();
@@ -1201,7 +1287,13 @@
     }
     
     document.getElementById('loading').style.display = 'none';
+    applyShadows(settings.shadows);
     setupLevel(); updateUI();
+
+    // PWA / tryb offline - service worker działa tylko przez http(s), nie z file://
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker nie zarejestrowany:', err));
+    }
     animate(performance.now());
   </script>
 </body>
