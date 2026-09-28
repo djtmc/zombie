@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WOSQ — Dynamic Motion Graphics Showreel (30s)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,600;0,800;0,900;1,800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      background: #0b0a09;
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #stage-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      max-width: 177.77vh; /* 16:9 Aspect Ratio */
+      max-height: 56.25vw;
+      background: #000;
+      box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 1px 1px rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+    canvas#videoCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    /* Control Bar Overlay */
+    .controls-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 24px 30px;
+      background: linear-gradient(to top, rgba(10, 9, 8, 0.95), rgba(10, 9, 8, 0.4) 60%, transparent);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 50;
+      pointer-events: auto;
+    }
+    #stage-container:hover .controls-overlay,
+    .controls-overlay.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .scrubber-container {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 4px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: height 0.2s;
+    }
+    .scrubber-container:hover {
+      height: 10px;
+    }
+    .scrubber-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 0%;
+      background: linear-gradient(90deg, #d4af37, #f7d070, #ffffff);
+      box-shadow: 0 0 12px rgba(247, 208, 112, 0.7);
+      border-radius: 4px;
+      pointer-events: none;
+    }
+    .controls-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .controls-left, .controls-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      border-radius: 50%;
+      width: 42px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.08);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    }
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+    .time-badge {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.85);
+      font-variant-numeric: tabular-nums;
+    }
+    .quality-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(212, 175, 55, 0.2);
+      color: #f7d070;
+      border: 1px solid rgba(247, 208, 112, 0.4);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Start / Unmute Screen Banner */
+    #start-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(30, 26, 22, 0.85) 0%, rgba(10, 8, 7, 0.98) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      transition: opacity 0.5s ease;
+    }
+    #start-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .big-play-btn {
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #d4af37, #f7d070);
+      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 12px rgba(247, 208, 112, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      animation: pulse-ring 2s infinite ease-out;
+      transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .big-play-btn:hover {
+      transform: scale(1.1);
+    }
+    .big-play-btn svg {
+      width: 40px;
+      height: 40px;
+      fill: #14110d;
+      margin-left: 6px;
+    }
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 0 rgba(247, 208, 112, 0.35); }
+      70% { box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 28px rgba(247, 208, 112, 0); }
+      100% { box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 0 rgba(247, 208, 112, 0); }
+    }
+    .hero-title {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, #fff 40%, #e0d0b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+    .hero-subtitle {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+    }
+    .click-hint {
+      font-size: 13px;
+      font-weight: 700;
+      color: #f7d070;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 8px 18px;
+      border-radius: 20px;
+      background: rgba(247, 208, 112, 0.1);
+      border: 1px dashed rgba(247, 208, 112, 0.4);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="stage-container">
+    <canvas id="videoCanvas" width="1920" height="1080"></canvas>
+
+    <!-- Interactive Start / Unmute Overlay -->
+    <div id="start-overlay">
+      <div class="big-play-btn">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </div>
+      <div class="hero-title">WOSQ — MOTION SHOWREEL</div>
+      <div class="hero-subtitle">Ekskluzywne Świece & Bukiety z Wosku Sojowego</div>
+      <div class="click-hint">KLIKNIJ, ABY ROZPOCZĄĆ PREZENTACJĘ 30S (Z DŹWIĘKIEM)</div>
+    </div>
+
+    <!-- Motion Video Controls -->
+    <div class="controls-overlay" id="controlsOverlay">
+      <div class="scrubber-container" id="scrubber">
+        <div class="scrubber-bar" id="progressBar"></div>
+      </div>
+      <div class="controls-row">
+        <div class="controls-left">
+          <button class="btn" id="playBtn" title="Odtwórz / Pauza">
+            <svg id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg id="pauseIcon" viewBox="0 0 24 24" style="display: none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+          <button class="btn" id="restartBtn" title="Restart od początku">
+            <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+          </button>
+          <div class="time-badge" id="timeDisplay">00:00 / 00:30</div>
+        </div>
+        <div class="controls-right">
+          <span class="quality-pill">4K • 60 FPS • BEAT-SYNC</span>
+          <button class="btn" id="soundBtn" title="Wycisz / Włącz dźwięk">
+            <svg id="soundOnIcon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+            <svg id="soundOffIcon" viewBox="0 0 24 24" style="display: none;"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73 4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+          </button>
+          <button class="btn" id="fsBtn" title="Pełny ekran">
+            <svg viewBox="0 0 24 24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       ASSETS & PRELOAD
+       ========================================================================== */
+    const ASSETS = {
+      logo: 'input_file_0.png',       // WOSQ Bold Black logo
+      bouquet: 'input_file_1.png',    // Artisan flower bouquet in kraft pot
+      gifts: 'input_file_2.png'       // Holiday/Christmas wax figures with ribbons & tags
+    };
+
+    const images = {};
+    let assetsLoaded = 0;
+    const totalAssets = Object.keys(ASSETS).length;
+
+    function preloadAssets(callback) {
+      for (const [key, src] of Object.entries(ASSETS)) {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = src;
+        img.onload = () => {
+          assetsLoaded++;
+          if (assetsLoaded === totalAssets && callback) callback();
+        };
+        img.onerror = () => {
+          console.warn("Failed loading image asset:", src);
+          assetsLoaded++;
+          if (assetsLoaded === totalAssets && callback) callback();
+        };
+        images[key] = img;
+      }
+    }
+
+    /* ==========================================================================
+       SYNTHESIZED SOUND ENGINE (Web Audio API) - 120 BPM Punchy Luxury Beat
+       ========================================================================== */
+    class AudioEngine {
+      constructor() {
+        this.ctx = null;
+        this.isMuted = false;
+        this.masterGain = null;
+        this.isPlaying = false;
+        this.bpm = 120;
+        this.beatDuration = 60 / this.bpm; // 0.5 sec
+        this.scheduledEvents = [];
+        this.kickGain = null;
+        this.currentBassNote = 0;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.setValueAtTime(0.85, this.ctx.currentTime);
+          this.masterGain.connect(this.ctx.destination);
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        if (!this.masterGain) return;
+        this.isMuted = !this.isMuted;
+        this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.85, this.ctx.currentTime, 0.05);
+        return this.isMuted;
+      }
+
+      playKick(time) {
+        if (!this.ctx || this.isMuted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.frequency.setValueAtTime(140, time);
+        osc.frequency.exponentialRampToValueAtTime(38, time + 0.12);
+
+        gain.gain.setValueAtTime(1.0, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.28);
+
+        osc.start(time);
+        osc.stop(time + 0.3);
+      }
+
+      playSnare(time) {
+        if (!this.ctx || this.isMuted) return;
+        // White noise snare with snappy decay
+        const bufferSize = this.ctx.sampleRate * 0.2;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.04));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 800;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.6, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + 0.18);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        noise.start(time);
+      }
+
+      playHat(time, accent = false) {
+        if (!this.ctx || this.isMuted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc.type = 'highpass';
+        filter.type = 'highpass';
+        filter.frequency.value = 7500;
+
+        gain.gain.setValueAtTime(accent ? 0.35 : 0.18, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+
+        // Simple high metallic pop
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(6000 + Math.random() * 1000, time);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(time);
+        osc.stop(time + 0.06);
+      }
+
+      playChord(notes, time, duration = 1.8) {
+        if (!this.ctx || this.isMuted) return;
+        notes.forEach(freq => {
+          const osc1 = this.ctx.createOscillator();
+          const osc2 = this.ctx.createOscillator();
+          const filter = this.ctx.createBiquadFilter();
+          const gain = this.ctx.createGain();
+
+          osc1.type = 'sawtooth';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(freq, time);
+          osc2.frequency.setValueAtTime(freq * 1.004, time); // warm chorus detune
+
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(450, time);
+          filter.frequency.exponentialRampToValueAtTime(2600, time + 0.3);
+          filter.frequency.exponentialRampToValueAtTime(600, time + duration);
+
+          gain.gain.setValueAtTime(0.0, time);
+          gain.gain.linearRampToValueAtTime(0.12, time + 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+          osc1.connect(filter);
+          osc2.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.masterGain);
+
+          osc1.start(time);
+          osc2.start(time);
+          osc1.stop(time + duration);
+          osc2.stop(time + duration);
+        });
+      }
+
+      playBass(freq, time, duration = 0.45) {
+        if (!this.ctx || this.isMuted) return;
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq, time);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(380, time);
+        filter.frequency.exponentialRampToValueAtTime(140, time + duration);
+
+        gain.gain.setValueAtTime(0.4, time);
+        gain.gain.exponentialRampToValueAtTime(0.01, time + duration);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        osc.start(time);
+        osc.stop(time + duration);
+      }
+
+      playWhoosh(time, pitchUp = true) {
+        if (!this.ctx || this.isMuted) return;
+        const bufferSize = this.ctx.sampleRate * 0.7;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.Q.value = 3.5;
+
+        if (pitchUp) {
+          filter.frequency.setValueAtTime(200, time);
+          filter.frequency.exponentialRampToValueAtTime(3500, time + 0.65);
+        } else {
+          filter.frequency.setValueAtTime(3500, time);
+          filter.frequency.exponentialRampToValueAtTime(200, time + 0.65);
+        }
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.01, time);
+        gain.gain.linearRampToValueAtTime(0.35, time + 0.35);
+        gain.gain.linearRampToValueAtTime(0.01, time + 0.7);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.masterGain);
+
+        noise.start(time);
+      }
+
+      playImpact(time) {
+        if (!this.ctx || this.isMuted) return;
+        this.playKick(time);
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.frequency.setValueAtTime(80, time);
+        osc.frequency.exponentialRampToValueAtTime(25, time + 0.8);
+        gain.gain.setValueAtTime(0.7, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.9);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(time);
+        osc.stop(time + 1.0);
+      }
+
+      playChime(time, freq = 1200) {
+        if (!this.ctx || this.isMuted) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, time);
+        gain.gain.setValueAtTime(0.2, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.45);
+        osc.connect(gain);
+        gain.connect(this.masterGain);
+        osc.start(time);
+        osc.stop(time + 0.5);
+      }
+    }
+
+    const audio = new AudioEngine();
+
+    /* ==========================================================================
+       ANIMATION TIMELINE & MOTION GRAPHICS CORE (30 SECONDS = 60 BEATS)
+       ========================================================================== */
+    const DURATION = 30.0; // exactly 30s
+    let currentTime = 0;
+    let isPlaying = false;
+    let lastTimestamp = 0;
+    let userScrubbing = false;
+
+    // Harmonic Chord Progression for 120 BPM:
+    // Chords (frequencies in Hz):
+    // Dm9: D3 (146.8), F3 (174.6), A3 (220.0), C4 (261.6), E4 (329.6)
+    // G13: G2 (98.0), F3 (174.6), B3 (246.9), E4 (329.6)
+    // Cmaj9: C3 (130.8), E3 (164.8), G3 (196.0), B3 (246.9), D4 (293.7)
+    // Am9: A2 (110.0), C3 (130.8), E3 (164.8), G3 (196.0), B3 (246.9)
+    const chordProgression = [
+      { bass: 73.4, notes: [146.8, 174.6, 220.0, 261.6, 329.6] },
+      { bass: 49.0, notes: [98.0, 174.6, 246.9, 329.6] },
+      { bass: 65.4, notes: [130.8, 164.8, 196.0, 246.9, 293.7] },
+      { bass: 55.0, notes: [110.0, 130.8, 164.8, 196.0, 246.9] }
+    ];
+
+    // Trigger audio beat notes
+    let lastBeatIndex = -1;
+    function syncAudioWithTime(t) {
+      if (!audio.ctx || !isPlaying) return;
+      const beat = Math.floor(t * 2); // 120 BPM = 2 beats per sec
+      if (beat !== lastBeatIndex) {
+        lastBeatIndex = beat;
+        const now = audio.ctx.currentTime;
+        const beatInBar = beat % 4;
+        const barIndex = Math.floor(beat / 4);
+
+        // Scene transitions SFX
+        if (beat === 0) audio.playImpact(now);
+        if (beat === 8) { audio.playWhoosh(now, true); audio.playImpact(now + 0.2); }
+        if (beat === 20) { audio.playWhoosh(now, true); audio.playImpact(now + 0.2); }
+        if (beat === 32) { audio.playWhoosh(now, true); audio.playImpact(now + 0.2); }
+        if (beat === 44) { audio.playImpact(now); }
+
+        // Intro (0 - 4s): build up with kicks and sub boom
+        if (t < 4.0) {
+          if (beatInBar === 0 || beatInBar === 2) audio.playKick(now);
+          if (beat % 2 === 1) audio.playChime(now, 800 + beat * 150);
+          return;
+        }
+
+        // Full Groove (4.0s - 28.5s)
+        if (t >= 4.0 && t <= 28.5) {
+          // Kick on 1 & 3 + syncopated
+          if (beatInBar === 0 || beatInBar === 2) {
+            audio.playKick(now);
+          }
+          if (beatInBar === 3 && (barIndex % 2 === 1)) {
+            audio.playKick(now + 0.25);
+          }
+
+          // Snare on 2 & 4
+          if (beatInBar === 1 || beatInBar === 3) {
+            audio.playSnare(now);
+          }
+
+          // 8th-note Hi-Hats
+          audio.playHat(now, beatInBar === 0);
+          audio.playHat(now + 0.25, false);
+
+          // Chords on start of bar (every 4 beats = 2 sec)
+          if (beatInBar === 0) {
+            const chord = chordProgression[barIndex % chordProgression.length];
+            audio.playChord(chord.notes, now, 1.9);
+            audio.playBass(chord.bass, now, 0.45);
+          }
+          if (beatInBar === 2) {
+            const chord = chordProgression[barIndex % chordProgression.length];
+            audio.playBass(chord.bass * 1.5, now, 0.35); // Fifth
+          }
+          if (beatInBar === 3) {
+            const chord = chordProgression[barIndex % chordProgression.length];
+            audio.playBass(chord.bass, now + 0.25, 0.22);
+          }
+
+          // Sparkle chimes during floral / festive showcases
+          if ((t >= 5 && t <= 9) || (t >= 11 && t <= 15) || (t >= 23 && t <= 28)) {
+            if (beat % 2 === 0) {
+              audio.playChime(now + 0.25, 1400 + (beat % 4) * 220);
+            }
+          }
+        }
+      }
+    }
+
+    /* ==========================================================================
+       CANVAS MOTION GRAPHICS RENDERER (1920 x 1080)
+       ========================================================================== */
+    const canvas = document.getElementById('videoCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // Smooth Easing Functions
+    const ease = {
+      linear: t => t,
+      inQuad: t => t * t,
+      outQuad: t => t * (2 - t),
+      inOutQuad: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+      outCubic: t => (--t) * t * t + 1,
+      inOutCubic: t => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
+      outExpo: t => t === 1 ? 1 : 1 - Math.pow(2, -10 * t),
+      outBack: (t, s = 1.70158) => {
+        t = t - 1;
+        return t * t * ((s + 1) * t + s) + 1;
+      },
+      inOutBack: (t, s = 1.70158) => {
+        const s2 = s * 1.525;
+        if ((t /= 0.5) < 1) return 0.5 * (t * t * ((s2 + 1) * t - s2));
+        return 0.5 * ((t -= 2) * t * ((s2 + 1) * t + s2) + 2);
+      },
+      elasticOut: (t) => {
+        if (t === 0) return 0;
+        if (t === 1) return 1;
+        return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * ((2 * Math.PI) / 3)) + 1;
+      }
+    };
+
+    // Particles system for floating embers / wax petals
+    const particles = [];
+    for (let i = 0; i < 70; i++) {
+      particles.push({
+        x: Math.random() * 1920,
+        y: Math.random() * 1080,
+        size: 2 + Math.random() * 6,
+        speedX: -0.5 + Math.random() * 1,
+        speedY: -0.4 - Math.random() * 1.2,
+        rot: Math.random() * Math.PI * 2,
+        rotSpeed: (Math.random() - 0.5) * 0.05,
+        alpha: 0.2 + Math.random() * 0.6,
+        color: ['#f7d070', '#ffffff', '#e3a587', '#93b7be', '#e2c290'][Math.floor(Math.random() * 5)]
+      });
+    }
+
+    function renderParticles(t, opacity = 1) {
+      ctx.save();
+      ctx.globalAlpha = opacity;
+      for (const p of particles) {
+        p.x += p.speedX;
+        p.y += p.speedY;
+        p.rot += p.rotSpeed;
+        if (p.y < -50) p.y = 1130;
+        if (p.x < -50) p.x = 1970;
+        if (p.x > 1970) p.x = -50;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.color;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 12;
+
+        // Draw petal/teardrop shape
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size * 1.6);
+        ctx.bezierCurveTo(p.size, -p.size * 0.8, p.size, p.size, 0, p.size * 1.5);
+        ctx.bezierCurveTo(-p.size, p.size, -p.size, -p.size * 0.8, 0, -p.size * 1.6);
+        ctx.fill();
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+
+    // Dynamic camera pulse on every kick beat (4 on the floor)
+    function getCameraBeatPulse(t) {
+      if (t < 4.0 || t > 28.5) return 0;
+      const beatProgress = (t * 2) % 1; // 0 -> 1 within each beat
+      return Math.exp(-beatProgress * 8) * 0.018; // snappy 1.8% punch
+    }
+
+    /* --------------------------------------------------------------------------
+       SCENE 1: THE BRAND BIRTH & HOOK (0.0s - 4.2s)
+       -------------------------------------------------------------------------- */
+    function renderScene1(t) {
+      const st = t; // local scene time (0.0 - 4.2s)
+      const w = 1920, h = 1080;
+
+      // Elegant dark background with warm ambient gold radial
+      const bgGrad = ctx.createRadialGradient(w / 2, h / 2, 80, w / 2, h / 2, 950);
+      bgGrad.addColorStop(0, '#261f18');
+      bgGrad.addColorStop(0.5, '#120f0c');
+      bgGrad.addColorStop(1, '#070605');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Liquid wax ripples in background
+      ctx.save();
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
+      ctx.lineWidth = 2;
+      for (let r = 100; r < 900; r += 160) {
+        const waveR = r + Math.sin(st * 4 + r * 0.02) * 20;
+        ctx.beginPath();
+        ctx.arc(w / 2, h / 2, waveR, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      renderParticles(t, 0.7);
+
+      // Logo Animation: Scale punch + Glitch reveal
+      // Spring entrance
+      const logoProgress = Math.min(1, Math.max(0, (st - 0.2) / 1.0));
+      const logoScale = 0.5 + ease.elasticOut(logoProgress) * 0.5;
+      const logoAlpha = Math.min(1, st / 0.4);
+
+      ctx.save();
+      ctx.translate(w / 2, h / 2 - 50);
+      ctx.scale(logoScale, logoScale);
+
+      // Glowing Aura behind logo
+      const auraGrad = ctx.createRadialGradient(0, 0, 50, 0, 0, 420);
+      auraGrad.addColorStop(0, 'rgba(247, 208, 112, 0.35)');
+      auraGrad.addColorStop(0.5, 'rgba(212, 175, 55, 0.12)');
+      auraGrad.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = auraGrad;
+      ctx.beginPath();
+      ctx.arc(0, 0, 420, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Logo Image or Stylized Typo
+      if (images.logo && images.logo.complete) {
+        ctx.save();
+        ctx.globalAlpha = logoAlpha;
+        // Invert to gleaming pure white with gold rim shadow
+        ctx.shadowColor = 'rgba(247, 208, 112, 0.9)';
+        ctx.shadowBlur = 40;
+        // Draw centered
+        const lw = 500;
+        const lh = 500 * (images.logo.height / images.logo.width);
+        ctx.drawImage(images.logo, -lw / 2, -lh / 2, lw, lh);
+        ctx.restore();
+      } else {
+        // Fallback typography
+        ctx.font = '900 160px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.shadowColor = '#d4af37';
+        ctx.shadowBlur = 50;
+        ctx.fillText("WOSQ", 0, 0);
+      }
+      ctx.restore();
+
+      // Kinetic Polish Subtitles with stagger
+      // "RĘCZNIE TWORZONA MAGIA" -> "POCZUJ ZAPACH ARTYZMU"
+      const t1Progress = Math.min(1, Math.max(0, (st - 0.9) / 0.7));
+      if (t1Progress > 0) {
+        ctx.save();
+        const yOff = (1 - ease.outBack(t1Progress)) * 50;
+        ctx.globalAlpha = t1Progress;
+        ctx.translate(w / 2, h / 2 + 200 + yOff);
+
+        // Badge pill
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.strokeStyle = 'rgba(247, 208, 112, 0.5)';
+        ctx.lineWidth = 1.5;
+        const pillW = 540, pillH = 50;
+        ctx.beginPath();
+        ctx.roundRect(-pillW / 2, -pillH / 2, pillW, pillH, 25);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '800 20px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#f7d070';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.letterSpacing = '6px';
+        ctx.fillText("RĘCZNIE TWORZONA MAGIA SOJOWA", 0, 0);
+        ctx.restore();
+      }
+
+      // Second kinetic typography line at 2.2s
+      const t2Progress = Math.min(1, Math.max(0, (st - 2.1) / 0.6));
+      if (t2Progress > 0) {
+        ctx.save();
+        const scale2 = 0.8 + ease.outBack(t2Progress) * 0.2;
+        ctx.globalAlpha = t2Progress;
+        ctx.translate(w / 2, h / 2 + 280);
+        ctx.scale(scale2, scale2);
+
+        ctx.font = 'italic 600 36px "Playfair Display"';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
+        ctx.shadowBlur = 20;
+        ctx.fillText("Kompozycje, które budzą zachwyt.", 0, 0);
+        ctx.restore();
+      }
+
+      // Flash transition out at 3.9 - 4.2s
+      if (st > 3.8) {
+        const flashAlpha = (st - 3.8) / 0.4;
+        ctx.fillStyle = `rgba(255, 250, 240, ${flashAlpha})`;
+        ctx.fillRect(0, 0, w, h);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SCENE 2: ARTISAN FLORAL COLLECTION (4.2s - 10.2s)
+       "BUKIETY Z WOSKU — WIECZNA ŚWIEŻOŚĆ"
+       -------------------------------------------------------------------------- */
+    function renderScene2(t) {
+      const st = t - 4.2; // 0.0 - 6.0s
+      const w = 1920, h = 1080;
+
+      // Warm botanical luxury background (soft ivory / warm cream with pastel sage & amber mesh)
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#f5efe6');
+      grad.addColorStop(0.5, '#e8ded2');
+      grad.addColorStop(1, '#dbcdbc');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Large kinetic geometric background typography (Watermark)
+      ctx.save();
+      ctx.font = '900 240px "Plus Jakarta Sans"';
+      ctx.fillStyle = 'rgba(168, 142, 118, 0.12)';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      const offsetMarquee = (st * -120) % 1920;
+      ctx.fillText("NATURALNY WOSK SOJOWY • HANDMADE • ARTYZM • ", offsetMarquee, 220);
+      ctx.fillText("NATURALNY WOSK SOJOWY • HANDMADE • ARTYZM • ", offsetMarquee + 1920, 220);
+      ctx.restore();
+
+      renderParticles(t, 0.85);
+
+      // Hero Product Card (Flower Bouquet cutout with 3D tilt & dynamic floating)
+      const cardProgress = Math.min(1, st / 0.8);
+      const cardSlide = (1 - ease.outBack(cardProgress)) * 400;
+      const floatY = Math.sin(st * 2.5) * 18;
+      const floatRot = Math.sin(st * 1.8) * 0.035;
+
+      ctx.save();
+      ctx.translate(w * 0.65 - cardSlide, h * 0.52 + floatY);
+      ctx.rotate(floatRot);
+
+      // Multi-layer drop shadow
+      ctx.shadowColor = 'rgba(40, 28, 20, 0.35)';
+      ctx.shadowBlur = 60;
+      ctx.shadowOffsetY = 45;
+
+      // Product Image Container (Pill-Arch Glass Frame)
+      const frameW = 600;
+      const frameH = 780;
+      ctx.beginPath();
+      ctx.roundRect(-frameW / 2, -frameH / 2, frameW, frameH, [280, 280, 40, 40]);
+      ctx.fillStyle = '#ffffff';
+      ctx.fill();
+
+      // Clip image inside arch
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(-frameW / 2 + 12, -frameH / 2 + 12, frameW - 24, frameH - 24, [270, 270, 32, 32]);
+      ctx.clip();
+
+      if (images.bouquet && images.bouquet.complete) {
+        // Slow zoom in on the bouquet
+        const zoom = 1.05 + Math.sin(st * 0.8) * 0.05;
+        const bw = frameW * 1.35 * zoom;
+        const bh = (bw * images.bouquet.height) / images.bouquet.width;
+        ctx.drawImage(images.bouquet, -bw / 2, -bh / 2 + 30, bw, bh);
+      }
+      ctx.restore();
+
+      // Golden foil outline border
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.6)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(-frameW / 2, -frameH / 2, frameW, frameH, [280, 280, 40, 40]);
+      ctx.stroke();
+
+      // Floating Badge 1 on the Product: "100% SOY WAX"
+      const badge1Prog = Math.min(1, Math.max(0, (st - 0.7) / 0.6));
+      if (badge1Prog > 0) {
+        ctx.save();
+        ctx.translate(frameW / 2 - 20, -frameH / 2 + 80);
+        ctx.scale(ease.elasticOut(badge1Prog), ease.elasticOut(badge1Prog));
+        ctx.shadowColor = 'rgba(0,0,0,0.2)';
+        ctx.shadowBlur = 15;
+        ctx.fillStyle = '#1c1917';
+        ctx.beginPath();
+        ctx.arc(0, 0, 65, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        ctx.font = '800 13px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#f7d070';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("100% EKO", 0, -12);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText("SOJOWY", 0, 8);
+        ctx.font = '600 10px "Plus Jakarta Sans"';
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.fillText("WOSK", 0, 24);
+        ctx.restore();
+      }
+
+      ctx.restore();
+
+      // Left Column: Kinetic Typography & Features (Polish)
+      ctx.save();
+      ctx.translate(140, h * 0.32);
+
+      // Category Tag
+      const tagProg = Math.min(1, Math.max(0, st / 0.5));
+      if (tagProg > 0) {
+        ctx.save();
+        ctx.globalAlpha = tagProg;
+        ctx.fillStyle = '#9b6c43';
+        ctx.font = '800 16px "Plus Jakarta Sans"';
+        ctx.letterSpacing = '4px';
+        ctx.fillText("KOLEKCJA KWIATOWA • PREMIERA", 0, 0);
+        ctx.restore();
+      }
+
+      // Giant Headline: "BUKIETY, KTÓRE NIGDY NIE WIĘDNĄ"
+      const headProg = Math.min(1, Math.max(0, (st - 0.25) / 0.6));
+      if (headProg > 0) {
+        ctx.save();
+        ctx.globalAlpha = headProg;
+        const slideX = (1 - ease.outCubic(headProg)) * -60;
+        ctx.translate(slideX, 65);
+        ctx.font = '900 68px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#1a1613';
+        ctx.fillText("BUKIETY Z WOSKU", 0, 0);
+
+        ctx.font = 'italic 700 64px "Playfair Display"';
+        ctx.fillStyle = '#b37d4e';
+        ctx.fillText("Wieczny zapach & detal.", 0, 75);
+        ctx.restore();
+      }
+
+      // Feature bullet pills popping with bounce
+      const features = [
+        { label: "Ręcznie rzeźbione płatki róż i stokrotek", icon: "✦" },
+        { label: "Nasycone naturalnymi olejkami zapachowymi", icon: "✦" },
+        { label: "Idealna dekoracja do stylowych wnętrz", icon: "✦" }
+      ];
+
+      features.forEach((feat, i) => {
+        const fProg = Math.min(1, Math.max(0, (st - 1.0 - i * 0.25) / 0.5));
+        if (fProg > 0) {
+          ctx.save();
+          const scale = ease.outBack(fProg);
+          ctx.translate(0, 240 + i * 75);
+          ctx.scale(scale, scale);
+
+          // Card pill
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+          ctx.shadowBlur = 20;
+          ctx.shadowOffsetY = 6;
+          ctx.beginPath();
+          ctx.roundRect(0, -26, 680, 56, 16);
+          ctx.fill();
+
+          // Star icon
+          ctx.fillStyle = '#d4af37';
+          ctx.font = '700 20px "Plus Jakarta Sans"';
+          ctx.fillText(feat.icon, 24, 6);
+
+          // Text
+          ctx.fillStyle = '#2d251e';
+          ctx.font = '700 20px "Plus Jakarta Sans"';
+          ctx.fillText(feat.label, 56, 6);
+          ctx.restore();
+        }
+      });
+
+      ctx.restore();
+
+      // Whip pan transition at 9.8s
+      if (st > 5.6) {
+        const whip = (st - 5.6) / 0.4;
+        ctx.fillStyle = '#14110f';
+        ctx.fillRect(0, 0, w * ease.inCubic(whip), h);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SCENE 3: HOLIDAY & CUSTOM CORPORATE GIFTS (10.2s - 16.2s)
+       "WYJĄTKOWE UPOMINKI DLA FIRM I BLISKICH"
+       -------------------------------------------------------------------------- */
+    function renderScene3(t) {
+      const st = t - 10.2; // 0.0 - 6.0s
+      const w = 1920, h = 1080;
+
+      // Deep festive midnight & spruce ambient background
+      const grad = ctx.createRadialGradient(w * 0.5, h * 0.5, 100, w * 0.5, h * 0.5, 1100);
+      grad.addColorStop(0, '#1c261e');
+      grad.addColorStop(0.5, '#101712');
+      grad.addColorStop(1, '#080c09');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      // Golden sparkling starbursts
+      ctx.save();
+      for (let s = 0; s < 18; s++) {
+        const sx = (Math.sin(s * 99 + st * 0.5) * 0.5 + 0.5) * w;
+        const sy = (Math.cos(s * 33 + st * 0.3) * 0.5 + 0.5) * h;
+        const sSize = 6 + Math.sin(st * 4 + s) * 4;
+        ctx.fillStyle = 'rgba(247, 208, 112, 0.45)';
+        ctx.shadowColor = '#f7d070';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(sx, sy, sSize / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      renderParticles(t, 0.9);
+
+      // Split Screen Layout: Left side dynamic hero cards; Right side punchy kinetic text
+      // Hero Image of Holiday Wax figures with bows & personalized tags
+      const imgProg = Math.min(1, st / 0.75);
+      const imgScale = 0.8 + ease.outBack(imgProg) * 0.2;
+      const rot = Math.sin(st * 1.5) * 0.02 - 0.02;
+
+      ctx.save();
+      ctx.translate(w * 0.36, h * 0.52);
+      ctx.rotate(rot);
+      ctx.scale(imgScale, imgScale);
+
+      // Glassmorphic frame
+      const fw = 780, fh = 680;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+      ctx.shadowBlur = 50;
+      ctx.shadowOffsetY = 30;
+
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.beginPath();
+      ctx.roundRect(-fw / 2, -fh / 2, fw, fh, 36);
+      ctx.fill();
+
+      // Rounded photo clip
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(-fw / 2 + 16, -fh / 2 + 16, fw - 32, fh - 32, 28);
+      ctx.clip();
+
+      if (images.gifts && images.gifts.complete) {
+        // Slow pan effect across the vintage sheet music & gingerbread wax figures
+        const panX = Math.sin(st * 0.6) * 40;
+        const gw = fw * 1.25;
+        const gh = (gw * images.gifts.height) / images.gifts.width;
+        ctx.drawImage(images.gifts, -gw / 2 + panX, -gh / 2, gw, gh);
+      }
+      ctx.restore();
+
+      // Luxury golden border with holiday red accent
+      ctx.strokeStyle = 'rgba(247, 208, 112, 0.7)';
+      ctx.lineWidth = 3.5;
+      ctx.strokeRect(-fw / 2 + 16, -fh / 2 + 16, fw - 32, fh - 32);
+
+      // Floating Badge: "PERSONALIZACJA"
+      const tagBadgeProg = Math.min(1, Math.max(0, (st - 0.8) / 0.6));
+      if (tagBadgeProg > 0) {
+        ctx.save();
+        ctx.translate(-fw / 2 + 60, fh / 2 - 40);
+        ctx.scale(ease.elasticOut(tagBadgeProg), ease.elasticOut(tagBadgeProg));
+        ctx.fillStyle = '#a62b2b'; // Christmas festive red
+        ctx.shadowColor = 'rgba(166, 43, 43, 0.6)';
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.roundRect(0, -28, 380, 56, 14);
+        ctx.fill();
+        ctx.strokeStyle = '#f7d070';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '800 16px "Plus Jakarta Sans"';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("★ DOWOLNA PERSONALIZACJA DLA FIRM", 190, 0);
+        ctx.restore();
+      }
+
+      ctx.restore();
+
+      // Right Column: Kinetic Polish Headlines & Value Proposition
+      ctx.save();
+      ctx.translate(w * 0.62, h * 0.32);
+
+      const rTagProg = Math.min(1, Math.max(0, (st - 0.2) / 0.5));
+      if (rTagProg > 0) {
+        ctx.save();
+        ctx.globalAlpha = rTagProg;
+        ctx.fillStyle = '#f7d070';
+        ctx.font = '800 16px "Plus Jakarta Sans"';
+        ctx.letterSpacing = '5px';
+        ctx.fillText("PREZENTY • UPOMINKI • PODZIĘKOWANIA", 0, 0);
+        ctx.restore();
+      }
+
+      const rHeadProg = Math.min(1, Math.max(0, (st - 0.4) / 0.6));
+      if (rHeadProg > 0) {
+        ctx.save();
+        ctx.globalAlpha = rHeadProg;
+        ctx.translate((1 - ease.outBack(rHeadProg)) * 50, 60);
+
+        ctx.font = '900 64px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText("ŚWIĄTECZNY", 0, 0);
+
+        ctx.fillStyle = '#f7d070';
+        ctx.fillText("KLIMAT & MAGIA", 0, 72);
+        ctx.restore();
+      }
+
+      // 3 Value Bullet points in dark frosted cards
+      const giftPoints = [
+        { title: "Indywidualne bileciki i dedykacje", sub: "Twoje logo, życzenia i grafika na każdym prezencie" },
+        { title: "Zimowe formy: pierniki, choinki, śnieżynki", sub: "Zachwycający aromat korzennych przypraw i wanilii" },
+        { title: "Gotowe zestawy upominkowe", sub: "Zapakowane ze wstążką ze starannością o każdy detal" }
+      ];
+
+      giftPoints.forEach((pt, i) => {
+        const pProg = Math.min(1, Math.max(0, (st - 0.9 - i * 0.25) / 0.5));
+        if (pProg > 0) {
+          ctx.save();
+          const s = ease.outBack(pProg);
+          ctx.translate(0, 240 + i * 90);
+          ctx.scale(s, s);
+
+          // Card
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.roundRect(0, -32, 620, 78, 16);
+          ctx.fill();
+          ctx.stroke();
+
+          // Green/Gold dot indicator
+          ctx.fillStyle = '#4ade80';
+          ctx.shadowColor = '#4ade80';
+          ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.arc(28, 7, 7, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '800 19px "Plus Jakarta Sans"';
+          ctx.fillText(pt.title, 52, -4);
+
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+          ctx.font = '500 15px "Plus Jakarta Sans"';
+          ctx.fillText(pt.sub, 52, 22);
+          ctx.restore();
+        }
+      });
+
+      ctx.restore();
+
+      // Zoom smash transition out at 15.8s
+      if (st > 5.6) {
+        const smash = (st - 5.6) / 0.4;
+        ctx.fillStyle = `rgba(0, 0, 0, ${ease.inQuad(smash)})`;
+        ctx.fillRect(0, 0, w, h);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SCENE 4: HIGH-ENERGY KINETIC MANIFESTO (16.2s - 22.2s)
+       RAPID CUTS • INCREDIBLE MOTION DESIGN TECHNIQUES • BEAT-MATCHED
+       -------------------------------------------------------------------------- */
+    function renderScene4(t) {
+      const st = t - 16.2; // 0.0 - 6.0s
+      const w = 1920, h = 1080;
+
+      // Fast-tempo alternating backgrounds per bar (every 1s)
+      const subBeat = Math.floor(st * 4);
+      const bgColors = ['#100d0a', '#18120c', '#0d1217', '#170e14'];
+      ctx.fillStyle = bgColors[Math.floor(st) % bgColors.length];
+      ctx.fillRect(0, 0, w, h);
+
+      // Kinetic Strobe Grid lines
+      ctx.save();
+      ctx.strokeStyle = 'rgba(247, 208, 112, 0.12)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < w; x += 120) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+      }
+      for (let y = 0; y < h; y += 120) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+      }
+      ctx.restore();
+
+      // Kinetic Typography Blast - changes every 1.5 seconds with punchy spring cuts
+      const phase = Math.floor(st / 1.5);
+      const phaseT = (st % 1.5) / 1.5;
+
+      const words = [
+        { main: "100% NATURY", sub: "CZYSTY WOSK SOJOWY BEZ PARAFINY", accent: "#f7d070" },
+        { main: "OBŁĘDNY ZAPACH", sub: "CERTYFIKOWANE KOMPOZYCJE OLEJKÓW", accent: "#f472b6" },
+        { main: "POLSKI DESIGN", sub: "RĘCZNA PRODUKCJA W KAŻDYM DETALU", accent: "#60a5fa" },
+        { main: "NA KAŻDĄ OKAZJĘ", sub: "URODZINY • WESELA • PREZENTY BIZNESOWE", accent: "#4ade80" }
+      ];
+
+      const currentWord = words[Math.min(phase, words.length - 1)];
+
+      // Huge kinetic typography in center
+      ctx.save();
+      ctx.translate(w / 2, h / 2);
+
+      const wordScale = 0.6 + ease.elasticOut(Math.min(1, phaseT * 2.5)) * 0.4;
+      ctx.scale(wordScale, wordScale);
+
+      // Background giant ghost text
+      ctx.font = '900 280px "Plus Jakarta Sans"';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(currentWord.main, 0, 0);
+
+      // Main kinetic text
+      ctx.font = '900 130px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = currentWord.accent;
+      ctx.shadowBlur = 40;
+      ctx.fillText(currentWord.main, 0, -30);
+
+      // Subtitle badge
+      ctx.font = '800 28px "Plus Jakarta Sans"';
+      ctx.fillStyle = currentWord.accent;
+      ctx.shadowBlur = 15;
+      ctx.letterSpacing = '6px';
+      ctx.fillText(currentWord.sub, 0, 80);
+
+      ctx.restore();
+
+      // Dynamic floating product showcase orbiting side-to-side
+      ctx.save();
+      const orbitX = Math.sin(st * 4) * 380;
+      const orbitY = Math.cos(st * 3) * 120;
+      ctx.translate(w / 2 + orbitX, h / 2 + 280 + orbitY);
+      ctx.rotate(Math.sin(st * 5) * 0.15);
+
+      // Mini preview capsule
+      const capW = 260, capH = 140;
+      ctx.shadowColor = currentWord.accent;
+      ctx.shadowBlur = 25;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(-capW / 2, -capH / 2, capW, capH, 24);
+      ctx.fill();
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(-capW / 2 + 6, -capH / 2 + 6, capW - 12, capH - 12, 18);
+      ctx.clip();
+      const activeImg = (phase % 2 === 0) ? images.bouquet : images.gifts;
+      if (activeImg && activeImg.complete) {
+        ctx.drawImage(activeImg, -capW / 2, -capH / 2 - 30, capW, (capW * activeImg.height) / activeImg.width);
+      }
+      ctx.restore();
+
+      ctx.restore();
+
+      renderParticles(t, 1);
+
+      // Transition to Grand Finale at 21.8s
+      if (st > 5.6) {
+        const flash = (st - 5.6) / 0.4;
+        ctx.fillStyle = `rgba(247, 208, 112, ${ease.inExpo(flash)})`;
+        ctx.fillRect(0, 0, w, h);
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SCENE 5: GRAND FINALE & CALL TO ACTION (22.2s - 30.0s)
+       "ZAMÓW JUŻ TERAZ NA FACEBOOKU — WOSQ"
+       -------------------------------------------------------------------------- */
+    function renderScene5(t) {
+      const st = t - 22.2; // 0.0 - 7.8s
+      const w = 1920, h = 1080;
+
+      // Majestic Black & Gold Luxury Finale Stage
+      const bg = ctx.createRadialGradient(w / 2, h / 2, 50, w / 2, h / 2, 1000);
+      bg.addColorStop(0, '#2b2118');
+      bg.addColorStop(0.4, '#14100c');
+      bg.addColorStop(1, '#050403');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, w, h);
+
+      // Golden particle shower & fireworks sparkles
+      renderParticles(t, 1.0);
+
+      // Floating Product Cards framing the CTA
+      // Left: Flower bouquet capsule
+      const leftProg = Math.min(1, st / 0.7);
+      ctx.save();
+      const lSlide = (1 - ease.outBack(leftProg)) * -300;
+      ctx.translate(w * 0.18 + lSlide, h * 0.52 + Math.sin(st * 2) * 12);
+      ctx.rotate(-0.08 + Math.sin(st * 1.5) * 0.02);
+      ctx.shadowColor = 'rgba(0,0,0,0.7)';
+      ctx.shadowBlur = 40;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(-160, -230, 320, 460, 24);
+      ctx.fill();
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(-152, -222, 304, 444, 18);
+      ctx.clip();
+      if (images.bouquet && images.bouquet.complete) {
+        ctx.drawImage(images.bouquet, -190, -240, 400, (400 * images.bouquet.height) / images.bouquet.width);
+      }
+      ctx.restore();
+      ctx.strokeStyle = '#d4af37';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(-160, -230, 320, 460);
+      ctx.restore();
+
+      // Right: Holiday/Gift capsule
+      const rightProg = Math.min(1, (st - 0.2) / 0.7);
+      if (rightProg > 0) {
+        ctx.save();
+        const rSlide = (1 - ease.outBack(rightProg)) * 300;
+        ctx.translate(w * 0.82 + rSlide, h * 0.52 + Math.cos(st * 2) * 12);
+        ctx.rotate(0.08 + Math.cos(st * 1.5) * 0.02);
+        ctx.shadowColor = 'rgba(0,0,0,0.7)';
+        ctx.shadowBlur = 40;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(-160, -230, 320, 460, 24);
+        ctx.fill();
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(-152, -222, 304, 444, 18);
+        ctx.clip();
+        if (images.gifts && images.gifts.complete) {
+          ctx.drawImage(images.gifts, -190, -230, 400, (400 * images.gifts.height) / images.gifts.width);
+        }
+        ctx.restore();
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-160, -230, 320, 460);
+        ctx.restore();
+      }
+
+      // Centerpiece: WOSQ Brand Lockup + Facebook Call to Action
+      ctx.save();
+      ctx.translate(w / 2, h * 0.24);
+
+      // Logo entrance
+      const logoProg = Math.min(1, st / 0.6);
+      const logoScale = ease.elasticOut(logoProg);
+      ctx.scale(logoScale, logoScale);
+
+      if (images.logo && images.logo.complete) {
+        ctx.shadowColor = 'rgba(247, 208, 112, 0.8)';
+        ctx.shadowBlur = 35;
+        const lw = 340;
+        const lh = 340 * (images.logo.height / images.logo.width);
+        ctx.drawImage(images.logo, -lw / 2, -lh / 2, lw, lh);
+      } else {
+        ctx.font = '900 110px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = '#d4af37';
+        ctx.shadowBlur = 30;
+        ctx.fillText("WOSQ", 0, 0);
+      }
+      ctx.restore();
+
+      // Punchy Polish Main Invitation
+      const textProg = Math.min(1, Math.max(0, (st - 0.5) / 0.6));
+      if (textProg > 0) {
+        ctx.save();
+        ctx.globalAlpha = textProg;
+        ctx.translate(w / 2, h * 0.44 + (1 - ease.outBack(textProg)) * 30);
+
+        ctx.font = '800 36px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#f7d070';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '3px';
+        ctx.fillText("ZAMÓW SWOJE WYMARZONE KOMPOZYCJE", 0, 0);
+
+        ctx.font = 'italic 500 24px "Playfair Display"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.fillText("Świece sojowe • Bukiety kwiatowe • Podarunki firmowe", 0, 42);
+        ctx.restore();
+      }
+
+      // Giant Glowing Facebook Button
+      const btnProg = Math.min(1, Math.max(0, (st - 1.0) / 0.7));
+      if (btnProg > 0) {
+        ctx.save();
+        const btnScale = ease.elasticOut(btnProg) * (1 + Math.sin(st * 4) * 0.025); // breathing pulse
+        ctx.translate(w / 2, h * 0.66);
+        ctx.scale(btnScale, btnScale);
+
+        // Button Outer Glow
+        ctx.shadowColor = '#1877f2'; // Facebook blue glow
+        ctx.shadowBlur = 45;
+
+        // Button Body
+        const btnW = 680, btnH = 92;
+        const btnGrad = ctx.createLinearGradient(-btnW / 2, 0, btnW / 2, 0);
+        btnGrad.addColorStop(0, '#1877f2');
+        btnGrad.addColorStop(1, '#0e5ac4');
+        ctx.fillStyle = btnGrad;
+        ctx.beginPath();
+        ctx.roundRect(-btnW / 2, -btnH / 2, btnW, btnH, 46);
+        ctx.fill();
+
+        // Shimmer shine reflection sweep
+        const shineX = -btnW / 2 + ((st * 500) % (btnW * 1.8));
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(-btnW / 2, -btnH / 2, btnW, btnH, 46);
+        ctx.clip();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+        ctx.transform(1, 0, 0.3, 1, 0, 0);
+        ctx.fillRect(shineX, -btnH, 70, btnH * 2);
+        ctx.restore();
+
+        // Golden Accent Ring
+        ctx.strokeStyle = 'rgba(247, 208, 112, 0.8)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(-btnW / 2, -btnH / 2, btnW, btnH, 46);
+        ctx.stroke();
+
+        // Facebook 'f' Icon circle
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-btnW / 2 + 56, 0, 30, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.font = '900 36px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#1877f2';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText("f", -btnW / 2 + 58, 2);
+
+        // Button Text
+        ctx.font = '900 27px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#ffffff';
+        ctx.textAlign = 'center';
+        ctx.letterSpacing = '1.5px';
+        ctx.fillText("ODWIEDŹ NAS NA FACEBOOKU", 24, 0);
+
+        ctx.restore();
+      }
+
+      // Link URL Display below button
+      const linkProg = Math.min(1, Math.max(0, (st - 1.4) / 0.6));
+      if (linkProg > 0) {
+        ctx.save();
+        ctx.globalAlpha = linkProg;
+        ctx.translate(w / 2, h * 0.82);
+
+        ctx.font = '600 21px "Plus Jakarta Sans"';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.textAlign = 'center';
+        ctx.fillText("facebook.com/share/19etWcsbej/", 0, 0);
+
+        // Verification Pill
+        ctx.fillStyle = 'rgba(247, 208, 112, 0.15)';
+        ctx.strokeStyle = 'rgba(247, 208, 112, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(-240, 24, 480, 36, 18);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '700 13px "Plus Jakarta Sans"';
+        ctx.fillStyle = '#f7d070';
+        ctx.letterSpacing = '2px';
+        ctx.fillText("✓ POLSKA MANUFAKTURA ŚWIEC I BUKIETÓW", 0, 42);
+        ctx.restore();
+      }
+
+      // Final fade to black in the last 0.5s
+      if (t >= 29.5) {
+        const endAlpha = (t - 29.5) / 0.5;
+        ctx.fillStyle = `rgba(0, 0, 0, ${endAlpha})`;
+        ctx.fillRect(0, 0, w, h);
+      }
+    }
+
+    /* ==========================================================================
+       MAIN RENDER LOOP (60 FPS Beat-Synced Compositor)
+       ========================================================================== */
+    function renderFrame(timeSec) {
+      ctx.clearRect(0, 0, 1920, 1080);
+
+      // Camera shake / punch calculation synced with kick
+      const punch = getCameraBeatPulse(timeSec);
+      ctx.save();
+      if (punch > 0.001) {
+        ctx.translate(1920 / 2, 1080 / 2);
+        ctx.scale(1 + punch, 1 + punch);
+        ctx.translate(-1920 / 2, -1080 / 2);
+      }
+
+      // Timeline Scene Sequencer (Exactly 30.0s)
+      if (timeSec < 4.2) {
+        renderScene1(timeSec);
+      } else if (timeSec < 10.2) {
+        renderScene2(timeSec);
+      } else if (timeSec < 16.2) {
+        renderScene3(timeSec);
+      } else if (timeSec < 22.2) {
+        renderScene4(timeSec);
+      } else {
+        renderScene5(timeSec);
+      }
+
+      ctx.restore();
+
+      // Chromatic vignette for cinematic showroom grade
+      const vig = ctx.createRadialGradient(1920 / 2, 1080 / 2, 600, 1920 / 2, 1080 / 2, 1100);
+      vig.addColorStop(0, 'rgba(0,0,0,0)');
+      vig.addColorStop(1, 'rgba(0,0,0,0.5)');
+      ctx.fillStyle = vig;
+      ctx.fillRect(0, 0, 1920, 1080);
+    }
+
+    function animate(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const delta = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (isPlaying && !userScrubbing) {
+        currentTime += delta;
+        if (currentTime >= DURATION) {
+          currentTime = DURATION;
+          pauseVideo();
+        }
+        syncAudioWithTime(currentTime);
+      }
+
+      renderFrame(currentTime);
+      updateUI();
+
+      requestAnimationFrame(animate);
+    }
+
+    /* ==========================================================================
+       UI CONTROLS & INTERACTION
+       ========================================================================== */
+    const startOverlay = document.getElementById('start-overlay');
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const restartBtn = document.getElementById('restartBtn');
+    const soundBtn = document.getElementById('soundBtn');
+    const soundOnIcon = document.getElementById('soundOnIcon');
+    const soundOffIcon = document.getElementById('soundOffIcon');
+    const fsBtn = document.getElementById('fsBtn');
+    const progressBar = document.getElementById('progressBar');
+    const scrubber = document.getElementById('scrubber');
+    const timeDisplay = document.getElementById('timeDisplay');
+    const stageContainer = document.getElementById('stage-container');
+
+    function playVideo() {
+      audio.init();
+      isPlaying = true;
+      if (currentTime >= DURATION) currentTime = 0;
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+      startOverlay.classList.add('hidden');
+    }
+
+    function pauseVideo() {
+      isPlaying = false;
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+    }
+
+    function togglePlay() {
+      if (isPlaying) pauseVideo();
+      else playVideo();
+    }
+
+    function restartVideo() {
+      currentTime = 0;
+      lastBeatIndex = -1;
+      playVideo();
+    }
+
+    function formatTime(s) {
+      const mins = Math.floor(s / 60);
+      const secs = Math.floor(s % 60);
+      return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateUI() {
+      const progressPercent = (currentTime / DURATION) * 100;
+      progressBar.style.width = `${progressPercent}%`;
+      timeDisplay.textContent = `${formatTime(currentTime)} / 00:30`;
+    }
+
+    // Scrubber drag / click handling
+    function handleScrub(e) {
+      const rect = scrubber.getBoundingClientRect();
+      const pos = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+      currentTime = pos * DURATION;
+      lastBeatIndex = Math.floor(currentTime * 2);
+      renderFrame(currentTime);
+      updateUI();
+    }
+
+    scrubber.addEventListener('mousedown', (e) => {
+      userScrubbing = true;
+      handleScrub(e);
+      const onMove = (ev) => handleScrub(ev);
+      const onUp = () => {
+        userScrubbing = false;
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      };
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+    });
+
+    startOverlay.addEventListener('click', () => {
+      playVideo();
+    });
+
+    playBtn.addEventListener('click', togglePlay);
+    restartBtn.addEventListener('click', restartVideo);
+
+    soundBtn.addEventListener('click', () => {
+      audio.init();
+      const muted = audio.toggleMute();
+      if (muted) {
+        soundOnIcon.style.display = 'none';
+        soundOffIcon.style.display = 'block';
+      } else {
+        soundOnIcon.style.display = 'block';
+        soundOffIcon.style.display = 'none';
+      }
+    });
+
+    fsBtn.addEventListener('click', () => {
+      if (!document.fullscreenElement) {
+        stageContainer.requestFullscreen().catch(err => console.log(err));
+      } else {
+        document.exitFullscreen();
+      }
+    });
+
+    // Spacebar to play/pause
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePlay();
+      }
+    });
+
+    // Initialize Everything
+    preloadAssets(() => {
+      console.log("All WOSQ showreel assets successfully loaded.");
+      requestAnimationFrame(animate);
+    });
+  </script>
+</body>
+</html>
