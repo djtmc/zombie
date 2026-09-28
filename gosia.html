@@ -6,7 +6,7 @@
   <title>WOSQ — Oficjalny Motion Graphics Showreel 30s</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,500;0,700;0,900;1,800&family=Playfair+Display:ital,wght@0,600;0,800;1,700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,600;0,700;0,900;1,800&family=Playfair+Display:ital,wght@0,600;0,800;1,700&display=swap" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -30,10 +30,10 @@
       position: relative;
       width: 100vw;
       height: 100vh;
-      max-width: 177.78vh; /* Format kinowy 16:9 */
+      max-width: 177.78vh; /* Format 16:9 */
       max-height: 56.25vw;
       background: #000;
-      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.95), 0 0 0 1px rgba(255, 255, 255, 0.1);
       overflow: hidden;
     }
     canvas#videoCanvas {
@@ -41,20 +41,21 @@
       height: 100%;
       display: block;
     }
-    /* Pasek kontrolny na dole */
+    
+    /* Nowoczesny pasek playera */
     .controls-overlay {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 24px 32px;
-      background: linear-gradient(to top, rgba(10, 8, 7, 0.95), rgba(10, 8, 7, 0.4) 65%, transparent);
+      padding: 22px 32px;
+      background: linear-gradient(to top, rgba(8, 7, 6, 0.96), rgba(8, 7, 6, 0.4) 65%, transparent);
       display: flex;
       flex-direction: column;
       gap: 12px;
       opacity: 0;
       transform: translateY(12px);
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: all 0.25s ease-out;
       z-index: 50;
     }
     #stage-container:hover .controls-overlay {
@@ -68,7 +69,7 @@
       background: rgba(255, 255, 255, 0.2);
       border-radius: 4px;
       cursor: pointer;
-      transition: height 0.2s;
+      transition: height 0.15s;
     }
     .scrubber-container:hover {
       height: 10px;
@@ -80,7 +81,7 @@
       bottom: 0;
       width: 0%;
       background: linear-gradient(90deg, #d4af37, #f6cf70, #ffffff);
-      box-shadow: 0 0 15px rgba(246, 207, 112, 0.8);
+      box-shadow: 0 0 12px rgba(246, 207, 112, 0.8);
       border-radius: 4px;
       pointer-events: none;
     }
@@ -136,27 +137,29 @@
       letter-spacing: 1px;
     }
 
-    /* Ekran startowy z odblokowaniem audio */
+    /* Ekran startowy */
     #start-overlay {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at center, rgba(30, 24, 18, 0.88) 0%, rgba(8, 7, 6, 0.98) 100%);
+      background: radial-gradient(circle at center, rgba(32, 24, 18, 0.94) 0%, rgba(8, 7, 6, 0.98) 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 100;
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px);
+      transition: opacity 0.4s ease;
+      padding: 30px;
+      text-align: center;
       cursor: pointer;
-      transition: opacity 0.5s ease;
     }
     #start-overlay.hidden {
       opacity: 0;
       pointer-events: none;
     }
     .play-orb {
-      width: 104px;
-      height: 104px;
+      width: 96px;
+      height: 96px;
       border-radius: 50%;
       background: linear-gradient(135deg, #f7d070, #c89d2d);
       box-shadow: 0 10px 45px rgba(212, 175, 55, 0.6);
@@ -171,18 +174,18 @@
       transform: scale(1.12);
     }
     .play-orb svg {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       fill: #14110e;
       margin-left: 6px;
     }
     @keyframes pulse-glow {
       0% { box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 0 rgba(247, 208, 112, 0.4); }
-      70% { box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 28px rgba(247, 208, 112, 0); }
+      70% { box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 26px rgba(247, 208, 112, 0); }
       100% { box-shadow: 0 10px 40px rgba(212, 175, 55, 0.5), 0 0 0 0 rgba(247, 208, 112, 0); }
     }
     .start-title {
-      font-size: 42px;
+      font-size: 40px;
       font-weight: 900;
       letter-spacing: -1px;
       margin-bottom: 8px;
@@ -194,15 +197,15 @@
     .start-subtitle {
       font-size: 17px;
       color: rgba(255, 255, 255, 0.75);
-      margin-bottom: 24px;
+      margin-bottom: 26px;
     }
     .cta-hint {
       font-size: 13px;
       font-weight: 800;
       color: #f7d070;
-      letter-spacing: 2.5px;
+      letter-spacing: 2px;
       text-transform: uppercase;
-      padding: 9px 24px;
+      padding: 11px 28px;
       border-radius: 30px;
       background: rgba(247, 208, 112, 0.12);
       border: 1px solid rgba(247, 208, 112, 0.4);
@@ -214,17 +217,17 @@
   <div id="stage-container">
     <canvas id="videoCanvas" width="1920" height="1080"></canvas>
 
-    <!-- Start / Play Interactivity Screen -->
+    <!-- Ekran startowy (1 kliknięcie uruchamia 30s prezentacji z dźwiękiem) -->
     <div id="start-overlay">
       <div class="play-orb">
         <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
       </div>
       <div class="start-title">WOSQ — MOTION SHOWREEL</div>
-      <div class="start-subtitle">Ekskluzywne Bukiety Kwiatowe & Świece Sojowe</div>
-      <div class="cta-hint">KLIKNIJ, ABY OBEJRZEĆ WIDEO Z DŹWIĘKIEM (30S)</div>
+      <div class="start-subtitle">Ekskluzywne Bukiety Kwiatowe & Świece z Wosku Sojowego</div>
+      <div class="cta-hint">KLIKNIJ, ABY OBEJRZEĆ WIDEO 30S (60 FPS + AUDIO)</div>
     </div>
 
-    <!-- Pasek kontrolny -->
+    <!-- Pasek kontrolny playera -->
     <div class="controls-overlay" id="controlsOverlay">
       <div class="scrubber-container" id="scrubber">
         <div class="scrubber-bar" id="progressBar"></div>
@@ -235,7 +238,7 @@
             <svg id="playIcon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             <svg id="pauseIcon" viewBox="0 0 24 24" style="display: none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
           </button>
-          <button class="btn" id="restartBtn" title="Restart od 00:00">
+          <button class="btn" id="restartBtn" title="Restart od początku">
             <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
           </button>
           <div class="time-badge" id="timeDisplay">00:00 / 00:30</div>
@@ -256,49 +259,47 @@
 
   <script>
     /* ==========================================================================
-       1. ZARZĄDZANIE GRAFIKAMI I ASSETAMI (BEZ BLOKADY CORS)
+       1. OBSŁUGA GRAFIK: NATYCHMIASTOWY ODCZYT + DRAG & DROP
        ========================================================================== */
-    const ASSETS = {
-      logo: 'input_file_0.png',
-      bouquet: 'input_file_1.png',
-      gifts: 'input_file_2.png'
+    const images = {
+      logo: new Image(),
+      bouquet: new Image(),
+      gifts: new Image()
     };
 
-    const images = {};
-    let loadedCount = 0;
-    const totalCount = Object.keys(ASSETS).length;
+    // Domyślna próba załadowania z folderu lokalnego
+    images.logo.src = 'input_file_0.png';
+    images.bouquet.src = 'input_file_1.png';
+    images.gifts.src = 'input_file_2.png';
 
-    function loadImages(onReady) {
-      for (const [key, src] of Object.entries(ASSETS)) {
-        const img = new Image();
-        // Usunięto crossOrigin='anonymous', aby uniknąć błędów CORS w lokalnym środowisku
-        img.src = src;
-        img.onload = () => {
-          loadedCount++;
-          if (loadedCount === totalCount && onReady) onReady();
-        };
-        img.onerror = () => {
-          console.warn("Plik graficzny może ładować się z opóźnieniem:", src);
-          loadedCount++;
-          if (loadedCount === totalCount && onReady) onReady();
-        };
-        images[key] = img;
+    // Obsługa przeciągania własnych plików prosto na okno
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        Array.from(e.dataTransfer.files).forEach((file, index) => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            const name = file.name.toLowerCase();
+            if (name.includes('logo') || index === 0) images.logo.src = ev.target.result;
+            else if (name.includes('bukiet') || index === 1) images.bouquet.src = ev.target.result;
+            else images.gifts.src = ev.target.result;
+          };
+          reader.readAsDataURL(file);
+        });
       }
-    }
+    });
 
     /* ==========================================================================
-       2. NIEZAWODNE FUNKCJE EASING (BEZ BRAKUJĄCYCH METOD)
+       2. BEZPIECZNE FUNKCJE INTERPOLACJI (EASING) — ZERO ZACIĘĆ
        ========================================================================== */
     const ease = {
       linear: t => t,
       inQuad: t => t * t,
       outQuad: t => t * (2 - t),
       inOutQuad: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
-      inCubic: t => t * t * t,
       outCubic: t => (--t) * t * t + 1,
-      inOutCubic: t => t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1,
-      inExpo: t => (t === 0) ? 0 : Math.pow(2, 10 * (t - 1)),
-      outExpo: t => (t === 1) ? 1 : 1 - Math.pow(2, -10 * t),
+      inCubic: t => t * t * t,
       outBack: (t, s = 1.70158) => {
         t = t - 1;
         return t * t * ((s + 1) * t + s) + 1;
@@ -311,7 +312,7 @@
     };
 
     /* ==========================================================================
-       3. WBUDOWANY SILNIK AUDIO (ZOPTYMALIZOWANY, ZERO LAGÓW)
+       3. WBUDOWANY SYNTEZATOR AUDIO Z AUTOMATYCZNYM CZYSZCZENIEM PAMIĘCI
        ========================================================================== */
     class ShowreelAudio {
       constructor() {
@@ -323,155 +324,199 @@
       }
 
       init() {
-        if (this.ctx) return;
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        this.ctx = new AudioContext();
-        this.master = this.ctx.createGain();
-        this.master.gain.setValueAtTime(0.8, this.ctx.currentTime);
-        this.master.connect(this.ctx.destination);
-
-        // Pre-render buforów szumów (zapobiega zacinaniu animacji w trakcie odtwarzania)
-        const sSize = Math.floor(this.ctx.sampleRate * 0.18);
-        this.snareBuffer = this.ctx.createBuffer(1, sSize, this.ctx.sampleRate);
-        const sData = this.snareBuffer.getChannelData(0);
-        for (let i = 0; i < sSize; i++) {
-          sData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.035));
+        if (this.ctx) {
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          return;
         }
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+          this.master = this.ctx.createGain();
+          this.master.gain.setValueAtTime(0.75, this.ctx.currentTime);
+          this.master.connect(this.ctx.destination);
 
-        const wSize = Math.floor(this.ctx.sampleRate * 0.6);
-        this.whooshBuffer = this.ctx.createBuffer(1, wSize, this.ctx.sampleRate);
-        const wData = this.whooshBuffer.getChannelData(0);
-        for (let i = 0; i < wSize; i++) {
-          wData[i] = (Math.random() * 2 - 1);
+          // Bufor werbla
+          const sSize = Math.floor(this.ctx.sampleRate * 0.16);
+          this.snareBuffer = this.ctx.createBuffer(1, sSize, this.ctx.sampleRate);
+          const sData = this.snareBuffer.getChannelData(0);
+          for (let i = 0; i < sSize; i++) {
+            sData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.03));
+          }
+
+          // Bufor przejść whoosh
+          const wSize = Math.floor(this.ctx.sampleRate * 0.45);
+          this.whooshBuffer = this.ctx.createBuffer(1, wSize, this.ctx.sampleRate);
+          const wData = this.whooshBuffer.getChannelData(0);
+          for (let i = 0; i < wSize; i++) wData[i] = Math.random() * 2 - 1;
+        } catch (e) {
+          console.warn("Audio init warning:", e);
         }
       }
 
       toggleMute() {
         if (!this.master) return false;
         this.isMuted = !this.isMuted;
-        this.master.gain.setTargetAtTime(this.isMuted ? 0 : 0.8, this.ctx.currentTime, 0.05);
+        this.master.gain.setTargetAtTime(this.isMuted ? 0 : 0.75, this.ctx.currentTime, 0.05);
         return this.isMuted;
       }
 
       kick(t) {
         if (!this.ctx || this.isMuted) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.connect(gain);
-        gain.connect(this.master);
-        osc.frequency.setValueAtTime(140, t);
-        osc.frequency.exponentialRampToValueAtTime(36, t + 0.15);
-        gain.gain.setValueAtTime(1.0, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-        osc.start(t);
-        osc.stop(t + 0.32);
+        try {
+          const schedTime = Math.max(t, this.ctx.currentTime + 0.005);
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.connect(gain);
+          gain.connect(this.master);
+
+          osc.frequency.setValueAtTime(140, schedTime);
+          osc.frequency.exponentialRampToValueAtTime(38, schedTime + 0.12);
+          gain.gain.setValueAtTime(1.0, schedTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, schedTime + 0.28);
+
+          osc.start(schedTime);
+          osc.stop(schedTime + 0.3);
+          osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        } catch (e) {}
       }
 
       snare(t) {
         if (!this.ctx || this.isMuted || !this.snareBuffer) return;
-        const src = this.ctx.createBufferSource();
-        src.buffer = this.snareBuffer;
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'highpass';
-        filter.frequency.value = 1000;
-        const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.65, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
-        src.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.master);
-        src.start(t);
+        try {
+          const schedTime = Math.max(t, this.ctx.currentTime + 0.005);
+          const src = this.ctx.createBufferSource();
+          src.buffer = this.snareBuffer;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'highpass';
+          filter.frequency.value = 1200;
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.6, schedTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, schedTime + 0.18);
+
+          src.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.master);
+          src.start(schedTime);
+          src.stop(schedTime + 0.2);
+          src.onended = () => { src.disconnect(); filter.disconnect(); gain.disconnect(); };
+        } catch (e) {}
       }
 
       hat(t, accent = false) {
         if (!this.ctx || this.isMuted) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(8000 + Math.random() * 800, t);
-        gain.gain.setValueAtTime(accent ? 0.25 : 0.12, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
-        osc.connect(gain);
-        gain.connect(this.master);
-        osc.start(t);
-        osc.stop(t + 0.05);
+        try {
+          const schedTime = Math.max(t, this.ctx.currentTime + 0.005);
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(8000 + Math.random() * 600, schedTime);
+          gain.gain.setValueAtTime(accent ? 0.22 : 0.1, schedTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, schedTime + 0.04);
+
+          osc.connect(gain);
+          gain.connect(this.master);
+          osc.start(schedTime);
+          osc.stop(schedTime + 0.05);
+          osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        } catch (e) {}
       }
 
       whoosh(t) {
         if (!this.ctx || this.isMuted || !this.whooshBuffer) return;
-        const src = this.ctx.createBufferSource();
-        src.buffer = this.whooshBuffer;
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.Q.value = 2.5;
-        filter.frequency.setValueAtTime(250, t);
-        filter.frequency.exponentialRampToValueAtTime(3200, t + 0.5);
-        const gain = this.ctx.createGain();
-        gain.gain.setValueAtTime(0.01, t);
-        gain.gain.linearRampToValueAtTime(0.3, t + 0.25);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
-        src.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.master);
-        src.start(t);
+        try {
+          const schedTime = Math.max(t, this.ctx.currentTime + 0.005);
+          const src = this.ctx.createBufferSource();
+          src.buffer = this.whooshBuffer;
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.Q.value = 2.0;
+          filter.frequency.setValueAtTime(260, schedTime);
+          filter.frequency.exponentialRampToValueAtTime(3000, schedTime + 0.45);
+          const gain = this.ctx.createGain();
+          gain.gain.setValueAtTime(0.01, schedTime);
+          gain.gain.linearRampToValueAtTime(0.25, schedTime + 0.2);
+          gain.gain.exponentialRampToValueAtTime(0.001, schedTime + 0.48);
+
+          src.connect(filter);
+          filter.connect(gain);
+          gain.connect(this.master);
+          src.start(schedTime);
+          src.stop(schedTime + 0.5);
+          src.onended = () => { src.disconnect(); filter.disconnect(); gain.disconnect(); };
+        } catch (e) {}
       }
 
       synthChord(notes, t, dur = 1.8) {
         if (!this.ctx || this.isMuted) return;
-        notes.forEach(f => {
-          const osc = this.ctx.createOscillator();
-          const gain = this.ctx.createGain();
-          const filter = this.ctx.createBiquadFilter();
-          osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(f, t);
-          filter.type = 'lowpass';
-          filter.frequency.setValueAtTime(600, t);
-          filter.frequency.exponentialRampToValueAtTime(2800, t + 0.25);
-          filter.frequency.exponentialRampToValueAtTime(800, t + dur);
-          gain.gain.setValueAtTime(0.0, t);
-          gain.gain.linearRampToValueAtTime(0.09, t + 0.04);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-          osc.connect(filter);
-          filter.connect(gain);
-          gain.connect(this.master);
-          osc.start(t);
-          osc.stop(t + dur);
-        });
+        try {
+          const schedTime = Math.max(t, this.ctx.currentTime + 0.005);
+          notes.forEach(f => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(f, schedTime);
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(500, schedTime);
+            filter.frequency.exponentialRampToValueAtTime(2400, schedTime + 0.25);
+            filter.frequency.exponentialRampToValueAtTime(700, schedTime + dur);
+            gain.gain.setValueAtTime(0.01, schedTime);
+            gain.gain.linearRampToValueAtTime(0.08, schedTime + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, schedTime + dur);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.master);
+            osc.start(schedTime);
+            osc.stop(schedTime + dur);
+            osc.onended = () => { osc.disconnect(); filter.disconnect(); gain.disconnect(); };
+          });
+        } catch (e) {}
       }
 
-      bass(f, t, dur = 0.4) {
+      bass(f, t, dur = 0.38) {
         if (!this.ctx || this.isMuted) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(f, t);
-        gain.gain.setValueAtTime(0.4, t);
-        gain.gain.exponentialRampToValueAtTime(0.01, t + dur);
-        osc.connect(gain);
-        gain.connect(this.master);
-        osc.start(t);
-        osc.stop(t + dur);
+        try {
+          const schedTime = Math.max(t, this.ctx.currentTime + 0.005);
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(f, schedTime);
+          gain.gain.setValueAtTime(0.35, schedTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, schedTime + dur);
+
+          osc.connect(gain);
+          gain.connect(this.master);
+          osc.start(schedTime);
+          osc.stop(schedTime + dur);
+          osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        } catch (e) {}
       }
 
       sparkle(t, f = 1600) {
         if (!this.ctx || this.isMuted) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(f, t);
-        gain.gain.setValueAtTime(0.18, t);
-        gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-        osc.connect(gain);
-        gain.connect(this.master);
-        osc.start(t);
-        osc.stop(t + 0.4);
+        try {
+          const schedTime = Math.max(t, this.ctx.currentTime + 0.005);
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(f, schedTime);
+          gain.gain.setValueAtTime(0.15, schedTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, schedTime + 0.3);
+
+          osc.connect(gain);
+          gain.connect(this.master);
+          osc.start(schedTime);
+          osc.stop(schedTime + 0.35);
+          osc.onended = () => { osc.disconnect(); gain.disconnect(); };
+        } catch (e) {}
       }
     }
 
     const audio = new ShowreelAudio();
 
     /* ==========================================================================
-       4. SYNCHRONIZACJA RYTMICZNA (120 BPM = 2 UDERZENIA NA SEKUNDĘ)
+       4. RYTM I SYNCHRONIZACJA (120 BPM = 2 BEATY NA SEKUNDĘ)
        ========================================================================== */
     const DURATION = 30.0;
     let currentTime = 0;
@@ -479,7 +524,6 @@
     let lastTimestamp = 0;
     let lastBeat = -1;
 
-    // Progresja akordów (Luxury Future Pop w Dm9 - G13 - Cmaj9 - Am9)
     const chords = [
       { bass: 73.4, notes: [146.8, 174.6, 220.0, 261.6, 329.6] },
       { bass: 49.0, notes: [98.0, 174.6, 246.9, 329.6] },
@@ -496,91 +540,81 @@
         const beatInBar = beat % 4;
         const bar = Math.floor(beat / 4);
 
-        // Efekty przejść między scenami
         if (beat === 0) audio.kick(now);
-        if (beat === 10) { audio.whoosh(now); audio.kick(now + 0.1); }
-        if (beat === 24) { audio.whoosh(now); audio.kick(now + 0.1); }
-        if (beat === 38) { audio.whoosh(now); audio.kick(now + 0.1); }
+        if (beat === 9) audio.whoosh(now);
+        if (beat === 23) audio.whoosh(now);
+        if (beat === 37) audio.whoosh(now);
         if (beat === 48) { audio.kick(now); audio.sparkle(now, 2200); }
 
-        // Intro (0 - 5.0s)
-        if (t < 5.0) {
+        if (t < 4.5) {
           if (beatInBar === 0 || beatInBar === 2) audio.kick(now);
           if (beat % 2 === 1) audio.sparkle(now, 1000 + beat * 120);
           return;
         }
 
-        // Pełen Beat od 5.0s do 29.0s
-        if (t >= 5.0 && t <= 29.0) {
-          // Stopa na 1 i 3
+        if (t >= 4.5 && t <= 29.0) {
           if (beatInBar === 0 || beatInBar === 2) audio.kick(now);
-          // Werbel na 2 i 4
           if (beatInBar === 1 || beatInBar === 3) audio.snare(now);
 
-          // Hi-Haty ósemkowe
           audio.hat(now, beatInBar === 0);
           audio.hat(now + 0.25, false);
 
-          // Akord i bas na początku taktu
           if (beatInBar === 0) {
             const ch = chords[bar % chords.length];
-            audio.synthChord(ch.notes, now, 1.85);
-            audio.bass(ch.bass, now, 0.45);
+            audio.synthChord(ch.notes, now, 1.8);
+            audio.bass(ch.bass, now, 0.4);
           }
           if (beatInBar === 2) {
             const ch = chords[bar % chords.length];
-            audio.bass(ch.bass * 1.5, now, 0.3);
+            audio.bass(ch.bass * 1.5, now, 0.28);
           }
           if (beat % 2 === 1) {
-            audio.sparkle(now + 0.25, 1400 + (beat % 5) * 200);
+            audio.sparkle(now + 0.25, 1400 + (beat % 5) * 180);
           }
         }
       }
     }
 
     /* ==========================================================================
-       5. SYSTEM CZĄSTECZEK (PŁYNNE WOSKOWE PŁATKI I ZŁOTE DROBINY)
+       5. LEKKI SYSTEM CZĄSTECZEK (ZOPTYMALIZOWANY NA 60 FPS BEZ SHADOWBLUR)
        ========================================================================== */
     const canvas = document.getElementById('videoCanvas');
     const ctx = canvas.getContext('2d');
 
     const particles = [];
-    for (let i = 0; i < 65; i++) {
+    for (let i = 0; i < 45; i++) {
       particles.push({
         x: Math.random() * 1920,
         y: Math.random() * 1080,
-        size: 3 + Math.random() * 7,
-        vx: (Math.random() - 0.5) * 1.2,
-        vy: -0.6 - Math.random() * 1.4,
+        size: 3 + Math.random() * 6,
+        vx: (Math.random() - 0.5) * 1.1,
+        vy: -0.6 - Math.random() * 1.2,
         rot: Math.random() * Math.PI * 2,
         vRot: (Math.random() - 0.5) * 0.04,
-        color: ['#f6cf70', '#ffffff', '#e3a587', '#a5c4d4', '#e2c290'][Math.floor(Math.random() * 5)]
+        color: ['#f6cf70', '#ffffff', '#e3a587', '#93b9d8', '#e2c290'][i % 5]
       });
     }
 
-    function drawParticles(opacity = 1) {
+    function drawFastParticles(alpha = 1) {
       ctx.save();
-      ctx.globalAlpha = opacity;
-      for (const p of particles) {
+      ctx.globalAlpha = alpha;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         p.x += p.vx;
         p.y += p.vy;
         p.rot += p.vRot;
-        if (p.y < -40) p.y = 1120;
-        if (p.x < -40) p.x = 1960;
-        if (p.x > 1960) p.x = -40;
+        if (p.y < -30) p.y = 1110;
+        if (p.x < -30) p.x = 1950;
+        if (p.x > 1950) p.x = -30;
 
         ctx.save();
         ctx.translate(p.x, p.y);
         ctx.rotate(p.rot);
         ctx.fillStyle = p.color;
-        ctx.shadowColor = p.color;
-        ctx.shadowBlur = 10;
-
-        // Płatek woskowy
         ctx.beginPath();
-        ctx.moveTo(0, -p.size * 1.8);
-        ctx.bezierCurveTo(p.size, -p.size * 0.8, p.size, p.size, 0, p.size * 1.6);
-        ctx.bezierCurveTo(-p.size, p.size, -p.size, -p.size * 0.8, 0, -p.size * 1.8);
+        ctx.moveTo(0, -p.size * 1.6);
+        ctx.bezierCurveTo(p.size, -p.size * 0.8, p.size, p.size, 0, p.size * 1.5);
+        ctx.bezierCurveTo(-p.size, p.size, -p.size, -p.size * 0.8, 0, -p.size * 1.6);
         ctx.fill();
         ctx.restore();
       }
@@ -588,275 +622,397 @@
     }
 
     /* ==========================================================================
-       6. DEKOMPOZYCJA ASSETÓW: ANIMOWANE KOMPONENTY
+       6. WBUDOWANE WIZUALIZACJE PRODUKTÓW WOSQ (BEZ POTRZEBY PLIKÓW)
        ========================================================================== */
 
-    // Rysowanie zoptymalizowanego logo WOSQ (obsługuje plik graficzny + fallback wektorowy)
+    // 1. Logo WOSQ
     function drawWosqLogo(x, y, scale = 1, alpha = 1, lightSheen = 0) {
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(scale, scale);
       ctx.globalAlpha = alpha;
 
-      if (images.logo && images.logo.complete && images.logo.naturalWidth > 0) {
-        const lw = 460;
+      const hasImg = images.logo && images.logo.complete && images.logo.naturalWidth > 0;
+      if (hasImg) {
+        const lw = 440;
         const lh = lw * (images.logo.height / images.logo.width);
-        ctx.shadowColor = 'rgba(246, 207, 112, 0.7)';
-        ctx.shadowBlur = 35;
         ctx.drawImage(images.logo, -lw / 2, -lh / 2, lw, lh);
       } else {
-        // Profesjonalny komponent wektorowy WOSQ
+        // Wbudowany identyfikator wektorowy WOSQ
         ctx.font = '900 135px "Plus Jakarta Sans"';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#ffffff';
-        ctx.shadowColor = '#d4af37';
-        ctx.shadowBlur = 40;
         ctx.fillText("WOSQ", 0, 0);
       }
 
-      // Dynamiczny połysk świetlny (Light Sweep)
+      // Połysk światła
       if (lightSheen > 0) {
         ctx.save();
         ctx.globalCompositeOperation = 'source-atop';
-        const sx = -300 + lightSheen * 600;
-        const grad = ctx.createLinearGradient(sx - 80, -100, sx + 80, 100);
+        const sx = -280 + lightSheen * 560;
+        const grad = ctx.createLinearGradient(sx - 70, -100, sx + 70, 100);
         grad.addColorStop(0, 'rgba(255, 255, 255, 0)');
-        grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.8)');
+        grad.addColorStop(0.5, 'rgba(255, 255, 255, 0.7)');
         grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
         ctx.fillStyle = grad;
-        ctx.fillRect(-250, -120, 500, 240);
+        ctx.fillRect(-240, -100, 480, 200);
         ctx.restore();
       }
       ctx.restore();
     }
 
-    // Dekonstrukcja bukietu: komponenty płatków i kwiatów w 3D
-    function drawFlowerPetal(x, y, radius, color, rot, scale = 1) {
+    // 2. Kunsztowny Bukiet Kwiatowy w doniczce
+    function drawBouquetProduct(w, h, t) {
+      const hasImg = images.bouquet && images.bouquet.complete && images.bouquet.naturalWidth > 0;
+      if (hasImg) {
+        const zoom = 1.05 + Math.sin(t * 0.7) * 0.03;
+        const bw = w * 1.22 * zoom;
+        const bh = bw * (images.bouquet.height / images.bouquet.width);
+        ctx.drawImage(images.bouquet, -bw / 2, -bh / 2 + 20, bw, bh);
+        return;
+      }
+
+      // Proceduralna wizualizacja bukietu WOSQ (płatki, gipsówka, doniczka kraft)
+      const potGrad = ctx.createLinearGradient(-100, 0, 100, 0);
+      potGrad.addColorStop(0, '#c7b299');
+      potGrad.addColorStop(0.5, '#debfa0');
+      potGrad.addColorStop(1, '#ad967f');
+      ctx.fillStyle = potGrad;
+      ctx.beginPath();
+      ctx.roundRect(-100, 70, 200, 190, [12, 12, 28, 28]);
+      ctx.fill();
+
+      // Papier kraft pod bukietem
+      ctx.fillStyle = '#bda084';
+      for (let f = -5; f <= 5; f++) {
+        ctx.beginPath();
+        ctx.moveTo(f * 26, 75);
+        ctx.lineTo(f * 34 + 18, 40);
+        ctx.lineTo(f * 26 + 36, 75);
+        ctx.fill();
+      }
+
+      // Kępa gipsówki (drobne kuleczki)
+      ctx.fillStyle = '#ecdcc9';
+      for (let g = 0; g < 40; g++) {
+        const gx = Math.cos(g * 2.3) * (130 + Math.sin(g) * 20);
+        const gy = Math.sin(g * 2.3) * (90 + Math.cos(g) * 20) - 20;
+        ctx.beginPath();
+        ctx.arc(gx, gy, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Centralne kwiaty woskowe
+      // Niebieskie róże
+      drawFlowerHead(-65, -10, 52, '#6f9bc4', '#4a749d', 0.2);
+      drawFlowerHead(75, 10, 48, '#6f9bc4', '#4a749d', -0.3);
+      // Beżowe i kremowe peonie
+      drawFlowerHead(-20, -75, 62, '#dfcfbe', '#b5a18d', 0.5);
+      drawFlowerHead(60, -60, 55, '#f5ebe1', '#d4c0ab', 0);
+      drawFlowerHead(-85, -50, 45, '#eec95c', '#c79f32', -0.4);
+      // Stokrotka na środku
+      drawDaisyHead(5, 5, 50);
+
+      // Logo WOSQ na doniczce
+      ctx.font = '800 22px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#6e5540';
+      ctx.textAlign = 'center';
+      ctx.fillText("WOSQ", 0, 180);
+    }
+
+    function drawFlowerHead(x, y, rad, col1, col2, rot) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rot);
-      ctx.scale(scale, scale);
-      ctx.fillStyle = color;
-      ctx.shadowColor = 'rgba(0,0,0,0.15)';
-      ctx.shadowBlur = 12;
-
-      ctx.beginPath();
-      for (let i = 0; i < 8; i++) {
-        const ang = (i * Math.PI * 2) / 8;
-        const px = Math.cos(ang) * radius;
-        const py = Math.sin(ang) * radius;
-        ctx.arc(px * 0.6, py * 0.6, radius * 0.45, 0, Math.PI * 2);
+      for (let p = 6; p >= 1; p--) {
+        const r = (rad * p) / 6;
+        ctx.fillStyle = (p % 2 === 0) ? col1 : col2;
+        ctx.beginPath();
+        for (let i = 0; i < 7; i++) {
+          const a = (i * Math.PI * 2) / 7;
+          ctx.arc(Math.cos(a) * (r * 0.5), Math.sin(a) * (r * 0.5), r * 0.55, 0, Math.PI * 2);
+        }
+        ctx.fill();
       }
-      ctx.fill();
+      ctx.restore();
+    }
 
-      // Środek kwiatka
-      ctx.fillStyle = '#f6cf70';
+    function drawDaisyHead(x, y, rad) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = '#ffffff';
+      for (let i = 0; i < 14; i++) {
+        const a = (i * Math.PI * 2) / 14;
+        ctx.beginPath();
+        ctx.arc(Math.cos(a) * (rad * 0.55), Math.sin(a) * (rad * 0.55), rad * 0.26, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Żółty środek
+      ctx.fillStyle = '#f59e0b';
       ctx.beginPath();
-      ctx.arc(0, 0, radius * 0.35, 0, Math.PI * 2);
+      ctx.arc(0, 0, rad * 0.32, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
 
-    // Dekonstrukcja świąteczna: zawieszki, gwiazdki, wstążki
-    function drawRibbonBadge(x, y, text, color = '#a62b2b', scale = 1) {
+    // 3. Świąteczne Upominki (Woski z wstążkami i bilecikami)
+    function drawGiftsProduct(w, h, t) {
+      const hasImg = images.gifts && images.gifts.complete && images.gifts.naturalWidth > 0;
+      if (hasImg) {
+        const pan = Math.sin(t * 0.4) * 20;
+        const gw = w * 1.2;
+        const gh = gw * (images.gifts.height / images.gifts.width);
+        ctx.drawImage(images.gifts, -gw / 2 + pan, -gh / 2, gw, gh);
+        return;
+      }
+
+      // Proceduralne tło nutowe / vintage
+      ctx.fillStyle = '#ede3d1';
+      ctx.fillRect(-w / 2, -h / 2, w, h);
+      ctx.strokeStyle = 'rgba(120, 100, 80, 0.25)';
+      ctx.lineWidth = 1;
+      for (let l = -h / 2 + 30; l < h / 2; l += 14) {
+        ctx.beginPath(); ctx.moveTo(-w / 2, l); ctx.lineTo(w / 2, l); ctx.stroke();
+      }
+
+      // Gałązki świerkowe
+      ctx.fillStyle = '#22543d';
+      for (let n = -w / 2; n < w / 2; n += 50) {
+        ctx.beginPath();
+        ctx.moveTo(n, -h / 2);
+        ctx.lineTo(n + 30, -h / 2 + 50);
+        ctx.lineTo(n - 10, -h / 2 + 60);
+        ctx.fill();
+      }
+
+      // Prezent 1: Choinka woskowa ze wstążką
+      drawWaxGiftItem(-170, 0, '#48bb78', 'tree', 'Wesołych Świąt');
+      // Prezent 2: Piernikowy ludzik ze wstążką
+      drawWaxGiftItem(0, 20, '#b7791f', 'ginger', 'WOSQ Studio');
+      // Prezent 3: Złota Śnieżynka
+      drawWaxGiftItem(170, -10, '#fbf8f1', 'flake', 'Dla Ciebie');
+    }
+
+    function drawWaxGiftItem(x, y, color, type, label) {
       ctx.save();
       ctx.translate(x, y);
-      ctx.scale(scale, scale);
-      ctx.shadowColor = 'rgba(0,0,0,0.4)';
-      ctx.shadowBlur = 20;
 
-      // Korpus wstęgi
-      ctx.fillStyle = color;
+      // Celofanowy woreczek (połysk)
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.roundRect(-170, -26, 340, 52, 14);
+      ctx.roundRect(-65, -120, 130, 230, 12);
       ctx.fill();
-
-      // Złote przeszycie
-      ctx.strokeStyle = '#f6cf70';
-      ctx.lineWidth = 2;
       ctx.stroke();
 
-      // Tekst
-      ctx.font = '800 15px "Plus Jakarta Sans"';
+      // Kształt wosku
+      ctx.fillStyle = color;
+      if (type === 'tree') {
+        ctx.beginPath();
+        ctx.moveTo(0, -50);
+        ctx.lineTo(35, -10); ctx.lineTo(20, -10);
+        ctx.lineTo(45, 30); ctx.lineTo(25, 30);
+        ctx.lineTo(50, 70); ctx.lineTo(-50, 70);
+        ctx.lineTo(-25, 30); ctx.lineTo(-45, 30);
+        ctx.lineTo(-20, -10); ctx.lineTo(-35, -10);
+        ctx.fill();
+      } else if (type === 'ginger') {
+        ctx.beginPath();
+        ctx.arc(0, -35, 20, 0, Math.PI * 2); // Głowa
+        ctx.roundRect(-30, -15, 60, 80, 16); // Tułów
+        ctx.fill();
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(-6, -37, 2.5, 0, Math.PI * 2);
+        ctx.arc(6, -37, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Śnieżynka
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const a = (i * Math.PI) / 3;
+          ctx.roundRect(Math.cos(a) * -35, Math.sin(a) * -35, 70, 14, 7);
+        }
+        ctx.fill();
+        ctx.fillStyle = '#d4af37';
+        ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI * 2); ctx.fill();
+      }
+
+      // Kokardka
+      ctx.fillStyle = (type === 'ginger') ? '#e2e8f0' : (type === 'tree' ? '#c53030' : '#276749');
+      ctx.beginPath();
+      ctx.arc(-16, -95, 12, 0, Math.PI * 2);
+      ctx.arc(16, -95, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Bilecik z dedykacją
       ctx.fillStyle = '#ffffff';
+      ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+      ctx.beginPath();
+      ctx.roundRect(-50, -78, 100, 24, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#1a202c';
+      ctx.font = '800 9px "Plus Jakarta Sans"';
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, 0, 0);
+      ctx.fillText(label, 0, -62);
       ctx.restore();
     }
 
     /* ==========================================================================
-       7. SCENY SHOWREELU (DOKŁADNIE 30 SEKUND)
+       7. OŚ CZASU 30.0 SEKUND (PŁYNNE 60 FPS BEZ ZACIĘĆ)
        ========================================================================== */
 
-    // SCENA 1: EKSCYTUJĄCY INTRO BIAŁO-ZŁOTY HOOK (0.0s - 5.0s)
+    // SCENA 1: INTRO MARKI (0.0s - 4.5s)
     function renderScene1(t) {
       const w = 1920, h = 1080;
-
-      // Eleganckie, ciemne tło z promienistym złotym światłem
-      const bg = ctx.createRadialGradient(w / 2, h / 2, 60, w / 2, h / 2, 900);
-      bg.addColorStop(0, '#2b2118');
-      bg.addColorStop(0.6, '#13100d');
+      const bg = ctx.createRadialGradient(w / 2, h / 2, 80, w / 2, h / 2, 950);
+      bg.addColorStop(0, '#261c14');
+      bg.addColorStop(0.6, '#120f0c');
       bg.addColorStop(1, '#080706');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      // Koncentryczne kręgi woskowe
+      // Koncentryczne kręgi
       ctx.save();
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
-      ctx.lineWidth = 2;
-      for (let r = 120; r <= 840; r += 160) {
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.12)';
+      ctx.lineWidth = 1.5;
+      for (let r = 120; r <= 800; r += 160) {
         ctx.beginPath();
-        ctx.arc(w / 2, h / 2, r + Math.sin(t * 3 + r) * 15, 0, Math.PI * 2);
+        ctx.arc(w / 2, h / 2, r + Math.sin(t * 3 + r * 0.01) * 12, 0, Math.PI * 2);
         ctx.stroke();
       }
       ctx.restore();
 
-      drawParticles(0.7);
+      drawFastParticles(0.6);
 
-      // Wejście Logo WOSQ z elastycznym wybiciem
-      const logoProg = Math.min(1, Math.max(0, (t - 0.2) / 1.0));
-      const s = 0.4 + ease.elasticOut(logoProg) * 0.6;
-      const sheen = (t > 1.2 && t < 2.8) ? (t - 1.2) / 1.6 : 0;
-      drawWosqLogo(w / 2, h / 2 - 60, s, Math.min(1, t / 0.4), sheen);
+      // Logo WOSQ
+      const lp = Math.min(1, Math.max(0, (t - 0.2) / 0.9));
+      const s = 0.5 + ease.elasticOut(lp) * 0.5;
+      const sheen = (t > 1.2 && t < 2.6) ? (t - 1.2) / 1.4 : 0;
+      drawWosqLogo(w / 2, h / 2 - 50, s, Math.min(1, t / 0.4), sheen);
 
-      // Hasło: "MANUFAKTURA EMOCJI Z WOSKU SOJOWEGO"
-      const t1Prog = Math.min(1, Math.max(0, (t - 1.0) / 0.7));
-      if (t1Prog > 0) {
+      // Napis 1
+      const t1p = Math.min(1, Math.max(0, (t - 1.0) / 0.6));
+      if (t1p > 0) {
         ctx.save();
-        const yOff = (1 - ease.outBack(t1Prog)) * 40;
+        const yOff = (1 - ease.outBack(t1p)) * 35;
         ctx.translate(w / 2, h / 2 + 150 + yOff);
-        ctx.globalAlpha = t1Prog;
+        ctx.globalAlpha = t1p;
 
-        // Pigułka brandowa
         ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
         ctx.strokeStyle = 'rgba(246, 207, 112, 0.5)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.roundRect(-280, -24, 560, 48, 24);
+        ctx.roundRect(-260, -23, 520, 46, 23);
         ctx.fill();
         ctx.stroke();
 
-        ctx.font = '800 17px "Plus Jakarta Sans"';
+        ctx.font = '800 16px "Plus Jakarta Sans"';
         ctx.fillStyle = '#f6cf70';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.letterSpacing = '5px';
-        ctx.fillText("POLSKA MANUFAKTURA ZAPACHOWA", 0, 0);
+        ctx.fillText("MANUFAKTURA ŚWIEC & BUKIETÓW", 0, 0);
         ctx.restore();
       }
 
-      // Hasło 2: Kaligraficzne rozwinięcie
-      const t2Prog = Math.min(1, Math.max(0, (t - 2.2) / 0.7));
-      if (t2Prog > 0) {
+      // Napis 2
+      const t2p = Math.min(1, Math.max(0, (t - 2.0) / 0.6));
+      if (t2p > 0) {
         ctx.save();
-        ctx.globalAlpha = t2Prog;
-        const scale2 = 0.85 + ease.outBack(t2Prog) * 0.15;
-        ctx.translate(w / 2, h / 2 + 235);
+        ctx.globalAlpha = t2p;
+        const scale2 = 0.88 + ease.outBack(t2p) * 0.12;
+        ctx.translate(w / 2, h / 2 + 230);
         ctx.scale(scale2, scale2);
 
-        ctx.font = 'italic 700 42px "Playfair Display"';
+        ctx.font = 'italic 700 40px "Playfair Display"';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
-        ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-        ctx.shadowBlur = 25;
-        ctx.fillText("Bukiety & Świece, które nigdy nie więdną.", 0, 0);
+        ctx.fillText("Zapachy i kompozycje, które zachwycają.", 0, 0);
         ctx.restore();
       }
 
-      // Płynne rozbłyskowe przejście do sceny 2
-      if (t > 4.6) {
-        const flash = (t - 4.6) / 0.4;
+      if (t > 4.1) {
+        const flash = (t - 4.1) / 0.4;
         ctx.fillStyle = `rgba(255, 250, 240, ${ease.inQuad(flash)})`;
         ctx.fillRect(0, 0, w, h);
       }
     }
 
-    // SCENA 2: EKSKLUZYWNY BUKIET KWIATOWY Z WOSKU (5.0s - 12.0s)
+    // SCENA 2: BUKIETY KWIATOWE Z WOSKU (4.5s - 11.5s) — ZOPTYMALIZOWANA (ZERO LAGU W 9S)
     function renderScene2(t) {
-      const st = t - 5.0; // czas sceny: 0.0 - 7.0s
+      const st = t - 4.5; // 0.0 - 7.0s
       const w = 1920, h = 1080;
 
-      // Ciepłe kremowo-lniane tło showroomu
+      // Ciepłe jasne tło
       const bg = ctx.createLinearGradient(0, 0, w, h);
-      bg.addColorStop(0, '#f7f2eb');
-      bg.addColorStop(0.5, '#eae2d5');
-      bg.addColorStop(1, '#dfd3c3');
+      bg.addColorStop(0, '#f7f2ea');
+      bg.addColorStop(0.5, '#eae1d3');
+      bg.addColorStop(1, '#ddd1c0');
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      // Pływający w tle kinetyczny napis (Marquee)
+      // Pływający znak wodny w tle
       ctx.save();
-      ctx.font = '900 210px "Plus Jakarta Sans"';
-      ctx.fillStyle = 'rgba(165, 138, 110, 0.1)';
+      ctx.font = '900 190px "Plus Jakarta Sans"';
+      ctx.fillStyle = 'rgba(165, 138, 110, 0.09)';
       ctx.textBaseline = 'middle';
-      const offset = (st * -110) % 1920;
-      ctx.fillText("100% WOSK SOJOWY • HANDMADE ART • ", offset, 240);
-      ctx.fillText("100% WOSK SOJOWY • HANDMADE ART • ", offset + 1920, 240);
+      const offset = (st * -100) % 1920;
+      ctx.fillText("100% WOSK SOJOWY • HANDMADE ART • ", offset, 220);
+      ctx.fillText("100% WOSK SOJOWY • HANDMADE ART • ", offset + 1920, 220);
       ctx.restore();
 
-      drawParticles(0.8);
+      drawFastParticles(0.75);
 
-      // PREZENTACJA BUKIETU (kompozycja w łuku z cieniem 3D)
-      const cardProg = Math.min(1, st / 0.8);
-      const cardX = w * 0.66 + (1 - ease.outBack(cardProg)) * 400;
-      const cardY = h * 0.52 + Math.sin(st * 2.2) * 16;
-      const cardRot = Math.sin(st * 1.6) * 0.03;
+      // KARTA PRODUKTU — BUKIET
+      const cp = Math.min(1, st / 0.75);
+      const cardX = w * 0.67 + (1 - ease.outBack(cp)) * 360;
+      const cardY = h * 0.52 + Math.sin(st * 2.0) * 12;
 
       ctx.save();
       ctx.translate(cardX, cardY);
-      ctx.rotate(cardRot);
+      ctx.rotate(Math.sin(st * 1.5) * 0.02);
 
-      // Cień
-      ctx.shadowColor = 'rgba(50, 38, 28, 0.35)';
-      ctx.shadowBlur = 65;
-      ctx.shadowOffsetY = 40;
-
-      // Kształt karty
+      // Tło karty
       const cw = 560, ch = 740;
+      ctx.fillStyle = 'rgba(50, 38, 28, 0.15)';
+      ctx.beginPath();
+      ctx.roundRect(-cw / 2 + 15, -ch / 2 + 25, cw, ch, [280, 280, 36, 36]);
+      ctx.fill();
+
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.roundRect(-cw / 2, -ch / 2, cw, ch, [280, 280, 36, 36]);
       ctx.fill();
 
-      // Wycięcie na zdjęcie produktu
+      // Kadr na bukiet
       ctx.save();
       ctx.beginPath();
       ctx.roundRect(-cw / 2 + 14, -ch / 2 + 14, cw - 28, ch - 28, [270, 270, 28, 28]);
       ctx.clip();
-
-      if (images.bouquet && images.bouquet.complete && images.bouquet.naturalWidth > 0) {
-        const zoom = 1.05 + Math.sin(st * 0.7) * 0.04;
-        const bw = cw * 1.25 * zoom;
-        const bh = bw * (images.bouquet.height / images.bouquet.width);
-        ctx.drawImage(images.bouquet, -bw / 2, -bh / 2 + 25, bw, bh);
-      } else {
-        // Fallback artystyczny
-        ctx.fillStyle = '#d9c6b0';
-        ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
-        drawFlowerPetal(0, -60, 110, '#ffffff', st);
-        drawFlowerPetal(-70, 40, 85, '#92b4d8', -st);
-        drawFlowerPetal(70, 50, 85, '#e0aa3e', st * 1.5);
-      }
+      drawBouquetProduct(cw, ch, st);
       ctx.restore();
 
       // Złota ramka
-      ctx.strokeStyle = 'rgba(212, 175, 55, 0.7)';
-      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(212, 175, 55, 0.75)';
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
       ctx.roundRect(-cw / 2, -ch / 2, cw, ch, [280, 280, 36, 36]);
       ctx.stroke();
 
-      // Odznak medalowa "EKO & HANDMADE"
-      const badgeProg = Math.min(1, Math.max(0, (st - 0.7) / 0.6));
-      if (badgeProg > 0) {
+      // Pigułka medalowa
+      const bp = Math.min(1, Math.max(0, (st - 0.7) / 0.5));
+      if (bp > 0) {
         ctx.save();
         ctx.translate(cw / 2 - 20, -ch / 2 + 70);
-        ctx.scale(ease.elasticOut(badgeProg), ease.elasticOut(badgeProg));
-        ctx.fillStyle = '#1a1715';
+        ctx.scale(ease.elasticOut(bp), ease.elasticOut(bp));
+        ctx.fillStyle = '#1c1815';
         ctx.beginPath();
-        ctx.arc(0, 0, 60, 0, Math.PI * 2);
+        ctx.arc(0, 0, 58, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = '#f6cf70';
         ctx.lineWidth = 2.5;
@@ -871,48 +1027,38 @@
         ctx.fillText("SOJOWY", 0, 8);
         ctx.restore();
       }
-
       ctx.restore();
 
-      // Dekonstruowane płatki unoszące się wokół produktu (Parallax 3D)
-      drawFlowerPetal(w * 0.46, h * 0.28 + Math.sin(st * 3) * 20, 36, '#ffffff', st * 0.8, 0.9);
-      drawFlowerPetal(w * 0.92, h * 0.65 + Math.cos(st * 2.5) * 25, 42, '#92b4d8', -st * 0.7, 1.1);
-      drawFlowerPetal(w * 0.54, h * 0.82 + Math.sin(st * 2) * 18, 30, '#dfb15b', st * 1.2, 0.8);
+      // Pływające płatki wokół
+      drawDaisyHead(w * 0.44, h * 0.28 + Math.sin(st * 2.8) * 16, 32);
+      drawFlowerHead(w * 0.92, h * 0.65 + Math.cos(st * 2.2) * 18, 38, '#6f9bc4', '#4a749d', st * 0.5);
 
-      // LEWA KOLUMNA: TYPOGRAFIA I CECHY PRODUKTU (JĘZYK POLSKI)
+      // LEWA KOLUMNA TEKSTOWA
       ctx.save();
       ctx.translate(140, h * 0.32);
 
-      // Kicker
-      const kProg = Math.min(1, st / 0.5);
-      if (kProg > 0) {
-        ctx.save();
-        ctx.globalAlpha = kProg;
-        ctx.font = '800 16px "Plus Jakarta Sans"';
-        ctx.fillStyle = '#94663e';
-        ctx.letterSpacing = '4px';
-        ctx.fillText("NOWOŚĆ W OFERCIE WOSQ", 0, 0);
-        ctx.restore();
-      }
+      ctx.font = '800 16px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#94663e';
+      ctx.letterSpacing = '4px';
+      ctx.fillText("NOWOŚĆ W OFERCIE WOSQ", 0, 0);
 
-      // Nagłówek
-      const hProg = Math.min(1, Math.max(0, (st - 0.25) / 0.6));
-      if (hProg > 0) {
+      const hp = Math.min(1, Math.max(0, (st - 0.25) / 0.6));
+      if (hp > 0) {
         ctx.save();
-        ctx.globalAlpha = hProg;
-        ctx.translate((1 - ease.outCubic(hProg)) * -60, 60);
+        ctx.globalAlpha = hp;
+        ctx.translate((1 - ease.outCubic(hp)) * -50, 60);
 
         ctx.font = '900 68px "Plus Jakarta Sans"';
         ctx.fillStyle = '#1c1815';
         ctx.fillText("BUKIETY Z WOSKU", 0, 0);
 
-        ctx.font = 'italic 700 60px "Playfair Display"';
+        ctx.font = 'italic 700 58px "Playfair Display"';
         ctx.fillStyle = '#b37847';
         ctx.fillText("Wieczny zapach & zachwyt.", 0, 72);
         ctx.restore();
       }
 
-      // Cechy w bąblach
+      // KAFELKI ZALET (ZOPTYMALIZOWANE BEZ CIĘŻKICH CIENI)
       const bullets = [
         "Ręcznie odlewane płatki róż, dalii i stokrotek",
         "Aromatyzowane naturalnymi olejkami premium",
@@ -920,28 +1066,26 @@
       ];
 
       bullets.forEach((b, i) => {
-        const bProg = Math.min(1, Math.max(0, (st - 0.9 - i * 0.25) / 0.5));
+        const bProg = Math.min(1, Math.max(0, (st - 0.8 - i * 0.22) / 0.45));
         if (bProg > 0) {
           ctx.save();
           const bs = ease.outBack(bProg);
-          ctx.translate(0, 230 + i * 82);
+          ctx.translate(0, 225 + i * 80);
           ctx.scale(bs, bs);
 
-          // Pigułka tła
+          // Pigułka z subtelnym obrysem
           ctx.fillStyle = '#ffffff';
-          ctx.shadowColor = 'rgba(0,0,0,0.06)';
-          ctx.shadowBlur = 18;
-          ctx.shadowOffsetY = 6;
+          ctx.strokeStyle = 'rgba(180, 150, 120, 0.2)';
+          ctx.lineWidth = 1;
           ctx.beginPath();
-          ctx.roundRect(0, -25, 620, 54, 16);
+          ctx.roundRect(0, -25, 620, 52, 16);
           ctx.fill();
+          ctx.stroke();
 
-          // Ikona diamentu
           ctx.fillStyle = '#d4af37';
           ctx.font = '800 20px "Plus Jakarta Sans"';
           ctx.fillText("✦", 20, 8);
 
-          // Tekst
           ctx.fillStyle = '#2d241e';
           ctx.font = '700 18px "Plus Jakarta Sans"';
           ctx.fillText(b, 54, 7);
@@ -950,20 +1094,20 @@
       });
       ctx.restore();
 
-      // Przejście dynamiczne do sceny 3
-      if (st > 6.5) {
-        const whip = (st - 6.5) / 0.5;
+      // Przejście kurtynowe
+      if (st > 6.6) {
+        const whip = (st - 6.6) / 0.4;
         ctx.fillStyle = '#111713';
         ctx.fillRect(0, 0, w * ease.inCubic(whip), h);
       }
     }
 
-    // SCENA 3: ŚWIĄTECZNE & BIZNESOWE UPOMINKI (12.0s - 19.0s)
+    // SCENA 3: ŚWIĄTECZNE UPOMINKI DLA FIRM (11.5s - 18.5s)
     function renderScene3(t) {
-      const st = t - 12.0; // 0.0 - 7.0s
+      const st = t - 11.5; // 0.0 - 7.0s
       const w = 1920, h = 1080;
 
-      // Świąteczny, szmaragdowo-leśny luksusowy gradient
+      // Szmaragdowo-leśne tło
       const bg = ctx.createRadialGradient(w * 0.5, h * 0.5, 80, w * 0.5, h * 0.5, 1000);
       bg.addColorStop(0, '#1c2921');
       bg.addColorStop(0.5, '#0f1813');
@@ -971,40 +1115,32 @@
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      // Światełka choinkowe / bokeh w tle
+      // Światełka choinkowe
       ctx.save();
-      for (let i = 0; i < 20; i++) {
-        const lx = (Math.sin(i * 47 + st * 0.4) * 0.5 + 0.5) * w;
-        const ly = (Math.cos(i * 31 + st * 0.3) * 0.5 + 0.5) * h;
-        const rad = 8 + Math.sin(st * 4 + i) * 6;
-        ctx.fillStyle = 'rgba(246, 207, 112, 0.35)';
-        ctx.shadowColor = '#f6cf70';
-        ctx.shadowBlur = 18;
+      for (let i = 0; i < 18; i++) {
+        const lx = (Math.sin(i * 37 + st * 0.3) * 0.5 + 0.5) * w;
+        const ly = (Math.cos(i * 29 + st * 0.25) * 0.5 + 0.5) * h;
+        const rad = 7 + Math.sin(st * 3 + i) * 5;
+        ctx.fillStyle = 'rgba(246, 207, 112, 0.3)';
         ctx.beginPath();
         ctx.arc(lx, ly, rad, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
 
-      drawParticles(0.85);
+      drawFastParticles(0.7);
 
-      // LEWA STRONA: PREZENTACJA ZDJĘCIA UPOMINKÓW (input_file_2.png)
-      const gProg = Math.min(1, st / 0.75);
-      const gx = w * 0.36 + (1 - ease.outBack(gProg)) * -300;
-      const gy = h * 0.52 + Math.cos(st * 1.8) * 14;
-      const gRot = Math.sin(st * 1.4) * 0.02 - 0.01;
+      // KARTA Z PREZENTAMI (ŚWIĘTA)
+      const gp = Math.min(1, st / 0.7);
+      const gx = w * 0.36 + (1 - ease.outBack(gp)) * -280;
+      const gy = h * 0.52 + Math.cos(st * 1.6) * 12;
 
       ctx.save();
       ctx.translate(gx, gy);
-      ctx.rotate(gRot);
+      ctx.rotate(Math.sin(st * 1.4) * 0.015);
 
       const fw = 760, fh = 660;
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-      ctx.shadowBlur = 50;
-      ctx.shadowOffsetY = 30;
-
-      // Pływająca tafla szkła
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
       ctx.beginPath();
       ctx.roundRect(-fw / 2, -fh / 2, fw, fh, 32);
       ctx.fill();
@@ -1013,51 +1149,47 @@
       ctx.beginPath();
       ctx.roundRect(-fw / 2 + 16, -fh / 2 + 16, fw - 32, fh - 32, 24);
       ctx.clip();
-
-      if (images.gifts && images.gifts.complete && images.gifts.naturalWidth > 0) {
-        const pan = Math.sin(st * 0.5) * 30;
-        const gw = fw * 1.25;
-        const gh = gw * (images.gifts.height / images.gifts.width);
-        ctx.drawImage(images.gifts, -gw / 2 + pan, -gh / 2, gw, gh);
-      } else {
-        // Fallback
-        ctx.fillStyle = '#223328';
-        ctx.fillRect(-fw / 2, -fh / 2, fw, fh);
-      }
+      drawGiftsProduct(fw, fh, st);
       ctx.restore();
 
-      // Złoty obrys ze świąteczną czerwienią
       ctx.strokeStyle = '#f6cf70';
       ctx.lineWidth = 3;
       ctx.strokeRect(-fw / 2 + 16, -fh / 2 + 16, fw - 32, fh - 32);
 
-      // Zawieszka "DOWOLNA PERSONALIZACJA"
-      const ribProg = Math.min(1, Math.max(0, (st - 0.7) / 0.5));
-      if (ribProg > 0) {
-        drawRibbonBadge(0, fh / 2 - 35, "★ DOWOLNA PERSONALIZACJA Z LOGO", '#b92b2b', ease.elasticOut(ribProg));
-      }
+      // Wstęga personalizacji
+      ctx.save();
+      ctx.translate(0, fh / 2 - 35);
+      ctx.fillStyle = '#b92b2b';
+      ctx.beginPath();
+      ctx.roundRect(-170, -26, 340, 52, 14);
+      ctx.fill();
+      ctx.strokeStyle = '#f6cf70';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.font = '800 15px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#ffffff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText("★ DOWOLNA PERSONALIZACJA Z LOGO", 0, 0);
       ctx.restore();
 
-      // PRAWA STRONA: TEKST I CECHY BIZNESOWE
+      ctx.restore();
+
+      // PRAWA STRONA — TEKST
       ctx.save();
       ctx.translate(w * 0.62, h * 0.32);
 
-      const tKicker = Math.min(1, Math.max(0, st / 0.5));
-      if (tKicker > 0) {
-        ctx.save();
-        ctx.globalAlpha = tKicker;
-        ctx.font = '800 16px "Plus Jakarta Sans"';
-        ctx.fillStyle = '#f6cf70';
-        ctx.letterSpacing = '5px';
-        ctx.fillText("PREZENTY FIRMOWE & OKOLICZNOŚCIOWE", 0, 0);
-        ctx.restore();
-      }
+      ctx.font = '800 16px "Plus Jakarta Sans"';
+      ctx.fillStyle = '#f6cf70';
+      ctx.letterSpacing = '5px';
+      ctx.fillText("PREZENTY FIRMOWE & OKOLICZNOŚCIOWE", 0, 0);
 
-      const tTitle = Math.min(1, Math.max(0, (st - 0.3) / 0.6));
-      if (tTitle > 0) {
+      const tp = Math.min(1, Math.max(0, (st - 0.25) / 0.55));
+      if (tp > 0) {
         ctx.save();
-        ctx.globalAlpha = tTitle;
-        ctx.translate((1 - ease.outBack(tTitle)) * 60, 60);
+        ctx.globalAlpha = tp;
+        ctx.translate((1 - ease.outBack(tp)) * 50, 60);
 
         ctx.font = '900 66px "Plus Jakarta Sans"';
         ctx.fillStyle = '#ffffff';
@@ -1068,7 +1200,6 @@
         ctx.restore();
       }
 
-      // Kafelki z korzyściami
       const giftBullets = [
         { main: "Indywidualne bileciki i dedykacje", sub: "Twoje firmowe logo, życzenia lub imiona gości" },
         { main: "Urocze formy: pierniki, choinki, śnieżynki", sub: "Ręcznie malowane złotem detale o aromacie korzennym" },
@@ -1076,34 +1207,29 @@
       ];
 
       giftBullets.forEach((g, i) => {
-        const gp = Math.min(1, Math.max(0, (st - 0.8 - i * 0.25) / 0.5));
-        if (gp > 0) {
+        const bp = Math.min(1, Math.max(0, (st - 0.7 - i * 0.2) / 0.45));
+        if (bp > 0) {
           ctx.save();
-          const gs = ease.outBack(gp);
-          ctx.translate(0, 230 + i * 92);
+          const gs = ease.outBack(bp);
+          ctx.translate(0, 225 + i * 90);
           ctx.scale(gs, gs);
 
-          // Pudełko
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.07)';
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
           ctx.lineWidth = 1.5;
           ctx.beginPath();
-          ctx.roundRect(0, -32, 600, 76, 16);
+          ctx.roundRect(0, -30, 600, 74, 16);
           ctx.fill();
           ctx.stroke();
 
-          // Zielony punkt akcentu
           ctx.fillStyle = '#4ade80';
-          ctx.shadowColor = '#4ade80';
-          ctx.shadowBlur = 10;
           ctx.beginPath();
-          ctx.arc(28, 6, 7, 0, Math.PI * 2);
+          ctx.arc(28, 7, 7, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.shadowBlur = 0;
           ctx.fillStyle = '#ffffff';
           ctx.font = '800 19px "Plus Jakarta Sans"';
-          ctx.fillText(g.main, 52, -4);
+          ctx.fillText(g.main, 52, -3);
 
           ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
           ctx.font = '500 14px "Plus Jakarta Sans"';
@@ -1113,21 +1239,18 @@
       });
       ctx.restore();
 
-      // Przejście do sceny 4
-      if (st > 6.5) {
-        const wipe = (st - 6.5) / 0.5;
+      if (st > 6.6) {
+        const wipe = (st - 6.6) / 0.4;
         ctx.fillStyle = `rgba(10, 8, 7, ${wipe})`;
         ctx.fillRect(0, 0, w, h);
       }
     }
 
-    // SCENA 4: DYNAMICZNY KINETYCZNY MANIFEST (19.0s - 24.0s)
-    // Szybkie cięcia pod uderzenia bitu - zero zacięć
+    // SCENA 4: DYNAMICZNY KINETYCZNY MANIFEST (18.5s - 23.5s)
     function renderScene4(t) {
-      const st = t - 19.0; // 0.0 - 5.0s
+      const st = t - 18.5; // 0.0 - 5.0s
       const w = 1920, h = 1080;
 
-      // Zmiana tła z każdym uderzeniem taktu
       const phase = Math.min(3, Math.floor(st / 1.25));
       const phaseT = (st % 1.25) / 1.25;
 
@@ -1135,7 +1258,7 @@
       ctx.fillStyle = bgList[phase];
       ctx.fillRect(0, 0, w, h);
 
-      // Siatka geometryczna
+      // Siatka graficzna
       ctx.save();
       ctx.strokeStyle = 'rgba(246, 207, 112, 0.08)';
       ctx.lineWidth = 1;
@@ -1147,7 +1270,6 @@
       }
       ctx.restore();
 
-      // Treści kinetyczne
       const manifestos = [
         { main: "100% NATURY", sub: "BEZPIECZNY DLA CIEBIE I DZIECI", color: "#f6cf70" },
         { main: "OBŁĘDNY ZAPACH", sub: "KOMPOZYCJE, KTÓRE WYPEŁNIAJĄ CAŁY DOM", color: "#f472b6" },
@@ -1157,44 +1279,36 @@
 
       const current = manifestos[phase];
 
-      // Wielka typografia
+      // Wielka typografia w centrum
       ctx.save();
       ctx.translate(w / 2, h / 2);
 
-      const popScale = 0.7 + ease.elasticOut(Math.min(1, phaseT * 2.2)) * 0.3;
+      const popScale = 0.72 + ease.elasticOut(Math.min(1, phaseT * 2.2)) * 0.28;
       ctx.scale(popScale, popScale);
 
-      // Znak wodny w tle
-      ctx.font = '900 240px "Plus Jakarta Sans"';
+      ctx.font = '900 230px "Plus Jakarta Sans"';
       ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(current.main, 0, 0);
 
-      // Główny napis
-      ctx.font = '900 120px "Plus Jakarta Sans"';
+      ctx.font = '900 115px "Plus Jakarta Sans"';
       ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = current.color;
-      ctx.shadowBlur = 45;
       ctx.fillText(current.main, 0, -25);
 
-      // Pigułka podtytułu
       ctx.font = '800 24px "Plus Jakarta Sans"';
       ctx.fillStyle = current.color;
-      ctx.shadowBlur = 15;
       ctx.letterSpacing = '5px';
-      ctx.fillText(current.sub, 0, 75);
+      ctx.fillText(current.sub, 0, 70);
       ctx.restore();
 
-      // Obiegająca kapsuła z podglądem produktu
+      // Miniaturka w locie
       ctx.save();
-      const orbitX = Math.sin(st * 4) * 360;
-      const orbitY = Math.cos(st * 3) * 110;
-      ctx.translate(w / 2 + orbitX, h / 2 + 280 + orbitY);
+      const orbitX = Math.sin(st * 4) * 340;
+      const orbitY = Math.cos(st * 3) * 100;
+      ctx.translate(w / 2 + orbitX, h / 2 + 270 + orbitY);
 
       const capW = 280, capH = 150;
-      ctx.shadowColor = current.color;
-      ctx.shadowBlur = 30;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.roundRect(-capW / 2, -capH / 2, capW, capH, 20);
@@ -1204,29 +1318,28 @@
       ctx.beginPath();
       ctx.roundRect(-capW / 2 + 6, -capH / 2 + 6, capW - 12, capH - 12, 16);
       ctx.clip();
-      const prodImg = (phase % 2 === 0) ? images.bouquet : images.gifts;
-      if (prodImg && prodImg.complete && prodImg.naturalWidth > 0) {
-        ctx.drawImage(prodImg, -capW / 2, -capH / 2 - 25, capW, capW * (prodImg.height / prodImg.width));
+      if (phase % 2 === 0) {
+        drawBouquetProduct(capW, capH, st);
+      } else {
+        drawGiftsProduct(capW, capH, st);
       }
       ctx.restore();
       ctx.restore();
 
-      drawParticles(0.9);
+      drawFastParticles(0.8);
 
-      // Rozbłysk do finału (użycie bezpiecznego ease.inQuad zamiast inExpo)
-      if (st > 4.5) {
-        const flash = (st - 4.5) / 0.5;
+      if (st > 4.6) {
+        const flash = (st - 4.6) / 0.4;
         ctx.fillStyle = `rgba(246, 207, 112, ${ease.inQuad(flash)})`;
         ctx.fillRect(0, 0, w, h);
       }
     }
 
-    // SCENA 5: WIELKI FINAŁ & WEZWANIE DO DZIAŁANIA (CTA) FACEBOOK (24.0s - 30.0s)
+    // SCENA 5: WIELKI FINAŁ & LINK DO FACEBOOKA (23.5s - 30.0s)
     function renderScene5(t) {
-      const st = t - 24.0; // 0.0 - 6.0s
+      const st = t - 23.5; // 0.0 - 6.5s
       const w = 1920, h = 1080;
 
-      // Złoto-czarne tło finałowe
       const bg = ctx.createRadialGradient(w / 2, h / 2, 60, w / 2, h / 2, 1000);
       bg.addColorStop(0, '#2b2118');
       bg.addColorStop(0.5, '#120f0d');
@@ -1234,17 +1347,15 @@
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 
-      drawParticles(1.0);
+      drawFastParticles(0.9);
 
-      // PŁYWAJĄCE KARTY PRODUKTÓW PO BOKACH
-      // Bukiet po lewej
+      // Karta po lewej (Bukiet)
       const lp = Math.min(1, st / 0.6);
       ctx.save();
       const lSlide = (1 - ease.outBack(lp)) * -300;
-      ctx.translate(w * 0.17 + lSlide, h * 0.52 + Math.sin(st * 2) * 12);
+      ctx.translate(w * 0.17 + lSlide, h * 0.52 + Math.sin(st * 2) * 10);
       ctx.rotate(-0.06);
-      ctx.shadowColor = 'rgba(0,0,0,0.6)';
-      ctx.shadowBlur = 40;
+
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.roundRect(-150, -220, 300, 440, 24);
@@ -1253,24 +1364,21 @@
       ctx.beginPath();
       ctx.roundRect(-142, -212, 284, 424, 18);
       ctx.clip();
-      if (images.bouquet && images.bouquet.complete && images.bouquet.naturalWidth > 0) {
-        ctx.drawImage(images.bouquet, -180, -230, 380, 380 * (images.bouquet.height / images.bouquet.width));
-      }
+      drawBouquetProduct(300, 440, st);
       ctx.restore();
       ctx.strokeStyle = '#f6cf70';
       ctx.lineWidth = 3;
       ctx.strokeRect(-150, -220, 300, 440);
       ctx.restore();
 
-      // Upominki po prawej
+      // Karta po prawej (Gifts)
       const rp = Math.min(1, (st - 0.2) / 0.6);
       if (rp > 0) {
         ctx.save();
         const rSlide = (1 - ease.outBack(rp)) * 300;
-        ctx.translate(w * 0.83 + rSlide, h * 0.52 + Math.cos(st * 2) * 12);
+        ctx.translate(w * 0.83 + rSlide, h * 0.52 + Math.cos(st * 2) * 10);
         ctx.rotate(0.06);
-        ctx.shadowColor = 'rgba(0,0,0,0.6)';
-        ctx.shadowBlur = 40;
+
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.roundRect(-150, -220, 300, 440, 24);
@@ -1279,9 +1387,7 @@
         ctx.beginPath();
         ctx.roundRect(-142, -212, 284, 424, 18);
         ctx.clip();
-        if (images.gifts && images.gifts.complete && images.gifts.naturalWidth > 0) {
-          ctx.drawImage(images.gifts, -180, -220, 380, 380 * (images.gifts.height / images.gifts.width));
-        }
+        drawGiftsProduct(300, 440, st);
         ctx.restore();
         ctx.strokeStyle = '#f6cf70';
         ctx.lineWidth = 3;
@@ -1289,16 +1395,16 @@
         ctx.restore();
       }
 
-      // CENTRUM: LOGO WOSQ
+      // Logo WOSQ w centrum
       const logS = ease.elasticOut(Math.min(1, st / 0.6));
       drawWosqLogo(w / 2, h * 0.23, logS * 0.85, 1, (st % 2) / 2);
 
-      // NAGŁÓWEK ZAPROSZENIA
-      const tProg = Math.min(1, Math.max(0, (st - 0.4) / 0.6));
-      if (tProg > 0) {
+      // Napis zaproszenia
+      const tp = Math.min(1, Math.max(0, (st - 0.4) / 0.6));
+      if (tp > 0) {
         ctx.save();
-        ctx.globalAlpha = tProg;
-        ctx.translate(w / 2, h * 0.44 + (1 - ease.outBack(tProg)) * 30);
+        ctx.globalAlpha = tp;
+        ctx.translate(w / 2, h * 0.44 + (1 - ease.outBack(tp)) * 30);
 
         ctx.font = '800 36px "Plus Jakarta Sans"';
         ctx.fillStyle = '#f6cf70';
@@ -1312,20 +1418,15 @@
         ctx.restore();
       }
 
-      // PULSUJĄCY PRZYCISK FACEBOOK
-      const btnProg = Math.min(1, Math.max(0, (st - 0.8) / 0.6));
-      if (btnProg > 0) {
+      // PRZYCISK FACEBOOK
+      const bp = Math.min(1, Math.max(0, (st - 0.8) / 0.6));
+      if (bp > 0) {
         ctx.save();
         const pulse = 1 + Math.sin(st * 4.5) * 0.025;
-        const bScale = ease.elasticOut(btnProg) * pulse;
+        const bScale = ease.elasticOut(bp) * pulse;
         ctx.translate(w / 2, h * 0.66);
         ctx.scale(bScale, bScale);
 
-        // Niebieska poświata
-        ctx.shadowColor = '#1877f2';
-        ctx.shadowBlur = 40;
-
-        // Przycisk
         const bw = 680, bh = 90;
         const btnGrad = ctx.createLinearGradient(-bw / 2, 0, bw / 2, 0);
         btnGrad.addColorStop(0, '#1877f2');
@@ -1335,23 +1436,22 @@
         ctx.roundRect(-bw / 2, -bh / 2, bw, bh, 45);
         ctx.fill();
 
-        // Złoty obrys
         ctx.strokeStyle = '#f6cf70';
         ctx.lineWidth = 3;
         ctx.stroke();
 
-        // Błysk światła
+        // Połysk
         const shineX = -bw / 2 + ((st * 450) % (bw * 1.8));
         ctx.save();
         ctx.beginPath();
         ctx.roundRect(-bw / 2, -bh / 2, bw, bh, 45);
         ctx.clip();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
         ctx.transform(1, 0, 0.3, 1, 0, 0);
         ctx.fillRect(shineX, -bh, 60, bh * 2);
         ctx.restore();
 
-        // Ikona Facebooka 'f'
+        // Logo Facebook 'f'
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(-bw / 2 + 56, 0, 28, 0, Math.PI * 2);
@@ -1363,7 +1463,7 @@
         ctx.textBaseline = 'middle';
         ctx.fillText("f", -bw / 2 + 58, 2);
 
-        // Tekst na przycisku
+        // Tekst
         ctx.font = '900 26px "Plus Jakarta Sans"';
         ctx.fillStyle = '#ffffff';
         ctx.textAlign = 'center';
@@ -1372,11 +1472,11 @@
         ctx.restore();
       }
 
-      // Adres linku i certyfikat jakości
-      const lProg = Math.min(1, Math.max(0, (st - 1.2) / 0.5));
-      if (lProg > 0) {
+      // Adres linku
+      const lp2 = Math.min(1, Math.max(0, (st - 1.2) / 0.5));
+      if (lp2 > 0) {
         ctx.save();
-        ctx.globalAlpha = lProg;
+        ctx.globalAlpha = lp2;
         ctx.translate(w / 2, h * 0.82);
 
         ctx.font = '700 22px "Plus Jakarta Sans"';
@@ -1384,7 +1484,6 @@
         ctx.textAlign = 'center';
         ctx.fillText("facebook.com/share/19etWcsbej/", 0, 0);
 
-        // Znaczek jakości
         ctx.fillStyle = 'rgba(246, 207, 112, 0.15)';
         ctx.strokeStyle = 'rgba(246, 207, 112, 0.4)';
         ctx.lineWidth = 1;
@@ -1400,7 +1499,6 @@
         ctx.restore();
       }
 
-      // Płynne ściemnienie w ostatnich 0.4s
       if (t >= 29.6) {
         const fade = (t - 29.6) / 0.4;
         ctx.fillStyle = `rgba(0, 0, 0, ${fade})`;
@@ -1409,14 +1507,13 @@
     }
 
     /* ==========================================================================
-       8. GŁÓWNA PĘTLA RENDERUJĄCA WIDEO
+       8. GŁÓWNA PĘTLA ANIMACJI (ZABEZPIECZONA PRZED AWARIĄ)
        ========================================================================== */
     function renderVideoFrame(timeSec) {
       ctx.clearRect(0, 0, 1920, 1080);
 
-      // Sprężyste uderzenie kamery pod rytm stopy (Kick Punch)
       let punch = 0;
-      if (timeSec >= 5.0 && timeSec <= 29.0) {
+      if (timeSec >= 4.5 && timeSec <= 29.0) {
         const beatProg = (timeSec * 2) % 1;
         punch = Math.exp(-beatProg * 9) * 0.015;
       }
@@ -1428,32 +1525,24 @@
         ctx.translate(-1920 / 2, -1080 / 2);
       }
 
-      // Wybór sceny w osi czasu 30.0s
-      if (timeSec < 5.0) {
+      if (timeSec < 4.5) {
         renderScene1(timeSec);
-      } else if (timeSec < 12.0) {
+      } else if (timeSec < 11.5) {
         renderScene2(timeSec);
-      } else if (timeSec < 19.0) {
+      } else if (timeSec < 18.5) {
         renderScene3(timeSec);
-      } else if (timeSec < 24.0) {
+      } else if (timeSec < 23.5) {
         renderScene4(timeSec);
       } else {
         renderScene5(timeSec);
       }
 
       ctx.restore();
-
-      // Winieta filmowa
-      const vig = ctx.createRadialGradient(960, 540, 600, 960, 540, 1100);
-      vig.addColorStop(0, 'rgba(0,0,0,0)');
-      vig.addColorStop(1, 'rgba(0,0,0,0.5)');
-      ctx.fillStyle = vig;
-      ctx.fillRect(0, 0, 1920, 1080);
     }
 
     function mainLoop(timestamp) {
       if (!lastTimestamp) lastTimestamp = timestamp;
-      const delta = (timestamp - lastTimestamp) / 1000;
+      const delta = Math.min((timestamp - lastTimestamp) / 1000, 0.1); // Zapobieganie przeskokom czasu
       lastTimestamp = timestamp;
 
       if (isPlaying) {
@@ -1465,14 +1554,18 @@
         handleAudioSync(currentTime);
       }
 
-      renderVideoFrame(currentTime);
-      updateControls();
+      try {
+        renderVideoFrame(currentTime);
+        updateControls();
+      } catch (err) {
+        console.error("Błąd klatki animacji:", err);
+      }
 
       requestAnimationFrame(mainLoop);
     }
 
     /* ==========================================================================
-       9. INTERAKCJA I STEROWANIE ODTWARZACZEM
+       9. KONTROLKI I STEROWANIE
        ========================================================================== */
     const startOverlay = document.getElementById('start-overlay');
     const playBtn = document.getElementById('playBtn');
@@ -1560,11 +1653,8 @@
       }
     });
 
-    // Start wczytywania i odpalenie silnika renderowania
-    loadImages(() => {
-      console.log("Wszystkie grafiki WOSQ zostały poprawnie zainicjalizowane.");
-      requestAnimationFrame(mainLoop);
-    });
+    // Start pętli renderującej
+    requestAnimationFrame(mainLoop);
   </script>
 </body>
 </html>
