@@ -267,3 +267,40 @@ Plik: `MQL5/Experts/GaussianTrend_EA.mq5`. Korzysta z rdzenia `Include/Core`.
 3. **ATR** liczony jest metodą Wildera (RMA), jak `ta.atr`.
 4. **SL, trailing i TP** to elementy dodane w EA, bo oryginał jest wskaźnikiem kierunku i nie definiuje wyjść poza zmianą trendu.
 5. **Pominięte, bo czysto wizualne:** gwiazdy, kolory, kolorowanie świec i tła, alerty.
+
+---
+
+# Alpha Signal Engine EA (MQL5): Alpha Signal Engine Pro [MarkitTick]
+
+EA przeniesiony ze wskaźnika Pine **„Alpha Signal Engine Pro [MarkitTick]”**. Przygotowany pod **NAS100 na M15** (autor nie podaje zaleceń).
+Plik: `MQL5/Experts/AlphaSignalEngine_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+Oryginał liczy wszystko z danych **poprzedniej, zamkniętej świecy** (`[1]`), więc sygnał świecy t jest znany już na jej otwarciu, bez repaintu.
+
+- **Połowa pasma** = ATR(14) × (3 + ATR/close × 1 + ruch ceny × 5). Ruch ceny to |zmiana close| w %, ograniczona od góry 95. percentylem ze 100 świec. Wartość jest wygładzana EMA (domyślnie 1, czyli bez wygładzania).
+- **Linia trendu** opiera się na pasmie wokół hl2 poprzedniej świecy. Kierunek wyznacza close względem poprzedniej linii.
+- **Filtr „flat”** blokuje zmianę kierunku, gdy spełniony jest którykolwiek z warunków:
+  - linia stoi;
+  - nachylenie regresji z 5 wartości jest małe;
+  - wolumen ≤ swojej SMA(20);
+  - zakres świecy ≤ 20. percentyla ze 100 świec;
+  - zmiana linii < 1 bps.
+
+  Wyjątkiem jest ruch większy niż 1,5 ATR („Breakout Override”).
+- **BUY / SELL** to zmiana przefiltrowanego kierunku.
+- **Volatility Fingerprint** (opcja, domyślnie wyłączona) skaluje parametry według kwartyla ATR% z 300 świec.
+
+## Handel
+- **Odwracanie pozycji**, tak jak alerty oryginału (long + closeshort, short + closelong). Opcjonalnie tylko jeden kierunek.
+- **Moment wejścia:** domyślnie na **otwarciu świecy sygnału**. Opcja `InpEntryAtSignalClose` odtwarza wejście na jej zamknięciu, tak jak webhook oryginału.
+- **SL** na linii trendu z buforem 0,25 × ATR (zwykle około 3 ATR od ceny), z **trailingiem za linią** tylko w stronę zysku. Bez TP (opcja TP na stałym RR).
+- **Ryzyko:** 1% salda liczone od odległości SL, maksymalnie 1 pozycja, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Wolumen.** Filtr wolumenu działa na wolumenie **tickowym**, bo na CFD innego nie ma.
+2. **Rozgrzewka.** Stan liczony jest od `InpWarmupBars` świec wstecz. Odtwarzam domyślne wartości `nz()` z oryginału: dopóki okna percentyli i SMA wolumenu nie są pełne, filtr flat jest aktywny.
+3. **Volatility Fingerprint w filtrze wolumenu:** EA skaluje SMA mnożnikiem z bieżącej świecy, a Pine z poprzedniej. Różnica ma znaczenie tylko przy włączonym VF.
+4. **ATR** liczony jest metodą Wildera (RMA), jak `ta.atr`. Percentyle liczone są metodą nearest rank, jak `ta.percentile_nearest_rank`.
+5. **SL, trailing i TP** to elementy dodane w EA, bo oryginał nie definiuje wyjść poza sygnałem przeciwnym.
+6. **Pominięte, bo czysto wizualne lub alertowe:** dashboard, chmura, kolorowanie świec i ostrzeżenie o nietypowym typie wykresu (EA zawsze używa zwykłych świec), alerty i JSON webhook.
