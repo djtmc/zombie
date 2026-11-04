@@ -1,5 +1,5 @@
 // Podbij wersję przy każdej zmianie gry - inaczej gracze dostaną starą wersję z cache
-const CACHE_NAME = 'zombie-survival-v1.1';
+const CACHE_NAME = 'zombie-survival-v1.2';
 const THREE_CDN = 'https://cdn.jsdelivr.net/npm/three@0.160.0/';
 const urlsToCache = [
   'index.html',
