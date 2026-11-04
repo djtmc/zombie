@@ -1,6 +1,6 @@
 // Service worker Zombie 2.0 - pełny tryb offline (Three.js jest w vendor/, bez CDN)
 // Podbij wersję przy każdej zmianie gry - inaczej gracze dostaną starą wersję z cache.
-const CACHE = 'zombie2-v1';
+const CACHE = 'zombie2-v2';
 const FILES = [
   './',
   'css/style.css',
