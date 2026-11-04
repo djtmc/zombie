@@ -140,3 +140,41 @@ Plik: `MQL5/Experts/SFX_Algo_EA.mq5`. Korzysta z rdzenia `Include/Core` (w tym `
 6. **TP1 i TP2** EA sprawdza na bieżącej cenie, a oryginał na high/low świecy.
 7. **Auto Stop-Loss jest zawsze włączony.** EA nie handluje bez SL.
 8. **Pominięte:** optymalizacja TP po MFE (metoda Dynamic, w oryginale domyślnie wyłączona), aktualizacje oceny po wejściu (tylko etykiety i alerty), dashboard trendów MTF, Gauss Ribbon, Retracement Wave, kolorowanie świec, etykiety, linie realtime, alerty i webhooki.
+
+---
+
+# STRB EA (MQL5): Season Timed Range Breakout
+
+EA przeniesiony ze wskaźnika Pine **„Season Timed Range Breakout (STRB)”** (OlympusCipher). Przygotowany pod **NAS100 na M5**.
+Plik: `MQL5/Experts/STRB_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Jak działa
+- **Trzy okna** (czas Nowego Jorku):
+
+  | Okno | Zakres | Sesja handlowa |
+  |---|---|---|
+  | NY | 09:30–09:45 | 09:30–16:00 |
+  | LON | 04:00–05:00 | 03:00–11:00 |
+  | ASIA | 20:00–21:00 | 20:00–04:00 |
+
+  Okna 2 i 3 można wyłączyć. Zamiast okna czasowego zakres może tworzyć „pierwsze N świec” sesji.
+- **Breakout:** po zakończeniu zakresu, w trakcie sesji handlowej, świeca **zamyka się** za RH/RL (opcjonalnie: przebija knotem; opcjonalny bufor w tickach). Domyślnie tylko pierwszy breakout na sesję.
+- **Opcjonalne filtry** (domyślnie wyłączone): zakres 10–60% dziennego ATR z poprzedniego dnia, względny wolumen ≥ 1,2×, położenie względem VWAP.
+- **Poziomy z oryginału** (bezwzględne, liczone od brzegu zakresu):
+  - SL = RH − 1,2 × zakres dla longa (albo % ceny);
+  - T1/T2/T3 = RH + 0,5 / 1 / 2 × zakres.
+- **Wejście:** rynkowe na otwarciu świecy po breakoucie albo **limit na RH/RL** (retest). Zlecenie limit wygasa z końcem sesji okna.
+- **Wyjścia:** 1/3 pozycji na T1, 1/3 na T2, reszta na T3. Co zostanie, jest zamykane **na końcu sesji okna**, jak w oryginale. Opcjonalnie EA zamyka pozycję przy nieudanym breakoucie (zamknięcie świecy z powrotem w zakresie).
+- **Limit pozycji:** domyślnie 1 łącznie. Opcja: 1 na każde okno (do 3 pozycji, łączne ryzyko do 3%).
+
+## Ustaw przed startem
+- `InpServerToNYHours`: różnica czasu serwera i Nowego Jorku. Domyślnie 7. **Koryguj przy zmianach czasu**, bo Europa i USA przestawiają zegary w różnych tygodniach.
+- Interwał wykresu musi pasować do okien. Na M5 zakres NY 09:30–09:45 to 3 świece.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Wejście.** Oryginał zakłada wejście dokładnie na RH/RL, a EA w trybie rynkowym wchodzi po cenie z otwarcia następnej świecy. Poziomy SL i T1–T3 zostają bezwzględne, więc rzeczywiste RR jest nieco gorsze niż w statystykach wskaźnika. Tryb limit odtwarza wejście na poziomie, ale tylko wtedy, gdy cena wróci do RH/RL.
+2. **Wyjścia.** W oryginale trafienia T1–T3 są tylko liczone w statystykach, a transakcja kończy się na SL lub z końcem sesji. Tryb `TP_ORIGINAL_SL_SESSION` odtwarza właśnie to zachowanie.
+3. **Strefa czasowa.** Sesje są przeliczane ze stałym przesunięciem `InpServerToNYHours`. Pine automatycznie uwzględnia zmianę czasu w Nowym Jorku.
+4. **VWAP** jest liczony od początku dnia brokera (zwykle 17:00 NY) i ważony wolumenem tickowym. Na TradingView kotwicą jest sesja giełdy, a wolumen pochodzi z giełdy. **Wolumen względny** to także wolumen tickowy.
+5. **Dzienny ATR** to ATR Wildera ze świec D1 brokera, z ostatniego zamkniętego dnia (140 dni historii).
+6. **Pominięte, bo czysto wizualne:** box zakresu, linie i etykiety poziomów, rozciąganie linii, znaczniki STRB, nieudanego breakoutu i retestu, alerty oraz tabela statystyk. Statystyki daje Strategy Tester, na realnych transakcjach.
