@@ -335,4 +335,61 @@ void PM_CancelPendingOrders(int magicNumber, string symbol, string reasonTag)
    }
 }
 
+
+//===================================================================
+//  ROZSZERZENIE: częściowe zamknięcie pozycji (np. TP1/TP2)
+//  Wolumen normalizowany do kroku; jeśli reszta byłaby poniżej minimum,
+//  zamykana jest cała pozycja. Wynik weryfikowany na serwerze.
+//===================================================================
+bool PM_ClosePartial(ulong ticket, double closeVolume, string reasonTag)
+{
+   if(!PositionSelectByTicket(ticket)) return false;
+   string symbol = PositionGetString(POSITION_SYMBOL);
+   double posVol = PositionGetDouble(POSITION_VOLUME);
+   ENUM_POSITION_TYPE posType = (ENUM_POSITION_TYPE)PositionGetInteger(POSITION_TYPE);
+
+   EE_SymbolSpecs specs = EE_GetCachedSymbolSpecs(symbol);
+   double vol = MathFloor(closeVolume / specs.volumeStep + 1e-9) * specs.volumeStep;
+   if(vol < specs.volumeMin)
+   {
+      EE_LogDecision(IntegerToString(ticket), "PARTIAL_SKIPPED", StringFormat("wolumen %.2f poniżej minimum %.2f", vol, specs.volumeMin));
+      return false;
+   }
+   if(posVol - vol < specs.volumeMin - 1e-9) vol = posVol; // reszta za mała - zamknij całość
+
+   MqlTick tick;
+   if(!SymbolInfoTick(symbol, tick)) return false;
+
+   MqlTradeRequest request;
+   MqlTradeResult result;
+   ZeroMemory(request);
+   ZeroMemory(result);
+   request.action       = TRADE_ACTION_DEAL;
+   request.position     = ticket;
+   request.symbol       = symbol;
+   request.volume       = vol;
+   request.type         = (posType == POSITION_TYPE_BUY) ? ORDER_TYPE_SELL : ORDER_TYPE_BUY;
+   request.price        = (posType == POSITION_TYPE_BUY) ? tick.bid : tick.ask;
+   request.deviation    = 20;
+   request.type_filling = EE_GetSupportedFillingMode(symbol);
+
+   bool sent = OrderSend(request, result);
+
+   // weryfikacja: pozycja zniknęła albo jej wolumen spadł
+   bool ok = !PositionSelectByTicket(ticket) || PositionGetDouble(POSITION_VOLUME) < posVol - 1e-9;
+   if(!ok)
+   {
+      int retryDelaysMs[] = {50, 100, 150};
+      for(int i = 0; i < ArraySize(retryDelaysMs) && !ok; i++)
+      {
+         Sleep(retryDelaysMs[i]);
+         ok = !PositionSelectByTicket(ticket) || PositionGetDouble(POSITION_VOLUME) < posVol - 1e-9;
+      }
+   }
+   EE_LogDecision(IntegerToString(ticket), ok ? "PARTIAL_CLOSED" : "PARTIAL_FAILED",
+                  StringFormat("reason=%s vol=%.2f z %.2f sent=%d retcode=%d", reasonTag, vol, posVol, sent, result.retcode));
+   if(!ok) EE_TriggerAlert("EA: częściowe zamknięcie niepotwierdzone dla ticketu " + IntegerToString(ticket));
+   return ok;
+}
+
 #endif // __POSITION_MANAGER_MQH__

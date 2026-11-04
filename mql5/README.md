@@ -66,3 +66,44 @@ Te punkty trzeba mieć na uwadze, porównując backtest MT5 z TradingView:
     - `Number of Setups Displayed` → `InpSetupsTracked`;
     - `Max Liquidity Levels` → `InpLiqMaxLevels`.
 13. **Zlecenia limit** są typu GTC. Wygasanie po N świecach obsługuje EA, bo nie każdy broker wspiera zlecenia z datą wygaśnięcia.
+
+---
+
+# AlphaX Prime EA (MQL5)
+
+EA przeniesiony ze wskaźnika Pine **„[ALPHAX] PRIME”**. Przygotowany pod **NAS100 na M5** (bias wyższego interwału z M15).
+Plik: `MQL5/Experts/AlphaX_Prime_EA.mq5`. Korzysta z tego samego rdzenia `Include/Core` co EA CISD, rozszerzonego o `PM_ClosePartial`. Instalacja i kompilacja wyglądają tak samo jak w EA CISD.
+
+## Jak działa
+**Wejście** (zamknięta świeca, wejście na otwarciu następnej):
+1. Supertrend (10, ×3) jest w kierunku transakcji, a ta świeca nie jest świecą jego zwrotu.
+2. Close przecina EMA9 w kierunku transakcji i leży po właściwej stronie EMA21.
+3. Jakość wynosi co najmniej 4/14, nie trwa inna transakcja i minęło 5 świec od ostatniego wejścia.
+
+**Ocena jakości (0–14)** sumuje: trend na bieżącym interwale, bias z M15, ADX ≥ 25, wolumen, rosnący histogram MACD, ułożenie EMA, strefę RSI, świeży squeeze, bliskość Fibonacciego i sesję London/NY (UTC).
+
+**Zarządzanie pozycją:**
+- **SL** = 5×ATR × (0,8 + 0,6 × percentyl ATR ze 100 świec), czyli 4–7 ATR.
+- **TP1 / TP2 / TP3** = 0,5 / 0,84 / 1,36 × ryzyko. Domyślnie 1/3 pozycji zamyka się na TP1, 1/3 na TP2, a reszta na TP3 (TP po stronie brokera). Gdy wolumen jest za mały na trzy części, całość idzie na TP3.
+- **Break-even po TP1** jest opcjonalny i domyślnie wyłączony, jak w oryginale.
+- **Limit czasu:** pozycja zamyka się po 300 świecach.
+- **Brak odwracania:** w trakcie transakcji nowe sygnały są ignorowane.
+
+## Ustaw przed startem
+- `InpServerToUTCHours`: przesunięcie czasu serwera względem UTC, używane **tylko w testerze**. Na koncie live EA liczy je automatycznie z zegara serwera. U typowego brokera to 2 zimą i 3 latem.
+- `InpMaxSpreadPoints`: według spreadu NAS100 u Twojego brokera.
+- Szeroki SL przy TP3 = 1,36R daje małe loty przy ryzyku 1%. Upewnij się, że minimalny lot u brokera to umożliwia. Jeśli nie, EA pominie wejście i zapisze powód w logu.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Wskaźniki są liczone ręcznie, jak w Pine.** Wbudowane funkcje MT5 wygładzają inaczej:
+   - ATR i ADX: metoda Wildera (RMA), jak `ta.atr` i `ta.dmi`;
+   - linia sygnału MACD: EMA (w `iMACD` jest SMA);
+   - odchylenie standardowe w Bollingerze: populacyjne;
+   - EMA: start od pierwszej wartości.
+
+   Wszystko liczę z 900 ostatnich świec. Przy EMA200 różnica startu jest pomijalna, ale **pierwsze świece wykresu mogą się minimalnie różnić od TradingView**.
+2. **Bias M15** pochodzi z ostatniej zamkniętej świecy M15, jak `[1]` z `lookahead_on` w oryginale. Nie ma repaintu.
+3. **Wolumen.** Na CFD dostępny jest tylko wolumen tickowy. Punkt „relVol ≥ 1” może wypadać inaczej niż na kontraktach futures.
+4. **TP1 i TP2** EA sprawdza na bieżącej cenie (bid dla longa, ask dla shorta). Oryginał sprawdza high/low zamkniętej świecy i przy jednoczesnym dotknięciu SL i TP w tej samej świecy liczy najpierw SL. W realnym handlu kolejność wyznacza faktyczny ruch ceny.
+5. **Poziomy SL/TP** liczę od faktycznej ceny wejścia (ask/bid), a nie od close świecy sygnałowej. Odległości są te same.
+6. **Pominięte, bo czysto wizualne:** panel v2/v4, Stochastic, Choppiness, prawdopodobieństwa celów („Target Outlook”), etykiety BUY/SELL (zwroty Supertrendu nie są w oryginale wejściami), sygnały „Watch”, ostrzeżenia o wyczerpaniu ruchu, kolorowanie świec i alerty.
