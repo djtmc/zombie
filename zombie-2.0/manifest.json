@@ -1,0 +1,16 @@
+{
+  "name": "Zombie Survival 3D 2.0",
+  "short_name": "Zombie 2.0",
+  "description": "Broń fortecy przed hordami zombie! Buduj obronę, rekrutuj armię i pokonaj bossa.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0d0a10",
+  "theme_color": "#120e16",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["games", "entertainment"]
+}

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#120e16">
+  <meta name="description" content="Zombie Survival 3D 2.0 - broń fortecy przed hordami zombie. Buduj obronę, rekrutuj armię, pokonaj bossa.">
+  <title>Zombie Survival 3D 2.0</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/build/three.module.min.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="canvas-wrap"></div>
+
+  <!-- ===================== HUD ===================== -->
+  <div id="hud" class="hidden">
+    <div id="res-panel" class="glass">
+      <div class="base-hp">
+        <div class="row"><span>🏰 Forteca</span><b id="baseHPText">100</b></div>
+        <div class="bar"><div id="baseHPBar" class="fill hp"></div></div>
+      </div>
+      <div class="res">
+        <div class="res-item gold"><span class="ic">💰</span><b id="gold">0</b><small id="goldRate"></small></div>
+        <div class="res-item wood"><span class="ic">🪵</span><b id="wood">0</b><small id="woodRate"></small></div>
+      </div>
+      <div class="army"><span title="Żołnierze">🪖 <b id="unitCount">0</b></span><span title="Czołgi">🛡️ <b id="tankCount">0</b></span><span title="Zabici">💀 <b id="kills">0</b></span></div>
+    </div>
+
+    <div id="level-panel" class="glass">
+      <div class="lvl-title">POZIOM <b id="level">1</b><span class="sep">•</span>FALA <b id="wave">0/1</b></div>
+      <div class="bar"><div id="levelBar" class="fill lvl"></div></div>
+      <div class="lvl-sub"><span id="levelGoalText">0 / 10 zombie</span><span id="zombieAlive"></span></div>
+      <button id="waveBtn" class="wave-btn" title="Wezwij falę wcześniej (bonus złota) [N]">⏩ Fala za <b id="waveTimer">0</b>s</button>
+    </div>
+
+    <div id="top-buttons">
+      <button id="pauseBtn" class="icon-btn" title="Pauza [P]"><svg viewBox="0 0 24 24" width="18" height="18"><rect x="6" y="5" width="4" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1" fill="currentColor"/></svg></button>
+      <button id="speedBtn" class="icon-btn" title="Szybkość gry [F]">×1</button>
+      <button id="soundBtn" class="icon-btn" title="Dźwięk [M]">🔊</button>
+      <button id="settingsBtn" class="icon-btn" title="Ustawienia">⚙️</button>
+    </div>
+
+    <div id="boss-bar" class="hidden">
+      <div class="boss-name">👑 PAN HORDY <small id="bossLevel"></small></div>
+      <div class="bar"><div id="bossBarFill" class="fill boss"></div></div>
+    </div>
+
+    <div id="announce"></div>
+    <div id="toasts"></div>
+    <div id="floaters"></div>
+
+    <div id="exchange" class="glass">
+      <div class="ex-title">💱 Wymiana</div>
+      <button data-ex="goldToWood">20💰 → 10🪵</button>
+      <button data-ex="woodToGold">10🪵 → 20💰</button>
+    </div>
+
+    <div id="build-bar"></div>
+    <div id="tooltip" class="glass hidden"></div>
+
+    <div id="building-panel" class="glass hidden">
+      <button class="close" id="bpClose">✕</button>
+      <div class="bp-head"><span id="bpIcon" class="bp-icon"></span><div><div id="bpName" class="bp-name"></div><div id="bpLevel" class="bp-level"></div></div></div>
+      <div class="bar"><div id="bpHP" class="fill hp"></div></div>
+      <div id="bpStats" class="bp-stats"></div>
+      <div id="bpUpgrades"></div>
+      <div class="bp-actions">
+        <button id="bpRepair" class="btn small">🔧 Napraw</button>
+        <button id="bpSell" class="btn small danger">💸 Sprzedaj</button>
+      </div>
+    </div>
+
+    <div id="fps" class="hidden"></div>
+    <div id="build-hint" class="hidden"></div>
+  </div>
+
+  <!-- ===================== MENU GŁÓWNE ===================== -->
+  <div id="menu" class="screen">
+    <div class="menu-card">
+      <div class="logo">
+        <div class="logo-top">ZOMBIE</div>
+        <div class="logo-mid">SURVIVAL 3D</div>
+        <div class="logo-ver">2.0</div>
+      </div>
+      <p class="tagline">Broń fortecy. Buduj, rekrutuj, przetrwaj.</p>
+      <div class="menu-buttons">
+        <button id="continueBtn" class="btn primary hidden">▶ Kontynuuj <small id="continueInfo"></small></button>
+        <button id="newGameBtn" class="btn primary">☠ Nowa gra</button>
+        <div class="diff-select" id="diffSelect">
+          <button data-diff="0">Łatwa</button>
+          <button data-diff="1">Średnia</button>
+          <button data-diff="2" class="active">Ogień w szopie</button>
+        </div>
+        <div class="menu-row">
+          <button id="helpBtn" class="btn">❓ Jak grać</button>
+          <button id="menuSettingsBtn" class="btn">⚙️ Ustawienia</button>
+        </div>
+      </div>
+      <div class="best" id="bestText"></div>
+    </div>
+  </div>
+
+  <!-- ===================== MODALE ===================== -->
+  <div id="pause-modal" class="screen hidden">
+    <div class="modal glass">
+      <h2>⏸ PAUZA</h2>
+      <button id="resumeBtn" class="btn primary">▶ Wznów</button>
+      <button id="pauseSettingsBtn" class="btn">⚙️ Ustawienia</button>
+      <button id="pauseHelpBtn" class="btn">❓ Jak grać</button>
+      <button id="quitBtn" class="btn danger">🏠 Menu główne</button>
+      <p class="muted">Postęp zapisuje się automatycznie po każdym poziomie.</p>
+    </div>
+  </div>
+
+  <div id="settings-modal" class="screen hidden">
+    <div class="modal glass wide">
+      <h2>⚙️ USTAWIENIA</h2>
+      <div class="setting"><span>Jakość grafiki</span>
+        <div class="seg" id="qualitySeg">
+          <button data-q="auto">Auto</button><button data-q="low">Niska</button><button data-q="medium">Średnia</button><button data-q="high">Wysoka</button>
+        </div>
+      </div>
+      <div class="setting"><span>Jasność</span>
+        <div class="seg" id="brightSeg"><button data-b="0">Ciemna</button><button data-b="1">Normalna</button><button data-b="2">Jasna</button></div>
+      </div>
+      <div class="setting"><span>Trudność</span>
+        <div class="seg" id="diffSeg"><button data-d="0">Łatwa</button><button data-d="1">Średnia</button><button data-d="2">Ogień w szopie</button></div>
+      </div>
+      <div class="setting"><span>Głośność</span><input type="range" id="volume" min="0" max="100" value="70"></div>
+      <div class="setting"><span>Licznik FPS</span><button class="toggle" id="fpsToggle">WYŁ</button></div>
+      <p class="muted" id="qualityInfo"></p>
+      <button id="settingsClose" class="btn primary">✔ Gotowe</button>
+    </div>
+  </div>
+
+  <div id="help-modal" class="screen hidden">
+    <div class="modal glass wide help">
+      <h2>❓ JAK GRAĆ</h2>
+      <ul>
+        <li>🧟 Zombie wychodzą z krypty po lewej i idą na <b>najbliższy cel</b> - budynki, żołnierzy albo fortecę.</li>
+        <li>🏗️ Wybierz budynek z dolnego paska (lub klawisz <kbd>1</kbd>-<kbd>9</kbd>) i kliknij na mapie. Na telefonie: stuknij raz, by zobaczyć podgląd, drugi raz, by postawić.</li>
+        <li>💰🪵 Tartaki i kopalnie dają surowce co sekundę. Zabite zombie zostawiają łup.</li>
+        <li>👑 Po zabiciu wszystkich zombie z poziomu klatka się otwiera i rusza <b>boss</b>. Pokonaj go, by przejść dalej.</li>
+        <li>🔧 Kliknij budynek, by go <b>ulepszyć, naprawić lub sprzedać</b>.</li>
+        <li>🎯 Wielka Armata staje tylko na świecących kamiennych platformach.</li>
+        <li>⏩ Przycisk fali wzywa następną falę wcześniej - za premię w złocie.</li>
+      </ul>
+      <div class="keys">
+        <span><kbd>A</kbd>/<kbd>D</kbd> lub <kbd>←</kbd>/<kbd>→</kbd> przesuń</span>
+        <span><kbd>W</kbd>/<kbd>S</kbd> lub kółko myszy - zoom</span>
+        <span><kbd>P</kbd> pauza</span><span><kbd>F</kbd> szybkość</span><span><kbd>N</kbd> następna fala</span>
+        <span><kbd>Esc</kbd> anuluj</span><span><kbd>M</kbd> dźwięk</span>
+      </div>
+      <button id="helpClose" class="btn primary">✔ Rozumiem</button>
+    </div>
+  </div>
+
+  <div id="level-modal" class="screen hidden">
+    <div class="modal glass victory">
+      <h2>🏆 POZIOM <span id="lcLevel"></span> UKOŃCZONY!</h2>
+      <div class="stats-grid">
+        <div><span>💀 Zabici</span><b id="lcKills"></b></div>
+        <div><span>🏆 Nagroda</span><b id="lcReward"></b></div>
+        <div><span>🎁 Premia</span><b>+40 🪵 +50 💰</b></div>
+      </div>
+      <p class="muted" id="lcNext"></p>
+      <button id="nextLevelBtn" class="btn primary big">NASTĘPNY POZIOM ➜</button>
+    </div>
+  </div>
+
+  <div id="over-modal" class="screen hidden">
+    <div class="modal glass defeat">
+      <h2>💀 FORTECA UPADŁA 💀</h2>
+      <div class="stats-grid" id="overStats"></div>
+      <button id="restartBtn" class="btn primary big">🔄 NOWA GRA</button>
+      <button id="overMenuBtn" class="btn">🏠 Menu</button>
+    </div>
+  </div>
+
+  <div id="loading" class="screen">
+    <div class="spinner"></div>
+    <div id="loadingText">Wskrzeszanie zombie...</div>
+    <noscript>Ta gra wymaga JavaScriptu.</noscript>
+  </div>
+  <div id="error-screen" class="screen hidden"><div class="modal glass"><h2>😵 Błąd</h2><p id="errorText"></p></div></div>
+  <div id="rotate-hint">📱↻ Obróć telefon poziomo, aby grać wygodniej</div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
