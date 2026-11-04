@@ -178,3 +178,32 @@ Plik: `MQL5/Experts/STRB_EA.mq5`. Korzysta z rdzenia `Include/Core`.
 4. **VWAP** jest liczony od początku dnia brokera (zwykle 17:00 NY) i ważony wolumenem tickowym. Na TradingView kotwicą jest sesja giełdy, a wolumen pochodzi z giełdy. **Wolumen względny** to także wolumen tickowy.
 5. **Dzienny ATR** to ATR Wildera ze świec D1 brokera, z ostatniego zamkniętego dnia (140 dni historii).
 6. **Pominięte, bo czysto wizualne:** box zakresu, linie i etykiety poziomów, rozciąganie linii, znaczniki STRB, nieudanego breakoutu i retestu, alerty oraz tabela statystyk. Statystyki daje Strategy Tester, na realnych transakcjach.
+
+---
+
+# Volume Breakout 30m EA (MQL5)
+
+EA zbudowany na podstawie reguł strategii „Breakout with volume” z TrendSpider (zrzut ekranu). Przygotowany pod **NASDAQ (NAS100 / US100 / USTEC)**. Sygnały liczy na **M30**, niezależnie od interwału wykresu.
+Plik: `MQL5/Experts/VolumeBreakout30_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Reguły
+**Wejście (long)**, gdy na zamkniętej świecy M30 spełnione są naraz trzy warunki:
+1. Close > najwyższy high z **30 poprzednich** świec (bez bieżącej).
+2. Wolumen ≥ SMA(20) wolumenu × **1,75** (o co najmniej 75% wyżej).
+3. Close > open.
+
+Wejście następuje na otwarciu kolejnej świecy.
+
+**Wyjście:**
+- od **16. świecy** po wejściu: na pierwszym zamknięciu, przy którym zysk wynosi **< 0,5%** ceny (opcja: sprawdzenie tylko na 16. świecy);
+- po **60 świecach**: zawsze;
+- **awaryjny SL = 3 × ATR(14)** z M30. Dodałem go, bo oryginał nie ma SL. Od jego odległości liczony jest też lot przy ryzyku 1%.
+
+Pozostałe zasady: maksymalnie 1 pozycja, bez TP. Lustrzane shorty są dostępne jako opcja, domyślnie wyłączone.
+
+## Założenia i różnice wobec oryginału
+1. **SL.** Oryginał go nie ma, a EA ma zawsze awaryjny SL. Przy 3 ATR uruchamia się rzadko, ale zmienia wynik w dniach z dużym ruchem przeciwko pozycji.
+2. **Wolumen.** Na CFD dostępny jest tylko wolumen **tickowy**. TrendSpider na akcjach, ETF i futures używa wolumenu giełdowego, więc filtr wolumenu da trochę inne sygnały.
+3. **Średnia wolumenu** SMA(20) obejmuje świecę sygnałową.
+4. **Zysk do reguły 16 świec** to (close − cena wejścia) / cena wejścia, w % ceny instrumentu, a nie % konta.
+5. **Liczba świec od wejścia** to liczba zamkniętych świec M30, licząc od świecy, na której otwarto pozycję.
