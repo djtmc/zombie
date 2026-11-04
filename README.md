@@ -25,3 +25,8 @@ i można ją „zainstalować” na telefonie.
 | `icon-192.png`, `icon-512.png` | Ikony aplikacji |
 | `gosia.html` | Osobny projekt: 30-sekundowy showreel „WOSQ” (animacja na canvasie) |
 | `logo.jpg`, `bukiet.jpg`, `prezenty.jpg` | Grafiki używane przez `gosia.html` |
+
+## Zombie Survival 3D 2.0 (`zombie-2.0/`)
+Nowa, przepisana od zera wersja: lepsza grafika (bloom, cienie, roślinność, efekty), 3 typy zombie,
+pociski z obrażeniami obszarowymi, dźwięk, zapis gry, menu i ustawienia jakości. Działa w pełni offline
+(Three.js jest w `zombie-2.0/vendor/`). Uruchom: `zombie-2.0/index.html` przez serwer HTTP.
