@@ -241,3 +241,29 @@ Plik: `MQL5/Experts/RTH_Breaks_EA.mq5`. Korzysta z rdzenia `Include/Core`.
 3. **Otwarcie o północy:** gdy nie ma dokładnej świecy M1 o 00:00 NY, EA bierze pierwszą świecę do 00:05, a w ostateczności przechodzi na MIDLINE ONLY. Pine w takiej sytuacji używa ostatniej znanej wartości.
 4. **Sesje skrócone (half-day)** są traktowane jak w Pine: pRTH obejmuje wszystkie świece RTH danego dnia.
 5. **Pominięte, bo czysto wizualne:** linie, boxy, etykiety, tabela konfluencji i alerty.
+
+---
+
+# Gaussian Trend EA (MQL5): Gaussian Filter Trend [QuantAlgo]
+
+EA przeniesiony ze wskaźnika Pine **„Gaussian Filter Trend [QuantAlgo]”**. Przygotowany pod **NAS100 na H1** z presetem Default (wg autora do swing tradingu na interwałach od H1 do D1).
+Plik: `MQL5/Experts/GaussianTrend_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+- **Filtr Gaussa:** 4 kaskadowe etapy (długość 14, 4 bieguny), z dokładnie tym samym wzorem `pow(1.414, 2/bieguny)` co w oryginale.
+- **Pasmo:** ATR(14) × mnożnik. Mnożnik płynie od 2,5 do 0,8 i zależy od Efficiency Ratio(10) wygładzonego przez EMA(5).
+- **Linia trendu** stoi w miejscu, dopóki filtr nie wyjdzie poza pasmo. Skok w górę oznacza trend byczy, w dół niedźwiedzi.
+- **Presety** Fast Response i Smooth Trend nadpisują parametry, tak jak w oryginale.
+
+## Handel
+- **Zawsze w rynku:** zmiana trendu na zamkniętej świecy zamyka pozycję i otwiera nową w przeciwnym kierunku, na otwarciu kolejnej świecy. Opcjonalnie tylko long albo tylko short.
+- **SL** na linii trendu z buforem 0,25 × ATR, z **trailingiem za linią**: po każdej świecy SL przesuwa się tylko w stronę zysku. Gdy linia jest po złej stronie ceny (luka), awaryjny SL to 1 × ATR.
+- **TP:** brak. Opcja TP na stałym RR. Opcjonalne okno handlu w czasie Nowego Jorku.
+- **Ryzyko:** 1% salda liczone od odległości SL, maksymalnie 1 pozycja, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Zamknięte świece.** Oryginał może zmieniać kolor linii w trakcie świecy. EA decyduje po jej zamknięciu.
+2. **Rozgrzewka.** Stan filtra liczony jest od `InpWarmupBars` świec wstecz, a nie od początku historii. Filtr i EMA mają krótką pamięć, więc różnica praktycznie znika po kilkudziesięciu świecach.
+3. **ATR** liczony jest metodą Wildera (RMA), jak `ta.atr`.
+4. **SL, trailing i TP** to elementy dodane w EA, bo oryginał jest wskaźnikiem kierunku i nie definiuje wyjść poza zmianą trendu.
+5. **Pominięte, bo czysto wizualne:** gwiazdy, kolory, kolorowanie świec i tła, alerty.
