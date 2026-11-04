@@ -49,7 +49,7 @@ function boot() {
   audio.setVolume(settings.volume);
   audio.setMuted(settings.muted);
   const game = new Game({ scene, world, effects, audio });
-  const rig = new CameraRig(renderer.camera);
+  const rig = new CameraRig(renderer.camera, renderer.scene.fog);
 
   let state = 'menu';         // menu | playing | over
   let paused = false;

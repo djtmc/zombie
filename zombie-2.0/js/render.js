@@ -198,8 +198,9 @@ export class Renderer {
 //  KAMERA: przesuwanie w osi X, zoom, wstrząsy
 // =====================================================================
 export class CameraRig {
-  constructor(camera) {
+  constructor(camera, fog) {
     this.camera = camera;
+    this.fog = fog;
     this.targetX = MAP.baseX - 30;
     this.x = this.targetX;
     this.zoom = 1;
@@ -232,6 +233,10 @@ export class CameraRig {
     this.shake = Math.max(0, this.shake - dt * 2.2);
 
     const dist = this._distance();
+    // mgła liczona od odległości kamery - przy oddaleniu mapa nie znika we mgle
+    if (this.fog) { this.fog.near = dist * 1.25; this.fog.far = dist * 3.2; }
+    const far = Math.max(400, dist * 4);
+    if (Math.abs(this.camera.far - far) > 1) { this.camera.far = far; this.camera.updateProjectionMatrix(); }
     const pitch = THREE.MathUtils.degToRad(46);
     const sx = (Math.random() - 0.5) * this.shake * 0.8;
     const sy = (Math.random() - 0.5) * this.shake * 0.8;
