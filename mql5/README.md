@@ -207,3 +207,37 @@ Pozostałe zasady: maksymalnie 1 pozycja, bez TP. Lustrzane shorty są dostępne
 3. **Średnia wolumenu** SMA(20) obejmuje świecę sygnałową.
 4. **Zysk do reguły 16 świec** to (close − cena wejścia) / cena wejścia, w % ceny instrumentu, a nie % konta.
 5. **Liczba świec od wejścia** to liczba zamkniętych świec M30, licząc od świecy, na której otwarto pozycję.
+
+---
+
+# RTH Breaks EA (MQL5): RTH Breaks + Midnight Confluence v2.1
+
+EA przeniesiony ze wskaźnika Pine **„RTH Breaks + Midnight Confluence” v2.1**. Przygotowany pod **NAS100 na M5** (wymagany interwał M1–M30). US500 i XAUUSD działają jako osobne instancje.
+Plik: `MQL5/Experts/RTH_Breaks_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+- **pRTH** to high, low i środek sesji 09:30–16:00 NY (pon–pt) z poprzedniego dnia handlowego. **MN** to otwarcie świecy M1 o 00:00 NY.
+- **Na otwarciu świecy 09:30:** gap up (powyżej pRTH H), gap down (poniżej pRTH L) albo inside.
+- **Zgodność MN i ocena:**
+  - Gap up: HIGH, chyba że MN jest poniżej środka (SKIP).
+  - Gap down: HIGH, gdy MN < pRTH L; MODERATE, gdy MN jest neutralny; LOW przy konflikcie.
+  - Inside: HIGH, gdy MN jest po tej samej stronie środka co otwarcie; w przeciwnym razie REDUCED.
+  - MAGNET (brak biasu): MN bliżej niż 20% zakresu od przeciwnego brzegu. Nie dotyczy złota.
+  - Brak danych o północy daje MIDLINE ONLY.
+
+## Handel
+- **Domyślnie tylko oceny HIGH.** MODERATE, REDUCED i MIDLINE ONLY są dostępne jako opcje. SKIP, LOW i MAGNET nigdy nie są handlowane.
+- **Gap up / gap down:** limit na **pRTH H** (long) lub **pRTH L** (short), czyli wejście na reteście, ważne do 11:00 NY. Opcja: wejście rynkowe o 09:30. SL = 0,25 × zakres pRTH za poziomem. Wyjście o **15:59 NY** (opcjonalnie TP na stałym RR).
+- **Inside:** wejście rynkowe o 09:30 w stronę środka zakresu. TP = brzeg zakresu po stronie biasu, SL = środek ± 0,1 × zakres. Gdy RR < 1, EA pomija dzień.
+- **Limity:** maksymalnie 1 transakcja dziennie, wszystko zamykane najpóźniej o 15:59 NY. Ryzyko 1% salda, kill-switch dzienny 3% i całkowity 10%.
+
+## Ustaw przed startem
+- `InpServerToNYHours`: domyślnie 7. **Koryguj przy zmianach czasu**, bo inaczej 09:30 i północ przesuną się o godzinę.
+- W testerze potrzebne są dane M1, z których EA odczytuje otwarcie o północy.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Statystyki oryginału** (69–82% itd.) opisują zamknięcie dnia względem pRTH, a nie wynik transakcji. Przewagę EA weryfikuje dopiero backtest. W wariancie z limitem dzień może zamknąć się nad pRTH H, a mimo to trafić wcześniej w SL na reteście.
+2. **Sesje** są przeliczane ze stałym przesunięciem serwer–NY. TradingView liczy w strefie Nowego Jorku z automatyczną zmianą czasu.
+3. **Otwarcie o północy:** gdy nie ma dokładnej świecy M1 o 00:00 NY, EA bierze pierwszą świecę do 00:05, a w ostateczności przechodzi na MIDLINE ONLY. Pine w takiej sytuacji używa ostatniej znanej wartości.
+4. **Sesje skrócone (half-day)** są traktowane jak w Pine: pRTH obejmuje wszystkie świece RTH danego dnia.
+5. **Pominięte, bo czysto wizualne:** linie, boxy, etykiety, tabela konfluencji i alerty.
