@@ -107,3 +107,36 @@ Plik: `MQL5/Experts/AlphaX_Prime_EA.mq5`. Korzysta z tego samego rdzenia `Includ
 4. **TP1 i TP2** EA sprawdza na bieżącej cenie (bid dla longa, ask dla shorta). Oryginał sprawdza high/low zamkniętej świecy i przy jednoczesnym dotknięciu SL i TP w tej samej świecy liczy najpierw SL. W realnym handlu kolejność wyznacza faktyczny ruch ceny.
 5. **Poziomy SL/TP** liczę od faktycznej ceny wejścia (ask/bid), a nie od close świecy sygnałowej. Odległości są te same.
 6. **Pominięte, bo czysto wizualne:** panel v2/v4, Stochastic, Choppiness, prawdopodobieństwa celów („Target Outlook”), etykiety BUY/SELL (zwroty Supertrendu nie są w oryginale wejściami), sygnały „Watch”, ostrzeżenia o wyczerpaniu ruchu, kolorowanie świec i alerty.
+
+---
+
+# SFX Algo EA (MQL5)
+
+EA przeniesiony ze wskaźnika Pine **„Flux Charts™ - SFX Algo”**. Przygotowany pod **NAS100 na M15** z profilem „Swing Trader”.
+Plik: `MQL5/Experts/SFX_Algo_EA.mq5`. Korzysta z rdzenia `Include/Core` (w tym `PM_ClosePartial`).
+
+## Jak działa
+- **Trail SFX:** linia trailingowa ATR × mnożnik zależny od czułości (75 → 1,875). Jej zwrot otwiera okno 3 świec na sygnał.
+- **Sześciu „ekspertów”:** RSI, MACD, Supertrend, kanał EMA±ATR, EMA fast/slow i nachylenie EMA głosują na kierunek. Ich wagi są uczone algorytmem *multiplicative weights*: kara za każdy błędny głos z ostatnich 45 świec.
+- **Sygnał:** udział ważonych głosów w kierunku trailu ≥ Signal Strength (25%) i ocena ≥ 4★ (udział ≥ 60%).
+- **TP1/TP2/TP3 i SL:** 4 metody do wyboru, domyślnie Key Levels:
+  - TP to trzy kolejne pivoty (długość 8), oddalone od siebie co najmniej o 0,5 ATR;
+  - SL to najbliższy przeciwny pivot plus 0,1 ATR (gdy go brak: 2 ATR).
+- **Wyjścia:** domyślnie 1/3 pozycji na TP1, 1/3 na TP2, reszta na TP3. Tryb `TP_NONE_ORIGINAL` zachowuje się jak oryginał: trzyma pozycję do SL albo przeciwnego sygnału.
+- **Przeciwny sygnał:** zamyka pozycję i otwiera nową w drugą stronę. Sygnał w tym samym kierunku jest ignorowany.
+- **Opcje:** AI Sensitivity Optimizer (10 kandydatów czułości), break-even po TP1, okno handlu. Wszystkie domyślnie wyłączone, jak w oryginale.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Zamknięte świece.** Oryginał nie czeka na zamknięcie świecy, więc na żywo trail może się zwrócić i cofnąć w jej trakcie. EA decyduje po zamknięciu i wchodzi na otwarciu następnej świecy.
+2. **Stan liczony od początku rozgrzewki.** EA liczy stan przyrostowo od `InpWarmupBars` świec wstecz, Pine od początku historii wykresu. Elementy z długą pamięcią mogą się przez to minimalnie różnić od TradingView: wagi ekspertów, wynik optymalizatora AI (start po 200 świecach) i EMA.
+3. **Wskaźniki są liczone ręcznie, jak w Pine.** Wbudowane funkcje MT5 wygładzają inaczej:
+   - ATR i RSI: metoda Wildera (RMA);
+   - linia sygnału MACD: EMA;
+   - EMA: start od pierwszej wartości;
+   - odchylenie standardowe: populacyjne;
+   - Supertrend: według algorytmu `ta.supertrend`.
+4. **Poziomy kluczowe** to wszystkie pivoty z pamięci (ostatnie 60 z każdej strony), także już przebite, tak jak w oryginale.
+5. **Poziomy TP/SL** liczę od faktycznej ceny wejścia (ask/bid), a nie od close świecy sygnałowej. W metodach Key Levels i Volatility Bands poziomy są bezwzględne, zmienia się tylko punkt odniesienia odległości.
+6. **TP1 i TP2** EA sprawdza na bieżącej cenie, a oryginał na high/low świecy.
+7. **Auto Stop-Loss jest zawsze włączony.** EA nie handluje bez SL.
+8. **Pominięte:** optymalizacja TP po MFE (metoda Dynamic, w oryginale domyślnie wyłączona), aktualizacje oceny po wejściu (tylko etykiety i alerty), dashboard trendów MTF, Gauss Ribbon, Retracement Wave, kolorowanie świec, etykiety, linie realtime, alerty i webhooki.
