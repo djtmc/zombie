@@ -333,3 +333,41 @@ Plik: `MQL5/Experts/LongShortPro_EA.mq5`. Korzysta z rdzenia `Include/Core`.
 4. **Tabela backtestu oryginału** wybiera z ostatnich 10–50 transakcji okno z najwyższym zwrotem, więc jej wynik jest zawyżony. Nie jest przeniesiona. Rzetelny obraz daje raport Strategy Testera z całego okresu.
 5. **Kolejność SL/TP w jednej świecy.** Oryginał w statystykach przy jednoczesnym dotknięciu SL i TP liczy najpierw SL. W EA wyjście realizuje broker według faktycznego ruchu ceny.
 6. **Pominięte, bo czysto wizualne:** wykres oscylatora, etykiety, boxy SL/TP, tabele statusu i backtestu, alerty.
+
+---
+
+# ML RSI EA (MQL5): Machine Learning RSI | AI Classification & Ranking (Zeiierman)
+
+EA przeniesiony ze wskaźnika Pine **„Machine Learning RSI | AI Classification & Ranking”**, rozszerzony o **opcjonalny filtr dywergencji RSI**. Przygotowany pod **NAS100 na M15** (autor nie podaje zaleceń).
+Plik: `MQL5/Experts/MLRSI_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+1. **8 cech RSI(14):** poziom, nachylenie, przyspieszenie, odległość od 50, percentyl, zmienność RSI, różnica RSI(7) i RSI(28) oraz reżim EMA20(RSI). Większość jest normalizowana do 0–1 w oknie 100 świec.
+2. **Bank pamięci (500):** każda zamknięta świeca dodaje cechy sprzed 4 świec wraz z etykietą ruchu w tych 4 świecach. Etykieta to klasa od −3 do +3, liczona względem 0,5 × ATR.
+3. **Wagi cech** pochodzą z dyskryminantu Fishera (Auto Weight Optimizer). Opcjonalnie można ustawić je ręcznie.
+4. **kNN:** 8 najbliższych analogów spośród co 4. wiersza banku, odległość log(1+|Δ|) ważona cechami, głosy ważone odległością. Bias wynosi ±1 przy wyniku |0,15| lub większym.
+5. **ML Supertrend:** ATR(10) × 1,5 na hl2. Pasmo zwęża się przy silnej zgodności analogów i rozszerza w konsolidacji.
+6. **Stance** zmienia się przy przejściu bramek: trend zgodny z Supertrendem, percentyl ATR 20–85, brak konsolidacji.
+7. **Sygnał:** zmiana stance, Rank ≥ 60 i Confidence ≥ 50, z cooldownem 5 świec. Wszystko liczone na zamkniętych świecach.
+
+## Dodatek: filtr dywergencji RSI
+- **Włącznik** `InpDivOn`, domyślnie wyłączony. Interwał `InpDivTf`: domyślnie **interwał wykresu** albo dowolny inny.
+- **Definicja** jak we wbudowanym „RSI Divergence” na TradingView: pivoty RSI(14) z 5 świecami z lewej i 5 z prawej, odstęp między pivotami 5–60 świec.
+  - Bycza: cena ma niższe dno, a RSI wyższe dno.
+  - Niedźwiedzia: cena ma wyższy szczyt, a RSI niższy szczyt.
+  - Opcjonalnie również dywergencje ukryte.
+- **Działanie:** LONG wymaga dywergencji byczej, a SHORT niedźwiedziej, potwierdzonej w ciągu ostatnich `InpDivMaxAge` świec interwału dywergencji (domyślnie 10).
+- **Bez repaintu:** dywergencja liczona jest tylko na zamkniętych świecach. Pivot potwierdza się 5 świec po fakcie, więc okno musi być większe od tego opóźnienia.
+
+## Handel
+- Wejście rynkowe na otwarciu świecy po sygnale.
+- **SL** na linii **ML Supertrend**, z trailingiem tylko w stronę zysku. Gdy linia jest po złej stronie ceny, awaryjny SL to 1 ATR.
+- **Przeciwny sygnał** zamyka pozycję i otwiera nową w drugą stronę. Bez TP (opcja TP na stałym RR).
+- **Ryzyko:** 1% salda liczone od odległości SL, maksymalnie 1 pozycja, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Rozgrzewka.** Bank, wagi i stany odtwarzane są z `InpWarmupBars` świec (domyślnie 2000), a nie od początku historii wykresu. Bank zawiera zawsze ostatnie 500 wierszy, więc po rozgrzewce jest identyczny. EMA i stany Supertrendu zbiegają się po kilkudziesięciu świecach.
+2. **Pierwsze świece historii.** W oryginale cechy z wartością `na` z pierwszych świec trafiają do banku. EA dodaje wiersze dopiero przy pełnych oknach 100 świec. Ma to znaczenie tylko na samym początku historii.
+3. **Wskaźniki:** RSI i ATR liczone metodą Wildera, EMA od pierwszej wartości, odchylenie populacyjne, percentrank z poprzednich N wartości, tak jak w Pine.
+4. **SL, trailing i odwracanie** to elementy dodane w EA, bo oryginał definiuje tylko sygnały i linię trailing stopu.
+5. **Pominięte, bo czysto wizualne:** ML RSI z linią sygnałową i pasmami Bollingera (nie wpływa na sygnał), chmura, kolorowanie świec, kropki zmian Supertrendu, alerty.
