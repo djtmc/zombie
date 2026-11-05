@@ -648,3 +648,41 @@ Plik: `MQL5/Experts/SFX_Supertrend221_EA.mq5`. Korzysta z rdzenia `Include/Core`
 3. **Poziomy TP i SL.** Oryginał bierze je z ostatniego sygnału `buy`/`sell`, także odfiltrowanego. EA używa poziomów sygnału, który otworzył pozycję. Przy domyślnym braku filtra wynik jest identyczny.
 4. **Wielkość pozycji:** oryginał używa całego kapitału na transakcję plus prowizji 0,03%. EA liczy lot od ryzyka.
 5. **Pominięte, bo wizualne lub nieużywane:** etykiety, chmury i wstęgi MA, Braid Filter, linie trendu, supply/demand, pivoty, tabela MTF, sesje, dashboardy, komunikaty Zignaly/Telegram, filtr dat, `withsl`.
+
+---
+
+# Sniper Entry EA (MQL5): Sniper Entry/Exit with SL&TP
+
+EA przeniesiony ze wskaźnika Pine **„Sniper Entry/Exit with SL&TP”**. Przygotowany pod **NAS100 na M5** (skalping, RSI z M5 w oryginale).
+Plik: `MQL5/Experts/SniperEntry_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+- **Sygnał:** przecięcie EMA 9 / EMA 21 na zamkniętej świecy. Stan naprzemienny (`lastSignalState`).
+- **Poziomy:** R = 1,5 × ATR(14). SL = wejście ∓ 1R, TP1–TP5 = 1R … 5R.
+- **Wynik dashboardu** (7 warunków):
+  - close względem VWAP(hlc3);
+  - RSI(14) > 50;
+  - MACD(12, 26, 9) powyżej linii sygnałowej;
+  - EMA 9 > EMA 21;
+  - ADX(14) > 25 przy cenie po właściwej stronie EMA 9;
+  - wolumen powyżej SMA(20) przy świecy w kierunku;
+  - RSI(14) z M5 > 50.
+
+  Bias STRONG oznacza przewagę ≥ 40 pkt. W oryginale wynik jest tylko informacyjny.
+
+## Handel
+- **Wejście:** rynkowo na otwarciu świecy po przecięciu.
+  - Opcja **retest:** pierwsza świeca z low w strefie EMA 9–21 (dla shorta high) w ciągu 10 świec od przecięcia.
+  - Przeciwne przecięcie zawsze zamyka pozycję i (po filtrze) odwraca.
+- **Filtr dashboardu** (opcja, domyślnie wyłączony): bias STRONG w kierunku sygnału albo wynik ≥ 71% (5 z 7).
+- **Wyjście:** drabinka 5 × 20% na TP1–TP4 (zamyka EA na ticku), TP5 u brokera.
+  - Po każdym TP SL przesuwa się o szczebel: po TP1 na wejście, po TP2 na TP1 itd.
+  - Opcja: jeden TP na wybranym R.
+- **Okno sesji NY:** opcjonalne. **Ryzyko:** 1% salda od 1R, maksymalnie 1 pozycja, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **SL, wyjścia, filtr, retest i sesja** to elementy dodane w EA. Oryginał nie wykrywa trafienia SL i tylko zaznacza dotknięte TP.
+2. **Poziomy liczone są od faktycznej ceny wejścia** i ATR ze świecy wyzwalającej. W oryginale liczone są od close świecy przecięcia.
+3. **VWAP** liczony jest od północy serwera z wolumenu tickowego. W Pine resetuje się na początku sesji giełdowej.
+4. **RSI z M5** pochodzi z ostatniej zamkniętej świecy M5 (`iRSI`), bez repaintu. W rozgrzewce przy starcie EA go nie liczy, bo filtr działa tylko na żywo.
+5. **Pominięte, bo wizualne:** wstęga EMA, kolorowanie świec, linie i etykiety TP, tabela, linia VWAP.
