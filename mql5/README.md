@@ -488,3 +488,30 @@ Każdy silnik ma własną grupę ustawień, tak jak w oryginale. Kilka silników
 4. **HMA:** długości `len/2` i `sqrt(len)` zaokrąglane w dół. **Aroon:** przy remisie ekstremów decyduje kolejność `iHighest` / `iLowest`.
 5. **Wolumen:** tickowy. Filtry wolumenu są domyślnie wyłączone, jak w oryginale.
 6. **Pominięte, bo czysto wizualne lub analityczne:** Engine Scanner i Symbols Scanner (wiele interwałów i symboli), info box, kalkulator pozycji, linie, etykiety, strefy, alerty, świece Heikin Ashi.
+
+---
+
+# Pure Momentum EA (MQL5): Pure Momentum Oscillator (MisinkoMaster)
+
+EA przeniesiony ze wskaźnika Pine **„Pure Momentum Oscillator”**. Przygotowany pod **NAS100 na M15** (autor nie podaje zaleceń).
+Plik: `MQL5/Experts/PureMomentum_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+1. **cd** = 2 × close − EMA(close, 45), czyli close z korektą opóźnienia.
+2. **cda** = WMA(cd, 45), wygładzona linia ceny.
+3. **change** = (cda − cda[1]) / ATR(45), czyli nachylenie linii w jednostkach ATR.
+4. **Trend** przechodzi na +1, gdy change > 0,05, i na −1, gdy change < −0,05. Pomiędzy progami stan się nie zmienia.
+5. **Sygnał** to zmiana trendu na zamkniętej świecy. Pierwsze ustawienie trendu ze stanu 0 nie jest sygnałem.
+
+## Handel
+- Wejście rynkowe na otwarciu świecy po zmianie trendu. **Stop-and-reverse:** przeciwny sygnał zawsze zamyka pozycję.
+- **SL** 2 × ATR(45). TP brak (opcja TP na stałym RR).
+- Opcjonalny **trailing** za linią cda ± 1 × ATR, tylko w stronę zysku.
+- Opcjonalny filtr min. nachylenia |change| przy wejściu. Odpada tylko nowe wejście, zamknięcie przeciwnej pozycji następuje zawsze.
+- Opcjonalne okno sesji NY. Ryzyko 1% salda od odległości SL, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **SL, trailing, filtr nachylenia i sesja** to elementy dodane w EA. Oryginał podaje tylko kierunek.
+2. **Wskaźniki:** EMA od pierwszej wartości, WMA z wagą len dla najnowszej świecy, ATR Wildera, tak jak w Pine. Stan trendu odtwarzany jest z `InpWarmupBars` świec (domyślnie 2000).
+3. **Próg 0,05 ATR na świecę jest niski.** W konsolidacji należy się spodziewać serii odwróceń.
+4. **Pominięte, bo czysto wizualne:** wygładzone świece (oda/hda/lda), kolorowanie, wypełnienia, linie progów, nieużywany import biblioteki `ta`.
