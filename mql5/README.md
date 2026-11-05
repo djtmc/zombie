@@ -515,3 +515,46 @@ Plik: `MQL5/Experts/PureMomentum_EA.mq5`. Korzysta z rdzenia `Include/Core`.
 2. **Wskaźniki:** EMA od pierwszej wartości, WMA z wagą len dla najnowszej świecy, ATR Wildera, tak jak w Pine. Stan trendu odtwarzany jest z `InpWarmupBars` świec (domyślnie 2000).
 3. **Próg 0,05 ATR na świecę jest niski.** W konsolidacji należy się spodziewać serii odwróceń.
 4. **Pominięte, bo czysto wizualne:** wygładzone świece (oda/hda/lda), kolorowanie, wypełnienia, linie progów, nieużywany import biblioteki `ta`.
+
+---
+
+# Squeeze Breakout EA (MQL5): Squeeze Breakout Signals [bitpunk]
+
+EA przeniesiony ze wskaźnika Pine **„Squeeze Breakout Signals [bitpunk]”**, rozszerzony o **opcjonalny filtr dywergencji RSI**. Przygotowany pod **NAS100 na M15** (autor nie podaje zaleceń).
+Plik: `MQL5/Experts/SqueezeBreakout_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine, maszyna stanów `RangeStudy`)
+1. **Kompresja:** 2 × stdev(close, 20) < 1,5 × SMA(TR, 20). Odchylenie jest populacyjne, a TR pierwszej świecy to high − low.
+2. **Epizod:** potrzeba ≥ 3 kolejnych ściśniętych zamknięć. Range to high/low ciągu, a po 20 świecach okno przesuwa się. Nowy epizod może się zacząć dopiero po 3 nieściśniętych zamknięciach.
+3. **Zamrożenie:**
+   - Następuje przy pierwszym zamknięciu poza kompresją albo przy zamknięciu poza range jeszcze w trakcie kompresji. Świeca zdarzenia nie poszerza krawędzi.
+   - Zamrażane są krawędzie i TR z poprzedniej świecy.
+   - Startuje okno obserwacji 20 świec.
+4. **Breakout:** pierwsze zamknięcie poza krawędzią wyznacza kierunek pudełka. Opcjonalnie wejście jest ograniczone limitem odległości (`InpMaxExtension`). Wybicie przeciwne to tylko kontekst.
+5. **Retest:**
+   - cena musi najpierw odejść: cała świeca poza krawędzią ± 0,25 TR;
+   - potem dotknąć tej strefy;
+   - na koniec zamknąć się za krawędzią;
+   - filtr postępu: close retestu dalej niż poprzedni close;
+   - retest unieważnia zamknięcie na przeciwnej krawędzi.
+6. **Kompresje:** nakładająca się kompresja dzieli stare pudełko, a rozłączna je zastępuje.
+
+## Dodatek: filtr dywergencji RSI
+- Włącznik `InpDivOn` (domyślnie wyłączony). Interwał `InpDivTf`: domyślnie interwał wykresu albo dowolny inny.
+- **Definicja:** pivoty RSI(14) 5/5, odstęp 5–60 świec, opcjonalnie dywergencje ukryte.
+- **Działanie:** LONG wymaga dywergencji byczej, a SHORT niedźwiedziej, potwierdzonej w ciągu `InpDivMaxAge` świec (domyślnie 30, czyli mniej więcej czas trwania kompresji). Liczone tylko na zamkniętych świecach.
+
+## Handel
+- Wejście rynkowe na otwarciu świecy po sygnale.
+- **Breakout** zawsze. **Retest** tylko bez otwartej pozycji (opcje: wyłączony albo dołożenie z ryzykiem 0,5%).
+- Przeciwny sygnał z nowego pudełka odwraca pozycję.
+- **SL** na przeciwnej krawędzi pudełka ± 0,25 × zamrożony TR, maksymalnie 4 TR od wejścia.
+- **TP** na RR 2,0 albo na zasięgu równym wysokości pudełka od krawędzi.
+- Opcjonalny break-even po 1R.
+- Opcjonalne okno sesji NY.
+- **Ryzyko:** 1% salda od odległości SL, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **SL, TP, BE, odwracanie, sesja i dywergencja** to elementy dodane w EA. Oryginał podaje tylko punkty wejścia.
+2. **Rozgrzewka:** stan odtwarzany jest z `InpWarmupBars` świec (domyślnie 3000). Licznik epizodów różni się od oryginału, ale na sygnały wpływa tylko jego zmiana, nie wartość.
+3. **Pominięte, bo czysto kontekstowe lub wizualne:** sondy knotem, pudełka, wypełnienia, poświaty, panel statusu, wartości w oknie danych, alerty, motyw kolorów.
