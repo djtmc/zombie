@@ -438,3 +438,53 @@ Plik: `MQL5/Experts/Nebula3_EA.mq5`. Korzysta z rdzenia `Include/Core`.
    - chmura McGinley / FVMA i 15 trybów kolorowania świec;
    - poziomy sesji, strefy squeeze, linie luk;
    - EMA 9/21, HEMA, dashboard, etykiety, alerty.
+
+---
+
+# Buy/Sell Signals XL EA (MQL5)
+
+EA przeniesiony ze wskaźnika Pine **„Buy/Sell Signals XL”**. Przygotowany pod **NAS100 na M15**, pierwszy interwał ze skanera autora.
+Plik: `MQL5/Experts/BuySellSignalsXL_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Silniki (jeden aktywny, `InpEngine`, domyślnie Breakout)
+| Silnik | Sygnał BUY (SELL lustrzanie) | SL / TP domyślnie |
+|---|---|---|
+| OC | korpus ≥ 3 × średnia z 50, close powyżej korpusu poprzedniej świecy | knot / 1 × SL |
+| Breakout | close nad ciasną bazą (zmienna 5–30 świec, wysokość ≤ 2 ATR), świeża baza | przeciwna krawędź bazy / 1 × wysokość bazy |
+| Donchian | close nad najwyższym high z 20 poprzednich świec | przeciwna banda / 0,5 × SL |
+| MA Cross | pierwsze ułożenie EMA 9 > 21 > 55 (lub przecięcie 2 MA) | 2 × ATR / 1 × SL |
+| Supertrend | zmiana kierunku Supertrendu (10, 3) | linia Supertrendu / 0,5 × SL |
+| Aroon | Aroon Up przecina Aroon Down (14) lub początek silnego trendu | 1,5 × ATR / 1 × SL |
+
+Każdy silnik ma własną grupę ustawień, tak jak w oryginale. Kilka silników naraz uruchamiasz jako osobne instancje EA z różnym `InpMagicNumber`.
+
+## Logika (1:1 z Pine)
+- **Wirtualny stan transakcji** liczony na zamkniętych świecach:
+  - wyjścia SL/TP z knota albo z zamknięcia; przy jednoczesnym dotknięciu najpierw SL;
+  - tryby kierunku: naprzemiennie, każdy sygnał, tylko BUY, tylko SELL;
+  - blokada sygnałów przy otwartej transakcji (Supertrend: wyjście na tej samej świecy nie blokuje);
+  - odwracanie na sygnale;
+  - w Breakout reguły świeżej bazy i odstępu po wyjściu.
+- **Kolejność jak w Pine:** sygnał liczony jest ze stanu sprzed świecy, potem wyjście SL/TP, potem nowa transakcja.
+- **Wskaźniki:** ATR Wildera (14), `ta.supertrend` na hl2, MA typu SMA/EMA/WMA/HMA/RMA (EMA od pierwszej wartości, RMA od SMA), Aroon z `highestbars` / `lowestbars`.
+
+## Handel
+- **Wejście** zawsze rynkowo na otwarciu świecy po sygnale.
+- **SL** to poziom z Pine (krawędź bazy, banda, linia, knot, swing…) albo ATR liczony od faktycznej ceny wejścia. **TP** liczony od faktycznej ceny wejścia. Jeśli cena jest już za poziomem SL, wejście jest pomijane.
+- Po otwarciu stan wirtualny przejmuje realne poziomy, więc wyjścia wirtualne i u brokera się pokrywają.
+- **Tryb wyjścia `Wick`:** SL i TP fizycznie u brokera.
+- **Tryb `Close`:** SL i TP sprawdzane na zamknięciu świecy, a u brokera stoi twardy SL o `InpCloseExtraAtr` ATR dalej.
+- **Brak SL** (`SL_NONE` lub `Enable SL/TP` wyłączone): logika bez stopu jak w Pine, ale u brokera zawsze stoi SL awaryjny 3 × ATR.
+- **Filtr win rate (opcja, domyślnie wyłączony):** realne wejście tylko przy WR ≥ 70% z 20 ostatnich transakcji wirtualnych, tak jak w alertach oryginału.
+- **Okno sesji NY (opcja, domyślnie wyłączone):** przesunięcie serwer–NY wynosi domyślnie +7 h.
+- **Ryzyko:** 1% salda albo stała kwota (`Risk per trade`) liczone od odległości SL, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Tryby wejścia „Edge” domyślnie wyłączone.** Wskaźnik w trybie Edge zakłada wejście po cenie krawędzi, choć sygnał potwierdza się dopiero na zamknięciu świecy. Zawyża to wyniki.
+   - W EA tryby Edge wpływają tylko na wirtualne statystyki i na wymóg Breakout, by SL był po stratnej stronie wejścia.
+   - Realne wejście jest zawsze rynkowe. Zlecenia stop na krawędzi nie są dodane.
+2. **Statystyki wskaźnika nie są dowodem przewagi.** Domyślne TP 0,5–1 × SL dają wysoki win rate przy słabym stosunku zysku do ryzyka. Filtr WR wybiera to, co ostatnio „wyszło”.
+3. **Rozgrzewka:** stan silnika i wirtualne transakcje odtwarzane są z `InpWarmupBars` świec (domyślnie 3000). Realna pozycja niezgodna z odtworzonym stanem (np. po restarcie) jest zamykana na zamknięciu świecy.
+4. **HMA:** długości `len/2` i `sqrt(len)` zaokrąglane w dół. **Aroon:** przy remisie ekstremów decyduje kolejność `iHighest` / `iLowest`.
+5. **Wolumen:** tickowy. Filtry wolumenu są domyślnie wyłączone, jak w oryginale.
+6. **Pominięte, bo czysto wizualne lub analityczne:** Engine Scanner i Symbols Scanner (wiele interwałów i symboli), info box, kalkulator pozycji, linie, etykiety, strefy, alerty, świece Heikin Ashi.
