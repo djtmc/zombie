@@ -304,3 +304,32 @@ Oryginał liczy wszystko z danych **poprzedniej, zamkniętej świecy** (`[1]`), 
 4. **ATR** liczony jest metodą Wildera (RMA), jak `ta.atr`. Percentyle liczone są metodą nearest rank, jak `ta.percentile_nearest_rank`.
 5. **SL, trailing i TP** to elementy dodane w EA, bo oryginał nie definiuje wyjść poza sygnałem przeciwnym.
 6. **Pominięte, bo czysto wizualne lub alertowe:** dashboard, chmura, kolorowanie świec i ostrzeżenie o nietypowym typie wykresu (EA zawsze używa zwykłych świec), alerty i JSON webhook.
+
+---
+
+# LongShort PRO EA (MQL5): LongShort PRO v2
+
+EA przeniesiony ze wskaźnika Pine **„LongShort PRO v2”**. Domyślnie ustawiony na preset **Nasdaq 100 E-mini**: NAS100 na **M30**, tylko long, interwały M30 + H1 + H4, SL 1% i TP 2%.
+Plik: `MQL5/Experts/LongShortPro_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+- **Oscylator:** Stochastic RSI, czyli %K = SMA(3)(Stoch(14) z RSI(14)), liczony osobno na każdym interwale presetu.
+- **Stan interwału:** LONG, gdy %K < poziomu LONG (20); SHORT, gdy %K > poziomu SHORT (80); w przeciwnym razie czekanie.
+- **Sygnał:** wszystkie włączone interwały **właśnie** stały się zgodne (na poprzedniej świecy jeszcze nie były). Ocena odbywa się na zamkniętej świecy wykresu.
+- **Presety:** Base, Manual, GOLD V1, GOLD V2, BTC+ETH, Nasdaq 100 E-mini. Profile dobierane są według interwału wykresu, tak jak w oryginale.
+- **Manual:** Direction Filter (przy kierunku Both) i Global Filter (przy Long lub Short). Ich stan jest odtwarzany na historii przy starcie.
+- **Klasy GOLD (+, ++)** zależą od %K na interwale kontekstowym. Opcjonalnie można handlować tylko wyższe klasy.
+
+## Handel
+- Wejście rynkowe na otwarciu świecy po sygnale. SL i TP w % od faktycznej ceny wejścia.
+- Jedna transakcja naraz. Sygnały w jej trakcie są ignorowane, a wyjście następuje tylko na SL albo TP, jak w oryginale.
+- **Base** (oryginał bez SL/TP) oraz **Manual** używają `InpManualSL` / `InpManualTP`. Domyślne 5% / 10% to dla NAS100 bardzo szerokie poziomy, więc warto je dopasować.
+- **Ryzyko:** 1% salda liczone od odległości SL, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Wyższe interwały: tylko zamknięte świece.** Oryginał na żywo czyta %K z jeszcze otwartej świecy H1/H4, która może się zmienić przed zamknięciem. Na historii, w tym w tabeli backtestu, używa świec zamkniętych. EA odpowiada historii oryginału: nie ma repaintu, ale sygnał na żywo może się pojawić trochę później niż na TradingView. Opcja „Use Confirmed Filter Candle” filtra kierunku jest zawsze włączona.
+2. **Interwały niedostępne w MT5** (30 s, 45 s, 45 min, 2D, 3D, 2W, 3M): profile, które ich wymagają, są oznaczane jako nieobsługiwane i EA na nich nie handluje. Dotyczy to GOLD na 30s/45s/45m, Base na D1 i wyżej oraz BTC+ETH „Position”.
+3. **Wielkość pozycji.** Tabela oryginału zakłada pozycję 250% salda, co przy SL 1% oznacza 2,5% ryzyka. EA ryzykuje 1% salda.
+4. **Tabela backtestu oryginału** wybiera z ostatnich 10–50 transakcji okno z najwyższym zwrotem, więc jej wynik jest zawyżony. Nie jest przeniesiona. Rzetelny obraz daje raport Strategy Testera z całego okresu.
+5. **Kolejność SL/TP w jednej świecy.** Oryginał w statystykach przy jednoczesnym dotknięciu SL i TP liczy najpierw SL. W EA wyjście realizuje broker według faktycznego ruchu ceny.
+6. **Pominięte, bo czysto wizualne:** wykres oscylatora, etykiety, boxy SL/TP, tabele statusu i backtestu, alerty.
