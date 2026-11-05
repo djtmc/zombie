@@ -558,3 +558,60 @@ Plik: `MQL5/Experts/SqueezeBreakout_EA.mq5`. Korzysta z rdzenia `Include/Core`.
 1. **SL, TP, BE, odwracanie, sesja i dywergencja** to elementy dodane w EA. Oryginał podaje tylko punkty wejścia.
 2. **Rozgrzewka:** stan odtwarzany jest z `InpWarmupBars` świec (domyślnie 3000). Licznik epizodów różni się od oryginału, ale na sygnały wpływa tylko jego zmiana, nie wartość.
 3. **Pominięte, bo czysto kontekstowe lub wizualne:** sondy knotem, pudełka, wypełnienia, poświaty, panel statusu, wartości w oknie danych, alerty, motyw kolorów.
+
+---
+
+# AMD Po3 EA (MQL5): AMD Po3 with Live Edge Stats [WillyAlgoTrader] v2.4.0
+
+EA przeniesiony ze wskaźnika Pine **„AMD Po3 with Live Edge Stats”**, rozszerzony o **wejście w dystrybucji potwierdzane CISD i/lub dywergencją RSI**. Przygotowany pod **NAS100 na M15**; autor stroi model pod M15.
+Plik: `MQL5/Experts/AMD_Po3_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine, FSM na zamkniętych świecach)
+1. **IDLE → akumulacja:**
+   - warunki: szerokość Donchiana(20) w dolnych 25% (percentrank z 200 świec), szerokość ≥ 0,15% ceny, 10 świec przerwy po poprzednim cyklu;
+   - z okna usuwany jest ogon poprzedniego impulsu (trim 15%);
+   - granice pochodzą z pivotów 3/3 w oknie albo z surowego high/low;
+   - tolerancja granic (10% szerokości) zamrażana jest przy narodzinach range.
+2. **Akumulacja:**
+   - wygaśnięcie po 96 świecach;
+   - „news bar” (przebicie obu granic) to reset;
+   - przebicie przed dojrzałością (12 świec) to reset;
+   - filtry sweepu: killzony, limit głębokości z percentyla TR (domyślnie wyłączony), płynność EQH/EQL, blokada tej samej strony po re-armie;
+   - w trybie pivot granice „oddychają” na nowych pivotach w paśmie tolerancji.
+3. **Sweep:**
+   - ekstremum śledzi najgłębszy punkt;
+   - przebicie przeciwnej granicy to stan 2-SIDE;
+   - zbyt głęboki sweep to TOO DEEP;
+   - brak powrotu w 6 świec to BREAKOUT;
+   - **powrót zamknięciem do range to potwierdzona manipulacja** (także na tej samej świecy).
+4. **Dystrybucja (model referencyjny):**
+   - **wejście** = close świecy D;
+   - **stop** = ekstremum sweepu ∓ 0,4 × ATR z okresu przed range, zaokrąglony na zewnątrz do ticka;
+   - **cel** = rozszerzenie Fibonacciego 1,5 nogi manipulacji (0 = szczyt sweepu, 1 = przeciwna granica);
+   - wymagany jest co najmniej tick zysku;
+   - opcjonalny bias HTF (close vs EMA50 z ostatniej zamkniętej świecy HTF): odrzucenie daje re-arm na sweep drugiej strony albo FAILED.
+5. **Wynik cyklu** (od świecy po D):
+   - target, stop, timeout po 64 świecach;
+   - dotknięcie obu poziomów na jednej świecy liczy się jako stop (AMBIGUOUS).
+
+## Wejście w dystrybucji (`InpEntryMode`)
+| Tryb | Wejście |
+|---|---|
+| Referencyjne (domyślne) | rynkowo na otwarciu świecy po D |
+| CISD | close za open najstarszej świecy w ciągu świec przeciwnych prowadzących do ekstremum sweepu (dla longa: ciąg świec spadkowych) |
+| Dywergencja RSI | na TF wykresu: ekstremum sweepu vs dołek/szczyt range przed sweepem (bycza: niższy dołek ceny, wyższe RSI(14)); na innym TF: pivoty 5/5 jak w poprzednich EA |
+| CISD lub dywergencja / CISD i dywergencja | kombinacje powyższych |
+
+Potwierdzenie musi nastąpić w ciągu `InpConfirmBars` świec od D (domyślnie 10), zanim cykl się zakończy. Stop i cel zostają jak w modelu.
+
+## Handel
+- **SL i TP** to poziomy modelu, fizycznie u brokera. Timeout i każdy koniec wirtualnego cyklu zamykają pozycję.
+- **Pozostały R:R** od bieżącej ceny musi wynosić ≥ `InpMinRRLeft` (domyślnie 0,5).
+- **Ryzyko:** 1% salda od odległości SL, maksymalnie 1 pozycja, kill-switch dzienny 3% i całkowity 10%.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Killzony** liczone są z czasu serwera przesuniętego o `InpServerToKzHours` (domyślnie +2 względem UTC). **Skoryguj przy zmianie czasu.**
+2. **Bias HTF:** EMA50 z `iMA` na HTF. Inicjalizacja EMA w MT5 różni się od Pine, ale wynik zbiega się po historii.
+3. **Statystyki „Live Edge Stats”** EA wypisuje tylko w logu przy starcie (z `InpWarmupBars` świec, domyślnie 3000). To wynik na historii, a nie dowód przewagi. Liczy się Avg R, nie target rate.
+4. **CISD i dywergencja** to dodatki EA. Oryginał wchodzi zawsze na świecy D.
+5. **Pominięte, bo wizualne:** pudełka, linie, etykiety, dashboard, watermark, alerty.
