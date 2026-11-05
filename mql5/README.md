@@ -371,3 +371,70 @@ Plik: `MQL5/Experts/MLRSI_EA.mq5`. Korzysta z rdzenia `Include/Core`.
 3. **Wskaźniki:** RSI i ATR liczone metodą Wildera, EMA od pierwszej wartości, odchylenie populacyjne, percentrank z poprzednich N wartości, tak jak w Pine.
 4. **SL, trailing i odwracanie** to elementy dodane w EA, bo oryginał definiuje tylko sygnały i linię trailing stopu.
 5. **Pominięte, bo czysto wizualne:** ML RSI z linią sygnałową i pasmami Bollingera (nie wpływa na sygnał), chmura, kolorowanie świec, kropki zmian Supertrendu, alerty.
+
+---
+
+# Nebula3 EA (MQL5): Nebula v3
+
+EA przeniesiony ze wskaźnika Pine **„Nebula3” (Nebula v3)**. Autor projektował go pod **NQ na M1**, więc EA jest ustawiony pod **NAS100 na M1**.
+Plik: `MQL5/Experts/Nebula3_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+1. **Tidal Wave:**
+   - Fala wzrostowa zaczyna się, gdy zielona świeca otwiera się na poziomie close wcześniejszej zielonej świecy lub wyżej, a pomiędzy nimi nie było „jasnej” czerwonej. Pętla sprawdza do 200 świec wstecz.
+   - Luka wolumenowa przy dwóch zielonych świecach z rzędu (otwarcie ≥ close poprzedniej) też ustawia falę wzrostową.
+   - Dla fali spadkowej reguły są lustrzane.
+2. **Ultimate Buy / Sell:**
+   - RSI(32) przecina WMA(32), WMA(24) albo poziom 25/75.
+   - W ciągu 35 świec wcześniej musi wystąpić sygnał „watch”: close przecina BB 20/2, RSI przecina swoje pasma 2σ, RSI przecina 25/75, high lub low przecina pasmo ATR(30) × 1,5 wokół WMA(10).
+3. **Sygnały wejścia:**
+   - **Strong Buy / Strong Sell** to nowa fala z sygnałem Ultimate w ciągu ostatnich 4 świec.
+   - **Buy / Sell** (kropka) to nowa fala bez sygnału Ultimate.
+4. **Dokładanie:**
+   - **Vodka Shot:** rosnąca potrójna WMA(7), przewaga energii DER, skok wolumenu.
+   - **„+”:** luka w trakcie fali.
+5. **Confluence TP:** suma punktów z 7 sygnałów na bieżącej lub poprzedniej świecy, maksymalnie 19 punktów.
+
+   | Sygnał | Punkty |
+   |---|---|
+   | squeeze momentum | 4 |
+   | trampolina | 4 |
+   | licznik 9 | 3 |
+   | objęcie przy 50-świecowym ekstremum | 2 |
+   | early reversal (świeca PVSRA + przebicie fraktala) | 2 |
+   | shark | 2 |
+   | odrzucenie BB 20/2,5 | 2 |
+
+   **Próg ≥ 5 oznacza częściową realizację, ≥ 7 pełną.** Sygnał działa po stronie bieżącej fali.
+
+## Handel
+- **Wejście** rynkowe na otwarciu świecy po sygnale. Domyślnie tylko **Strong Buy / Strong Sell**. Opcje: Strong + kropki albo same Ultimate.
+- **SL** za ekstremum z 5 świec ± 0,25 × ATR(30), w granicach 0,5–3 ATR. Bez TP (opcja TP na stałym RR).
+- **Wyjścia:**
+  - Confluence ≥ 5 zamyka 50% każdej pozycji raz, a SL przechodzi na **break-even**.
+  - Confluence ≥ 7 zamyka całość.
+  - **Nowa fala przeciwna** zamyka pozycję.
+  - Przeciwny sygnał wejścia odwraca pozycję.
+- **Okno sesji:** 09:30–15:55 czasu NY. Poza nim EA nie otwiera pozycji i zamyka otwarte. Przesunięcie serwer–NY wynosi domyślnie +7 h, `InpServerToNYHours`. **Skoryguj je przy zmianie czasu.**
+- **Dokładanie** (domyślnie wyłączone):
+  - na Vodka Shot albo Vodka Shot + „+”;
+  - maksymalnie 1 dołożenie z ryzykiem 0,5%;
+  - SL taki sam jak pozycji głównej.
+- **Ryzyko:** 1% salda liczone od odległości SL, kill-switch dzienny 3% i całkowity 10%.
+- **Opcjonalny filtr dywergencji RSI:** pivoty RSI(14) 5/5, odstęp 5–60 świec, interwał do wyboru. Domyślnie wyłączony.
+
+## Założenia i różnice wobec oryginału Pine
+1. **Brak kodu biblioteki `TradersReality/Traders_Reality_Lib/2`.** Kolor świecy PVSRA jest odtworzony według standardowej definicji: świeca klimaksowa przy wolumenie ≥ 2 × SMA(10) albo gdy wolumen × zakres jest najwyższy z 10 świec. Wpływa to tylko na sygnał early reversal (2 z 19 punktów confluence).
+2. **Wolumen:** na CFD jest tylko wolumen tickowy (`InpVolumeType`). Od wolumenu zależą PVSRA, Vodka Shot i DER.
+3. **Zamienione nazwy w oryginale.** W kodzie Pine tytuły znaczników i alertów TP są zamienione miejscami. EA stosuje opisy inputów: 5 punktów to częściowa realizacja, 7 pełna.
+4. **Zachowane osobliwości oryginału:**
+   - Vodka Sell sprawdza `upwards[2..4]` zamiast `downwards[2..4]` (opcjonalna poprawka `InpVodkaSellFix`);
+   - warunek `upU` jest liczbą użytą jako bool;
+   - próg squeeze 5 jest wyrażony w punktach ceny NQ (`InpSqzLevel`; na innym instrumencie trzeba go dopasować).
+5. **Rozgrzewka:** stany fali, liczniki squeeze i okna watch odtwarzane są z `InpWarmupBars` świec (domyślnie 3000). Liczniki squeeze w oryginale narastają od początku historii, więc mogą się nieznacznie różnić tuż po starcie.
+6. **Wskaźniki:** RSI, ATR i ADX liczone metodą Wildera, odchylenie populacyjne, `ta.linreg`, WMA i `fixnan` tak jak w Pine.
+7. **Elementy dodane w EA:** SL, break-even, zamykanie na fali przeciwnej, okno sesji i dokładanie. Oryginał tylko pokazuje sugestie.
+8. **Pominięte, bo czysto wizualne:**
+   - chmura McGinley / FVMA i 15 trybów kolorowania świec;
+   - poziomy sesji, strefy squeeze, linie luk;
+   - EMA 9/21, HEMA, dashboard, etykiety, alerty.
