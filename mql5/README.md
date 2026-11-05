@@ -615,3 +615,36 @@ Potwierdzenie musi nastąpić w ciągu `InpConfirmBars` świec od D (domyślnie 
 3. **Statystyki „Live Edge Stats”** EA wypisuje tylko w logu przy starcie (z `InpWarmupBars` świec, domyślnie 3000). To wynik na historii, a nie dowód przewagi. Liczy się Avg R, nie target rate.
 4. **CISD i dywergencja** to dodatki EA. Oryginał wchodzi zawsze na świecy D.
 5. **Pominięte, bo wizualne:** pudełka, linie, etykiety, dashboard, watermark, alerty.
+
+---
+
+# SFX Supertrend 2.2.1 EA (MQL5): Flux Charts - SFX Algo [2.2.1] (strategy)
+
+EA przeniesiony ze strategii Pine **„Flux Charts - SFX Algo [2.2.1]”**. To **inny skrypt** niż „SFX Algo” z `SFX_Algo_EA.mq5`: klasyczny Supertrend z szablonem botów Zignaly/Telegram. Przygotowany pod **NAS100 na M15**; autor celował w krypto na M15–M45.
+Plik: `MQL5/Experts/SFX_Supertrend221_EA.mq5`. Korzysta z rdzenia `Include/Core`.
+
+## Logika (1:1 z Pine)
+1. **Supertrend(15, 5):** hl2 ± 5 × ATR(15) Wildera z „zatrzaskiem” pasm.
+   - **LONG** = crossover(close, st), **SHORT** = crossunder(close, st).
+   - Sygnał przeciwny zamyka pozycję **zawsze** (także przy wyłączonej stronie) i odwraca, jeśli strona jest włączona.
+2. **Filtr konsolidacji:** 7 wariantów z ATR(5) vs EMA/SMA(5) i RSI(7) obciętym do 2 miejsc (progi 45/10). Domyślnie „No Filtering”, czyli RSI > 0.
+3. **TP1–TP4** = close świecy sygnału ± **1,5 / 3 / 5 / 9 × ATR(14)** z tej świecy, zamykane w częściach **30 / 30 / 30 / 10%**. Opcja: % ceny (2 / 4 / 6 / 12%).
+4. **SL** = close ∓ **6 × ATR(14)**, opcja: 3%.
+
+## Handel
+- Wejście rynkowe na otwarciu świecy po sygnale.
+- **SL** domyślnie jako twardy stop u brokera.
+- **Tryb `SLEXEC_ORIGINAL`:** jak w Pine, wyjście rynkowe po świecy, której low (dla shorta high) przebiło SL. U brokera stoi wtedy awaryjny stop o 1 ATR dalej.
+- **TP1–TP3** zamyka EA częściowo na ticku, gdy cena dotknie poziomu. Pozostały wolumen to start × (1 − suma %).
+  - Część poniżej minimalnego lota łączy się z następnym TP.
+  - Zbyt mała końcówka zamyka całość na TP3.
+  - **TP4** stoi u brokera.
+- Opcjonalny **break-even po TP1** (domyślnie wyłączony, jak w oryginale).
+- **Ryzyko:** 1% salda od odległości SL, maksymalnie 1 pozycja, kill-switch dzienny 3% i całkowity 10%. Plan TP zapisywany jest w zmiennych globalnych terminala (klucz = ticket).
+
+## Założenia i różnice wobec oryginału Pine
+1. **Okno 14 dni.** Oryginał otwiera pozycje tylko w ostatnich 14 dniach wykresu (`backtest = timenow − time < 14 dni`), więc „Accuracy” i statystyki z TradingView dotyczą 2 tygodni. Na żywo warunek jest zawsze spełniony, więc EA go pomija.
+2. **Asymetria:** TP1 to 1,5 ATR, a SL 6 ATR. Wysoki odsetek trafień w TP1 nie oznacza zysku.
+3. **Poziomy TP i SL.** Oryginał bierze je z ostatniego sygnału `buy`/`sell`, także odfiltrowanego. EA używa poziomów sygnału, który otworzył pozycję. Przy domyślnym braku filtra wynik jest identyczny.
+4. **Wielkość pozycji:** oryginał używa całego kapitału na transakcję plus prowizji 0,03%. EA liczy lot od ryzyka.
+5. **Pominięte, bo wizualne lub nieużywane:** etykiety, chmury i wstęgi MA, Braid Filter, linie trendu, supply/demand, pivoty, tabela MTF, sesje, dashboardy, komunikaty Zignaly/Telegram, filtr dat, `withsl`.
