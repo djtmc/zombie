@@ -57,3 +57,19 @@ rozpadająca się po bossie, wygląd makiety) zaczerpnięte z gry Cinderwatch (l
 
 Źródła są w `zombie-3.0/src/`, a `python3 zombie-3.0/tools/build.py` skleja je z three.js
 (z `zombie-2.0/vendor/`) w jeden plik `zombie-3.0/index.html`, który działa offline (PWA).
+
+## Zombie Survival 3D 4.0 (`zombie-4.0/`)
+Połączenie wersji 2.0 i 3.0: makieta, wieże, bossowie i Tytan z 3.0 oraz gospodarka i budynki z 2.0.
+
+- **Dwa surowce:** złoto 💰 i drewno 🪵. Wymiana w panelu stanu (lub `Q` / `E`): 20 💰 → 10 🪵 i 10 🪵 → 20 💰.
+- **Plac przed zamkiem:** wybrukowany prostokąt wokół drogi. Armaty (30 💰 + 40 🪵) stawiasz w dowolnym wolnym
+  miejscu placu (klik lub `5`); mają 3 unowocześnienia jak w 2.0: podwójny pocisk, +30% obrażeń, +30% szybkostrzelności.
+- **Zaplecze pod planszą:** stałe miejsca na budynki, które zostają po zmianie krainy:
+  - **Koszary** obok placu: co 30 s żołnierz wychodzi na drogę (zatrzymuje zombie i strzela), ulepszenia ×2 / ×4 / ×8;
+  - **Fabryka** obok koszar: co 60 s czołg z działem obszarowym, ulepszenia ×2 / ×3 / ×4;
+  - **8 działek przy zamku** na tartaki (+0,8 🪵/s) i kopalnie złota (+0,5 💰/s), ulepszenia +25% / +60% / +100%.
+- **Klatka bossa** przy wejściu zombie: boss krainy czeka w niej od początku i wyrywa się z niej w 5. fali.
+- Wieże z 3.0 (KM, moździerz, Tesla, posterunek) dalej stoją na polach przy drodze. Tytan obsługuje też zaplecze,
+  armaty i wymianę.
+
+Źródła: `zombie-4.0/src/`, budowanie: `python3 zombie-4.0/tools/build.py`.
