@@ -30,3 +30,25 @@ i można ją „zainstalować” na telefonie.
 Nowa, przepisana od zera wersja: lepsza grafika (bloom, cienie, roślinność, efekty), 3 typy zombie,
 pociski z obrażeniami obszarowymi, dźwięk, zapis gry, menu i ustawienia jakości. Działa w pełni offline
 (Three.js jest w `zombie-2.0/vendor/`). Uruchom: `zombie-2.0/index.html` przez serwer HTTP.
+
+## Zombie Survival 3D 3.0 (`zombie-3.0/`)
+Obrona fortecy na żywej makiecie 3D w klimacie wcześniejszych wersji. Pomysły (samogrająca gra, plansza
+rozpadająca się po bossie, wygląd makiety) zaczerpnięte z gry Cinderwatch (licencja MIT), ale kod jest napisany od nowa.
+
+- **Prostokątna plansza** 30×14 pól: zombie idą drogą z lewej strony do fortecy po prawej. Na telefonie
+  w pionie kamera obraca się, żeby plansza wypełniała ekran.
+- **Gra toczy się sama** – AI dowódca buduje i rozbudowuje wieże. Pierwsze polecenie przejmuje dowodzenie,
+  przycisk w prawym górnym rogu (lub `C`) oddaje je AI.
+- **4 wieże × 3 poziomy:** gniazdo KM, moździerz, wieża Tesli, posterunek z żołnierzami. Budowa w rusztowaniu.
+- **12 rodzajów zombie** ze sztuczkami (biegacz, psy, pełzacz, rozdęty, plujący, opancerzony, krzykacz, roj,
+  radioaktywny, kolos, Pacjent Zero) i **boss co 5. falę**: Rzeźnik, Lodowy Olbrzym, Królowa Roju.
+- **3 krainy:** Zrujnowane Miasto, Zimowa Autostrada, Toksyczne Bagno. Po bossie plansza się rozpada
+  i składa nowa, z inną drogą (80% wartości wież wraca do skarbca).
+- **Wygląd makiety:** render w obniżonej rozdzielczości, tilt-shift, poświata, dithering, dynamiczne światła
+  i pogoda. Wszystkie modele i dźwięki generowane w kodzie, bez plików graficznych.
+- **Sterowanie:** klik/dotyk pola = menu budowy, `1`–`4` buduj, `U` rozbuduj, `X` sprzedaj (dwa razy),
+  `Spacja` fala wcześniej (bonus złota), `P` pauza, `Tab` szybkość, `M` dźwięk, kółko/szczypanie = zoom,
+  przeciąganie/strzałki/WASD = przesuwanie, `F` śledź walkę. Parametr `?b=0|1|2` wybiera krainę startową.
+
+Źródła są w `zombie-3.0/src/`, a `python3 zombie-3.0/tools/build.py` skleja je z three.js
+(z `zombie-2.0/vendor/`) w jeden plik `zombie-3.0/index.html`, który działa offline (PWA).
