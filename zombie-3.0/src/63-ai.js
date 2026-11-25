@@ -43,7 +43,7 @@ function aiStep() {
     if (GAME.gold < TOWERS[type].cost) return;
     let best = null, bs = 0;
     for (const p of free) { const c = coverage(p, type); if (c > bs) { bs = c; best = p; } }
-    if (best) { spawnTower(best, type); return; }
+    if (best) { GAME.gold -= TOWERS[type].cost; spawnTower(best, type); return; }
   }
   // rozbudowa: wieża o największym zasięgu działania i najniższym poziomie
   let up = null, us = -1;
@@ -59,7 +59,7 @@ function aiStep() {
     for (const k of TOWER_KEYS) { const r = count[k] / Math.max(1, want[k]); if (r < lw) { lw = r; bt = k; } }
     let best = null, bs = 0;
     for (const p of free) { const c = coverage(p, bt); if (c > bs) { bs = c; best = p; } }
-    if (best && GAME.gold >= TOWERS[bt].cost) spawnTower(best, bt);
+    if (best && GAME.gold >= TOWERS[bt].cost) { GAME.gold -= TOWERS[bt].cost; spawnTower(best, bt); }
   }
 }
 
