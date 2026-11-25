@@ -33,7 +33,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 #wave.ready{border-color:rgba(242,193,78,.6)}
 #cmd{cursor:pointer;text-align:right}
 #cmd .who{font-weight:bold}
-#cmd .sub{font-size:11px;color:var(--dim)}
+#cmd .sub{font-size:12px;color:var(--dim)}
+#cmd.ai .sub{color:#b9d6f2}
 #cmd.ai .who{color:#8ec5ff}
 #cmd.me .who{color:var(--gold)}
 #boss{position:fixed;top:calc(78px + var(--sat));left:50%;transform:translateX(-50%);width:min(420px,80vw);text-align:center;display:none}
@@ -65,7 +66,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #title .t{font-size:clamp(20px,4vw,34px);font-weight:900;letter-spacing:4px;text-shadow:0 3px 0 #000}
 #title .t span{color:var(--red)}
 #title .s{color:var(--dim);font-size:13px;text-shadow:0 2px 0 #000}
-@media (max-width:640px){#stats{min-width:0}#wave{min-width:0}#stats .row{font-size:13px;gap:9px}#cmd .sub{display:none}#bottom button{min-width:40px;height:38px;padding:0 6px}}
+@media (max-width:640px){#stats{min-width:0}#wave{min-width:0}#stats .row{font-size:13px;gap:9px}#cmd.me .sub{display:none}#bottom button{min-width:40px;height:38px;padding:0 6px}}
 @media (max-width:640px) and (orientation:portrait){#top{flex-wrap:wrap}#wave{order:3;flex-basis:100%}#boss{top:calc(118px + var(--sat))}}
 </style>
 </head>
@@ -76,12 +77,12 @@ button{font:inherit;color:inherit;cursor:pointer}
     <div id="hpbar" class="bar"><i></i></div>
   </div>
   <div id="wave" class="plate" title="Wezwij falę wcześniej [Spacja]"><div>FALA <b id="waveNo">1</b> · <span id="biomeName"></span></div><div class="sub" id="waveSub"></div></div>
-  <div id="cmd" class="plate ai" title="Przejmij / oddaj dowodzenie [C]"><div class="who" id="cmdWho">🤖 Dowodzi AI</div><div class="sub" id="cmdSub">kliknij, by przejąć</div></div>
+  <div id="cmd" class="plate me" title="Oddaj dowodzenie Tytanowi / przejmij je [C]"><div class="who" id="cmdWho">🎖️ Dowodzisz Ty</div><div class="sub" id="cmdSub">kliknij, by oddać dowodzenie Tytanowi</div></div>
 </div>
 <div id="boss" class="plate"><div class="name" id="bossName"></div><div id="bossbar" class="bar"><i></i></div></div>
 <div id="banner"><div class="big" id="bannerBig"></div><div class="small" id="bannerSmall"></div></div>
 <div id="note" class="plate"></div>
-<div id="title"><div class="t">ZOMBIE SURVIVAL <span>3.0</span></div><div class="s">Gra toczy się sama · kliknij pole, by przejąć dowodzenie</div></div>
+<div id="title"><div class="t">ZOMBIE SURVIVAL <span>3.0</span></div><div class="s">Kliknij pole, by zbudować wieżę · Tytan, Twój Generał, może dowodzić za Ciebie</div></div>
 <div id="menu" class="plate"></div>
 <div id="bottom">
   <button id="bPause" title="Pauza [P]">⏸</button>

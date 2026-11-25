@@ -115,7 +115,7 @@ function gameOver() {
   if (GAME.wave > GAME.best) { GAME.best = GAME.wave; store.set('best', GAME.best); }
   for (let i = 0; i < 6; i++) setTimeout(() => explosion(MAP.fort.x + rr(-1.5, 1.5), MAP.fort.z + rr(-2, 2), 1.2), i * 220);
   shake(0.8); sfx('bossdie');
-  $('overText').innerHTML = 'Dotarłeś do fali <b>' + GAME.wave + '</b> · zabitych zombie: <b>' + GAME.kills + '</b><br>Najlepszy wynik: fala <b>' + GAME.best + '</b>' + (GAME.ai ? '<br><small>AI zacznie od nowa za chwilę</small>' : '');
+  $('overText').innerHTML = 'Dotarłeś do fali <b>' + GAME.wave + '</b> · zabitych zombie: <b>' + GAME.kills + '</b><br>Najlepszy wynik: fala <b>' + GAME.best + '</b>' + (GAME.ai ? '<br><small>Tytan zacznie od nowa za chwilę</small>' : '');
   setTimeout(() => { if (GAME.state === 'over') $('over').style.display = 'flex'; }, 1400);
 }
 

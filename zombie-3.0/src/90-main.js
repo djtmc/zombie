@@ -11,7 +11,7 @@ function init() {
   CAM.dist = CAM.fitDist;
   initUI();
   initInput();
-  setCommand(true);
+  setCommand(false);
   addEventListener('resize', () => { resizeGfx(); computeFit(); });
   startGame();
   setTimeout(() => { $('title').style.opacity = 0; }, 14000);
@@ -19,7 +19,9 @@ function init() {
   let last = performance.now(), time = 0;
   function frame(now) {
     requestAnimationFrame(frame);
-    let real = Math.min(0.05, (now - last) / 1000);
+    if (now - last < 10.5) return;   // limit ~95 FPS: na ekranach 120/144 Hz oszczędza procesor i baterię
+    const raw = (now - last) / 1000;
+    let real = Math.min(0.05, raw);
     last = now;
     time += real;
     updateInput(real);
@@ -33,11 +35,16 @@ function init() {
       updateLights(dt, time);
     }
     if (GAME.paused) updateLights(0, time);
-    updateQuality(real);
+    updateQuality(raw);
     updateAudio(real);
     placeCamera(real);
     updateHud(real);
     if (UI.sel || UI.selPad) placeMenu();
+    const bodies = [];
+    for (const e of Z.list) bodies.push(e.B);
+    for (const t of T.list) for (const s of t.soldiers) bodies.push(s.B);
+    drawBodies(bodies);
+    GU.uTime.value = time % 1000;
     renderFrame(time);
   }
   requestAnimationFrame(frame);
