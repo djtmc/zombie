@@ -23,8 +23,8 @@ function floatGold(n) {
 function setCommand(ai) {
   GAME.ai = ai;
   $('cmd').className = 'plate ' + (ai ? 'ai' : 'me');
-  $('cmdWho').textContent = ai ? '🤖 Dowodzi AI' : '🎖️ Dowodzisz Ty';
-  $('cmdSub').textContent = ai ? 'kliknij, by przejąć' : 'kliknij, by oddać AI';
+  $('cmdWho').textContent = ai ? '🤖 Dowodzi Tytan' : '🎖️ Dowodzisz Ty';
+  $('cmdSub').textContent = ai ? 'Twój Generał' : 'kliknij, by oddać dowodzenie Tytanowi';
   if (!ai) $('title').style.opacity = 0;
 }
 function takeCommand() { if (GAME.ai) setCommand(false); }

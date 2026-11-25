@@ -37,8 +37,8 @@ rozpadająca się po bossie, wygląd makiety) zaczerpnięte z gry Cinderwatch (l
 
 - **Prostokątna plansza** 30×14 pól: zombie idą drogą z lewej strony do fortecy po prawej. Na telefonie
   w pionie kamera obraca się, żeby plansza wypełniała ekran.
-- **Gra toczy się sama** – AI dowódca buduje i rozbudowuje wieże. Pierwsze polecenie przejmuje dowodzenie,
-  przycisk w prawym górnym rogu (lub `C`) oddaje je AI.
+- **Tytan, Twój Generał** – AI, które może dowodzić za Ciebie: buduje i rozbudowuje wieże. Na starcie dowodzisz Ty;
+  przycisk w prawym górnym rogu (lub `C`) oddaje dowodzenie Tytanowi, a każde Twoje polecenie je odbiera.
 - **4 wieże × 3 poziomy:** gniazdo KM, moździerz, wieża Tesli, posterunek z żołnierzami. Budowa w rusztowaniu.
 - **12 rodzajów zombie** ze sztuczkami (biegacz, psy, pełzacz, rozdęty, plujący, opancerzony, krzykacz, roj,
   radioaktywny, kolos, Pacjent Zero) i **boss co 5. falę**: Rzeźnik, Lodowy Olbrzym, Królowa Roju.
@@ -46,6 +46,11 @@ rozpadająca się po bossie, wygląd makiety) zaczerpnięte z gry Cinderwatch (l
   i składa nowa, z inną drogą (80% wartości wież wraca do skarbca).
 - **Wygląd makiety:** render w obniżonej rozdzielczości, tilt-shift, poświata, dithering, dynamiczne światła
   i pogoda. Wszystkie modele i dźwięki generowane w kodzie, bez plików graficznych.
+- **Jakość grafiki** (przycisk w dolnym pasku lub `G`): Niska / Średnia / Wysoka / Auto. Rozdzielczość dopasowuje się
+  płynnie do wydajności, a w trybie Auto także poziom. Wysoka dodaje fakturę powierzchni, mgłę przy ziemi oświetloną
+  ogniskami i cieniowanie zakamarków. Na każdym poziomie: śnieg osiada na powierzchniach w zimie, drzewa i trzciny
+  kołyszą się na wietrze, a kałuże, lód i toksyczne bajora są animowane. Postacie są rysowane instancjami
+  (jedno wywołanie na część ciała), a trafione zombie migają.
 - **Sterowanie:** klik/dotyk pola = menu budowy, `1`–`4` buduj, `U` rozbuduj, `X` sprzedaj (dwa razy),
   `Spacja` fala wcześniej (bonus złota), `P` pauza, `Tab` szybkość, `M` dźwięk, kółko/szczypanie = zoom,
   przeciąganie/strzałki/WASD = przesuwanie, `F` śledź walkę. Parametr `?b=0|1|2` wybiera krainę startową.

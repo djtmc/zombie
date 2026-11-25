@@ -252,12 +252,11 @@ function syncSoldiers(tw) {
 function makeSoldier(tw, i) {
   const B = makeBody(getRig('soldier', SOLDIER_LOOK, 0));
   B.root.scale.setScalar(0.56);
-  G.scene.add(B.root);
   const s = { tw, i, B, x: tw.pad.x, z: tw.pad.z, hp: towerStats(tw).hp, max: towerStats(tw).hp, cd: rr(0, 1), dead: false, respawn: 0, block: null, phase: rr(0, 6), yaw: 0 };
   B.root.position.set(s.x, 0.12, s.z);
   return s;
 }
-function removeSoldier(s) { G.scene.remove(s.B.root); if (s.block) { s.block.blockedBy = null; s.block = null; } }
+function removeSoldier(s) { s.removed = true; if (s.block) { s.block.blockedBy = null; s.block = null; } }
 function soldierSpot(tw, i) {
   const n = tw.soldiers.length, off = (i - (n - 1) / 2) * 0.32;
   return { x: tw.rally.x - tw.rally.dz * off - tw.rally.dx * 0.15, z: tw.rally.z + tw.rally.dx * off - tw.rally.dz * 0.15 };
@@ -265,6 +264,7 @@ function soldierSpot(tw, i) {
 function updatePost(tw, dt) {
   const st = towerStats(tw);
   for (const s of tw.soldiers) {
+    if (s.B.flash > 0) s.B.flash = Math.max(0, s.B.flash - dt * 6);
     if (s.dead) {
       s.respawn -= dt;
       if (s.respawn <= 0) { s.dead = false; s.hp = s.max = st.hp; s.x = tw.pad.x; s.z = tw.pad.z; s.B.root.visible = true; s.B.root.rotation.set(0, 0, 0); }
@@ -308,7 +308,7 @@ function updatePost(tw, dt) {
 }
 function hurtSoldier(s, dmg) {
   if (s.dead) return;
-  s.hp -= dmg;
+  s.hp -= dmg; s.B.flash = 0.8;
   blood(s.x, 0.45, s.z, 3, 0x7a1010);
   if (s.hp <= 0) {
     s.dead = true; s.respawn = 9;

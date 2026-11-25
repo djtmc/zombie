@@ -57,15 +57,19 @@ function propLamp(b) { b.cyl(0.03, 0.04, 1.5, 0x2a2a2e, 0, 0, 0); b.box(0.35, 0.
 function propPine(b, snow) {
   const h = rr(0.9, 1.6);
   b.cyl(0.06, 0.08, 0.3, 0x4a3426, 0, 0, 0);
+  b.sway = 0.6;
   for (let i = 0; i < 3; i++) {
     const r = (0.5 - i * 0.13) * h / 1.2, y = 0.25 + i * h * 0.27;
     b.cone(r, h * 0.42, 0x23402e, 0, y, 0, 7);
     if (snow) b.cone(r * 0.7, h * 0.2, 0xeef3f8, 0, y + h * 0.24, 0, 7);
   }
+  b.sway = 0;
 }
 function propDeadTree(b, c) {
   b.cyl(0.05, 0.09, 1.1, c, 0, 0, 0, 5);
+  b.sway = 0.5;
   for (let i = 0; i < 3; i++) b.cyl(0.02, 0.04, rr(0.35, 0.6), c, 0, rr(0.5, 0.95), 0, 4, rr(-1, 1), rr(-1.1, 1.1));
+  b.sway = 0;
 }
 function propTruck(b) {
   const ry = chance(0.5) ? 0 : Math.PI / 2;
@@ -77,7 +81,7 @@ function propTruck(b) {
   b.box(0.42, 0.08, 0.5, 0xf2f6fa, off * cx, 0.57, -off * sx, ry);
 }
 function propSnowbank(b) { for (let i = 0; i < 3; i++) b.ball(rr(0.18, 0.32), 0xeef3f8, rr(-0.3, 0.3), 0.05, rr(-0.3, 0.3), 1, 1.4, 0.5, 1.2); }
-function propReeds(b) { for (let i = 0; i < 6; i++) b.cyl(0.012, 0.02, rr(0.3, 0.6), pick([0x5a6a32, 0x6b7a3a, 0x4a5528]), rr(-0.35, 0.35), 0, rr(-0.35, 0.35), 4, rr(-0.2, 0.2), rr(-0.2, 0.2)); }
+function propReeds(b) { b.sway = 1; for (let i = 0; i < 6; i++) b.cyl(0.012, 0.02, rr(0.3, 0.6), pick([0x5a6a32, 0x6b7a3a, 0x4a5528]), rr(-0.35, 0.35), 0, rr(-0.35, 0.35), 4, rr(-0.2, 0.2), rr(-0.2, 0.2)); b.sway = 0; }
 function propTank(b) {
   b.cyl(0.38, 0.38, 0.9, 0x6b6e60, 0, 0, 0, 10);
   b.cyl(0.4, 0.4, 0.06, 0x4a4c40, 0, 0.9, 0, 10);
@@ -91,11 +95,13 @@ function propSign(b) {
 }
 
 // Wypełnia jedno wolne pole planszy rekwizytami danego biomu. Zwraca [builder, glow builder, światło?].
-function decorateCell(biome, b, g, x, z, nearRoad) {
+function decorateCell(biome, b, g, x, z, nearRoad, w) {
   const out = { light: null };
   const k = biome.key;
   const at = (fn) => { const nb = new Builder(); fn(nb); merge(nb, b, x, z); };
   const atG = (fn) => { const nb = new Builder(); fn(nb); merge(nb, g, x, z); };
+  const atW = (fn) => { const nb = new Builder(); fn(nb); merge(nb, w, x, z); };
+  const blob = (nb, cols, n, s0, s1) => { for (let i = 0; i < n; i++) nb.box(rr(s0, s1), 0.02, rr(s0, s1), pick(cols), rr(-0.2, 0.2), 0.005, rr(-0.2, 0.2), rr(0, 1.5)); };
   const v = rnd();
   if (k === 'city') {
     if (v < 0.22 && !nearRoad) at(propRuin);
@@ -103,19 +109,21 @@ function decorateCell(biome, b, g, x, z, nearRoad) {
     else if (v < 0.46) { at(nb => propBarrel(nb, 0x6a4a2a)); if (chance(0.5)) { atG(nb => nb.ball(0.12, 0xff8a30, 0, 0.4, 0, 0)); out.light = [0xff7a2a, 3.2, 3.5, x, 0.7, z]; } }
     else if (v < 0.52 && nearRoad) at(propLamp);
     else if (v < 0.75) at(nb => propRubble(nb, 0x6a6058));
+    else if (v < 0.79) atW(nb => blob(nb, [0x2a3a4a, 0x22303c], 3, 0.25, 0.45));
   } else if (k === 'winter') {
     if (v < 0.28) at(nb => propPine(nb, true));
     else if (v < 0.36) at(propTruck);
     else if (v < 0.44) at(nb => propCar(nb, false));
     else if (v < 0.62) at(propSnowbank);
     else if (v < 0.66) { if (nearRoad) at(propSign); }
-    else if (v < 0.675) { at(nb => { nb.box(0.5, 0.06, 0.5, 0x4a3a2a, 0, 0, 0); }); atG(nb => nb.cone(0.15, 0.3, 0xff9a40, 0, 0.05, 0, 5)); out.light = [0xff9a40, 3.0, 3.2, x, 0.6, z]; }
+    else if (v < 0.72 && !nearRoad) atW(nb => blob(nb, [0x9fc8e4, 0x8ab8da, 0xb4d6ec], 4, 0.3, 0.55));
+    else if (v < 0.735) { at(nb => { nb.box(0.5, 0.06, 0.5, 0x4a3a2a, 0, 0, 0); }); atG(nb => nb.cone(0.15, 0.3, 0xff9a40, 0, 0.05, 0, 5)); out.light = [0xff9a40, 3.0, 3.2, x, 0.6, z]; }
   } else {
     if (v < 0.22) at(nb => propDeadTree(nb, 0x3a3226));
     else if (v < 0.4) at(propReeds);
     else if (v < 0.48 && !nearRoad) at(propTank);
     else if (v < 0.58) at(nb => { propBarrel(nb, 0x8a7a1a); propBarrel(nb, 0x5a6a2a); });
-    else if (v < 0.66) { atG(nb => { for (let i = 0; i < 4; i++) nb.box(rr(0.3, 0.55), 0.02, rr(0.3, 0.55), pick([0x2f9a22, 0x3aa82a, 0x27801c]), rr(-0.18, 0.18), 0.01, rr(-0.18, 0.18), rr(0, 1.5)); }); if (chance(0.35)) out.light = [0x6dff4a, 2.2, 3, x, 0.4, z]; out.pool = true; }
+    else if (v < 0.66) { atW(nb => blob(nb, [0x2f9a22, 0x3aa82a, 0x27801c], 4, 0.3, 0.55)); if (chance(0.35)) out.light = [0x6dff4a, 2.2, 3, x, 0.4, z]; out.pool = true; }
   }
   return out;
 }
@@ -124,4 +132,5 @@ function merge(src, dst, x, z) {
   for (let i = 0; i < src.pos.length; i += 3) { dst.pos.push(src.pos[i] + x, src.pos[i + 1], src.pos[i + 2] + z); }
   for (const n of src.nor) dst.nor.push(n);
   for (const c of src.col) dst.col.push(c);
+  for (const s of src.sw) dst.sw.push(s);
 }

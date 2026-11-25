@@ -134,7 +134,7 @@ function buildMap(biomeIndex) {
 
   // płytki terenu jako jeden InstancedMesh (każda płytka spada osobno przy rozpadzie)
   const tileGeo = new THREE.BoxGeometry(1, 2, 1);
-  const tiles = new THREE.InstancedMesh(tileGeo, new THREE.MeshLambertMaterial({ flatShading: true }), MW * MD);
+  const tiles = new THREE.InstancedMesh(tileGeo, MAT.tiles, MW * MD);
   tiles.receiveShadow = true; tiles.castShadow = false;
   MAP.tileInfo = [];
   const m4 = new THREE.Matrix4();
@@ -157,7 +157,7 @@ function buildMap(biomeIndex) {
   MAP.poolCells = new Set();
   const lights = [];
   for (let cx = 0; cx < MW; cx++) {
-    const b = new Builder(), g = new Builder();
+    const b = new Builder(), g = new Builder(), w = new Builder();
     for (let cz = 0; cz < MD; cz++) {
       const k = cellKey(cx, cz), x = wx(cx), z = wz(cz);
       if (MAP.road.has(k)) {
@@ -175,13 +175,14 @@ function buildMap(biomeIndex) {
       if (pp.inFort(cx, cz)) continue;
       let near = false;
       for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (MAP.road.has(cellKey(cx + dx, cz + dz))) near = true;
-      const o = decorateCell(biome, b, g, x, z, near);
+      const o = decorateCell(biome, b, g, x, z, near, w);
       if (o.pool) MAP.poolCells.add(k);
       if (o.light && lights.length < 3) lights.push(o.light);
     }
     const grp = new THREE.Group();
     if (b.pos.length) grp.add(b.mesh());
     if (g.pos.length) grp.add(g.mesh(MAT.glow, false));
+    if (w.pos.length) grp.add(w.mesh(MAT.water, false));
     if (cx === MW - 2) grp.add(buildFortress(biome, MAP.fort.x, MAP.fort.z));
     root.add(grp);
     MAP.cols.push(grp);
@@ -198,7 +199,12 @@ function applyBiomeLook(b) {
   G.hemi.color.set(b.hemiSky); G.hemi.groundColor.set(b.hemiGround); G.hemi.intensity = b.hemiI;
   G.sun.color.set(b.sun); G.sun.intensity = b.sunI;
   G.sun.position.set(b.sunPos[0], b.sunPos[1], b.sunPos[2]); G.sun.target.position.set(0, 0, 0);
+  GU.uSnow.value = b.key === 'winter' ? 0.85 : 0;
+  MAT.water.userData.u.uWMode.value = b.key === 'city' ? 0 : b.key === 'winter' ? 1 : 2;
   const u = POST.mat.uniforms;
+  // mgła przy ziemi (tylko jakość wysoka): wysokość, grubość warstwy, gęstość, siła; kolor
+  const MIST = { city: [[0, 0.4, 0.4, 0.85], [0.05, 0.04, 0.035]], winter: [[0, 0.35, 0.3, 0.9], [0.35, 0.4, 0.48]], swamp: [[0, 0.4, 0.45, 0.75], [0.04, 0.06, 0.04]] }[b.key];
+  u.uMist.value.set(...MIST[0]); u.uMistCol.value.set(...MIST[1]);
   u.uTint.value.set(...b.tint); u.uLift.value.set(...b.lift); u.uExposure.value = b.exposure;
 }
 

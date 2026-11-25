@@ -5,7 +5,6 @@ const _p = { x: 0, z: 0, dx: 1, dz: 0 };
 function spawnZombie(key, s = 0, opts = {}) {
   const def = ZT[key];
   const B = makeBody(getRig(key, def.look, MAP.biome ? MAP.biome.zombieTint : 0));
-  G.scene.add(B.root);
   const hpMul = def.boss ? Z.hpMul * 1.0 : Z.hpMul;
   const e = {
     key, def, B, s, hp: def.hp * hpMul, max: def.hp * hpMul, dead: false, deathT: 0,
@@ -23,14 +22,14 @@ function spawnZombie(key, s = 0, opts = {}) {
 
 function setGhost(e, on) {
   e.phased = on;
-  e.B.root.traverse(o => { if (o.isMesh) { if (on) { o.userData.m = o.userData.m || o.material; o.material = MAT.ghost; } else if (o.userData.m) o.material = o.userData.m; } });
+  e.B.ghost = on;
 }
 
 function hurt(e, dmg, kind, src) {
   if (e.dead) return;
   if (e.phased && kind !== 'shock') return;
   if (e.def.armor && (kind === 'bullet')) dmg *= 1 - e.def.armor;
-  e.hp -= dmg; e.lastHit = GAME.time;
+  e.hp -= dmg; e.lastHit = GAME.time; e.B.flash = 1;
   if (kind === 'bullet' && chance(0.4)) blood(e.x, 0.25 * e.sc, e.z, 2, 0x5a1a10);
   if (e.def.armor && kind === 'bullet' && chance(0.3)) sparks(e.x, 0.4, e.z, 1, 0xffffff);
   if (e.def.summon && !e.summoned && e.hp < e.max * 0.66 || e.def.summon && e.summoned === 1 && e.hp < e.max * 0.33) {
@@ -78,12 +77,13 @@ function updateZombies(dt) {
   }
   for (let i = Z.list.length - 1; i >= 0; i--) {
     const e = Z.list[i], d = e.def, B = e.B;
+    if (B.flash > 0) B.flash = Math.max(0, B.flash - dt * 7);
     if (e.dead) {
       e.deathT += dt;
       const k = Math.min(1, e.deathT / 0.45);
       B.root.rotation.x = -k * 1.45;
       if (e.deathT > 2.2) B.root.position.y -= dt * 0.35;
-      if (e.deathT > 3.2) { G.scene.remove(B.root); Z.list.splice(i, 1); }
+      if (e.deathT > 3.2) Z.list.splice(i, 1);
       continue;
     }
     if (e.rise > 0) { e.rise -= dt * 1.2; B.root.position.y = -e.rise * 0.6; if (chance(0.4)) puff(e.x, 0.05, e.z, 0x4a3a2a, 1, 0.12); continue; }
@@ -183,7 +183,6 @@ function updateZombies(dt) {
 }
 
 function clearZombies() {
-  for (const e of Z.list) G.scene.remove(e.B.root);
   Z.list = []; Z.spits = [];
   GAME.boss = null; hideBoss();
 }

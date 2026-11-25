@@ -66,13 +66,69 @@ function getRig(key, look, tint) {
   return P;
 }
 
-// Tworzy instancję postaci. Zwraca obiekt z grupą i częściami do animacji.
-function makeBody(P, mat = MAT.v) {
+// ---- instancjonowanie: każda część ciała danego typu to jeden InstancedMesh (jedno wywołanie rysowania) ----
+class PartBatch {
+  constructor(geo, mat, shadow) {
+    this.geo = geo.clone(); this.mat = mat; this.shadow = shadow; this.cap = 0; this.n = 0; this.mesh = null;
+    this.grow(32);
+  }
+  grow(cap) {
+    const old = this.mesh;
+    const m = new THREE.InstancedMesh(this.geo, this.mat, cap);
+    m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3).fill(1), 3);
+    this.flash = new THREE.InstancedBufferAttribute(new Float32Array(cap), 1);
+    this.flash.setUsage(THREE.DynamicDrawUsage);
+    this.geo.setAttribute('aFlash', this.flash);
+    m.castShadow = this.shadow; m.receiveShadow = true; m.frustumCulled = false; m.count = 0;
+    if (old) { G.scene.remove(old); old.dispose(); }
+    G.scene.add(m);
+    this.mesh = m; this.cap = cap;
+  }
+  put(m4, flash) {
+    if (this.n >= this.cap) this.grow(this.cap * 2);
+    m4.toArray(this.mesh.instanceMatrix.array, this.n * 16);
+    this.flash.array[this.n] = flash;
+    this.n++;
+  }
+  end() {
+    const m = this.mesh;
+    m.count = this.n; m.visible = this.n > 0;
+    if (this.n) { m.instanceMatrix.needsUpdate = true; this.flash.needsUpdate = true; }
+  }
+}
+const BATCHES = new Map();
+function batchFor(geo, kind, shadow) {
+  let byKind = BATCHES.get(geo);
+  if (!byKind) { byKind = {}; BATCHES.set(geo, byKind); }
+  if (!byKind[kind]) byKind[kind] = new PartBatch(geo, kind === 'ghost' ? MAT.ghost : kind === 'glow' ? MAT.glow : MAT.inst, kind === 'n' && shadow);
+  return byKind[kind];
+}
+// Co klatkę: wpisz macierze wszystkich części widocznych postaci do ich paczek.
+function drawBodies(bodies) {
+  for (const k of BATCHES.values()) for (const b of Object.values(k)) b.n = 0;
+  for (const B of bodies) {
+    if (!B.root.visible) continue;
+    B.root.updateMatrixWorld(true);
+    const fl = B.flash || 0;
+    for (const p of B.parts) {
+      const kind = p.userData.glow ? (B.ghost ? null : 'glow') : B.ghost ? 'ghost' : 'n';
+      if (!kind) continue;
+      batchFor(p.userData.geo, kind, p.userData.shadow).put(p.matrixWorld, fl);
+    }
+  }
+  for (const k of BATCHES.values()) for (const b of Object.values(k)) b.end();
+}
+
+// Tworzy instancję postaci: hierarchia węzłów do animacji, bez własnych siatek (rysują je paczki).
+function makeBody(P) {
   const root = new THREE.Group();
   const hip = new THREE.Group();
   root.add(hip);
-  const m = (g, mt = mat, sh = false) => { const x = new THREE.Mesh(g, mt); x.castShadow = sh; return x; };
-  const B = { root, hip, dog: !!P.dog, s: P.s };
+  const parts = [];
+  const m = (g, mt, sh = false) => { const x = new THREE.Object3D(); x.userData.geo = g; x.userData.shadow = sh; x.userData.glow = mt === MAT.glow; parts.push(x); return x; };
+  const mat = null;
+  const B = { root, hip, dog: !!P.dog, s: P.s, parts, flash: 0, ghost: false };
   if (P.dog) {
     hip.position.y = 0.27;
     B.torso = m(P.torso, mat, true); hip.add(B.torso);
@@ -84,7 +140,7 @@ function makeBody(P, mat = MAT.v) {
     hip.position.y = 0.48;
     B.torso = new THREE.Group(); hip.add(B.torso);
     B.torso.add(m(P.torso, mat, true));
-    if (P.glow) B.torso.add(new THREE.Mesh(P.glow, MAT.glow));
+    if (P.glow) B.torso.add(m(P.glow, MAT.glow));
     B.armL = new THREE.Group(); B.armL.position.set(-0.24, 0.36, 0); B.armL.add(m(P.arm));
     B.armR = new THREE.Group(); B.armR.position.set(0.24, 0.36, 0); B.armR.add(m(P.armR || P.arm));
     B.torso.add(B.armL, B.armR);
