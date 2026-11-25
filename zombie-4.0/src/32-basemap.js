@@ -117,6 +117,18 @@ function buildCage(biome) {
   b.box(0.18, 0.12, 0.14, 0xd8d0b8, 0.5, 0.16, -0.4, 0.4); b.ball(0.08, 0xd8d0b8, 0.5, 0.33, -0.4, 0);
   grp.add(b.mesh(), g.mesh(MAT.glow, false));
   // ściany krat
+  // słupki narożne i belki u góry, w których chodzi podnoszona krata
+  for (const [x, z] of [[-W, -W], [W, -W], [-W, W], [W, W]]) b.box(0.16, H + 0.5, 0.16, shade(iron, 0.75), x, 0.16, z);
+  for (const sgn of [-1, 1]) { b.box(2 * W + 0.16, 0.14, 0.18, shade(iron, 0.7), 0, H + 0.52, sgn * W); b.box(0.18, 0.14, 2 * W + 0.16, shade(iron, 0.7), sgn * W, H + 0.52, 0); }
+  // krata od strony drogi (tędy boss wyjdzie): wybierz ścianę zwróconą do najbliższego punktu drogi
+  let best = 0.6, bd = 1e9; const p = { x: 0, z: 0 };
+  for (let s = 0.6; s < 5; s += 0.1) { pathAt(s, p); const d = dist2(p.x, p.z, c.x, c.z); if (d < bd) { bd = d; best = s; } }
+  pathAt(best, p);
+  const da = Math.atan2(p.x - c.x, p.z - c.z);
+  c.front = ((Math.round(da / (Math.PI / 2)) % 4) + 4) % 4;
+  c.exitS = best; c.W = W; c.H = H; c.faceYaw = c.front * Math.PI / 2;
+  // łańcuchy nad kratą wyjściową
+  for (const o of [-0.5, 0.5]) { const a = c.faceYaw; b.box(0.05, 0.5, 0.05, 0x3a3836, Math.sin(a) * (W + 0.12) + Math.cos(a) * o, H + 0.66, Math.cos(a) * (W + 0.12) - Math.sin(a) * o); }
   c.sides = [];
   for (let k = 0; k < 4; k++) {
     const sb = new Builder();
@@ -124,7 +136,6 @@ function buildCage(biome) {
     for (let i = 0; i < n; i++) sb.box(0.045, H, 0.045, iron, -W + (i + 0.5) * (2 * W / n), 0, 0);
     sb.box(2 * W, 0.07, 0.07, iron, 0, H * 0.45, 0);
     sb.box(2 * W, 0.08, 0.08, iron, 0, H - 0.08, 0);
-    sb.box(0.14, H + 0.1, 0.14, shade(iron, 0.8), W, 0, 0); // słupek narożny (każda ściana ma jeden)
     const m = sb.mesh();
     const piv = new THREE.Group();
     const a = k * Math.PI / 2;

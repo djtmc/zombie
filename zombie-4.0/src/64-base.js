@@ -268,37 +268,35 @@ function cageBoss() {
   const B = makeBody(getRig(key, ZT[key].look, MAP.biome.zombieTint));
   B.root.scale.multiplyScalar(0.8);
   B.root.position.set(c.x, 0.16, c.z);
-  B.root.rotation.y = Math.PI / 2;
+  B.root.rotation.y = c.faceYaw;
   BASE.caged = { B, key, phase: 0, roar: rr(4, 9), rattle: 0 };
 }
 function breakCage() {
   const c = MAP.cage;
   if (!c || c.broken) return null;
   c.broken = true;
-  for (const sd of c.sides) {
-    const a = sd.userData.a;
-    sd.userData.v = sd.userData.roof ? { x: 0, y: 6, z: 0, r: 3 } : { x: Math.sin(a) * rr(2.5, 4), y: rr(3, 5), z: Math.cos(a) * rr(2.5, 4), r: rr(-5, 5) };
-  }
-  BASE.cageFx = c.sides.slice();
-  banner('BOSS SIĘ UWOLNIŁ!', ZT[MAP.biome.boss].name + ' wyrywa kraty klatki');
-  explosion(c.x, c.z, 1.3, 0xff6a3a);
-  puff(c.x, 0.5, c.z, 0x6a5a4a, 16, 0.35);
-  shake(0.6); sfx('cage'); sfx('roar');
+  // krata od strony drogi unosi się do góry jak brona, boss wychodzi przez otwór
+  c.lift = { sd: c.sides[c.front], t: 0 };
+  c.sides[c.front].children[0].rotation.set(0, 0, 0);
+  banner('BOSS SIĘ UWOLNIŁ!', 'Krata klatki się podnosi · ' + ZT[MAP.biome.boss].name + ' wychodzi na drogę');
+  puff(c.x, 0.5, c.z, 0x6a5a4a, 10, 0.3);
+  shake(0.4); sfx('cage'); sfx('roar');
   const key = BASE.caged ? BASE.caged.key : MAP.biome.boss;
   BASE.caged = null;
   const e = spawnZombie(key, 0);
-  // boss wychodzi z klatki na najbliższy punkt drogi
-  let best = 0.6, bd = 1e9; const p = { x: 0, z: 0 };
-  for (let s = 0.6; s < 5; s += 0.1) { pathAt(s, p); const d = dist2(p.x, p.z, c.x, c.z); if (d < bd) { bd = d; best = s; } }
-  e.x = c.x; e.z = c.z; e.s = best; e.exit = { s: best };
-  e.B.root.position.set(e.x, 0.1, e.z);
+  // boss czeka, aż krata się uniesie, przechodzi przez otwór i idzie na najbliższy punkt drogi
+  const a = c.faceYaw;
+  e.x = c.x; e.z = c.z; e.s = c.exitS;
+  e.exit = { s: c.exitS, wait: 1.3, gate: { x: c.x + Math.sin(a) * (c.W + 0.6), z: c.z + Math.cos(a) * (c.W + 0.6) } };
+  e.B.root.position.set(e.x, 0.16, e.z);
+  e.B.root.rotation.y = a;
   return e;
 }
 // Po każdej fali boss nadweręża klatkę: kolejna ściana krat wygina się na zewnątrz.
 function damageCage(stage) {
   const c = MAP.cage;
   if (!c || c.broken || !BASE.caged) return;
-  const sd = c.sides[(stage - 1) % 4];
+  const sd = c.sides[(c.front + stage) % 4]; // krata wyjściowa zostaje prosta
   sd.children[0].rotation.x = 0.12 + stage * 0.05;
   sd.children[0].rotation.z = (stage % 2 ? 1 : -1) * 0.08;
   sparks(sd.position.x + c.x, 1.2, sd.position.z + c.z, 10, 0xffd27a);
@@ -319,11 +317,19 @@ function updateCage(dt) {
       cb.rattle -= dt;
       for (const sd of MAP.cage.sides) if (!sd.userData.roof) sd.children[0].position.x = Math.sin(GAME.time * 60) * 0.03 * cb.rattle;
       cb.B.armL.rotation.x = -2.2; cb.B.armR.rotation.x = -2.2;
-      cb.B.root.rotation.y = Math.PI / 2 + Math.sin(GAME.time * 20) * 0.08;
+      cb.B.root.rotation.y = MAP.cage.faceYaw + Math.sin(GAME.time * 20) * 0.08;
     } else {
-      cb.B.root.rotation.y = Math.PI / 2 + Math.sin(cb.phase * 0.3) * 0.5;
+      cb.B.root.rotation.y = MAP.cage.faceYaw + Math.sin(cb.phase * 0.3) * 0.5;
       animBody(cb.B, 'shamble', cb.phase, true, 0.2);
     }
+  }
+  const L = MAP.cage && MAP.cage.lift;
+  if (L && L.t < 2.2) {
+    L.t += dt;
+    const k = smooth(clamp((L.t - 0.2) / 1.6, 0, 1));
+    L.sd.position.y = 0.16 + k * (MAP.cage.H + 0.3);
+    L.sd.children[0].position.x = k < 1 ? Math.sin(GAME.time * 45) * 0.015 : 0;
+    if (k > 0 && k < 1 && chance(dt * 12)) sparks(L.sd.position.x + MAP.cage.x, MAP.cage.H + 0.5, L.sd.position.z + MAP.cage.z, 2, 0xffd27a);
   }
   for (let i = BASE.cageFx.length - 1; i >= 0; i--) {
     const sd = BASE.cageFx[i], v = sd.userData.v;
