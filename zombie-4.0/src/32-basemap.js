@@ -106,10 +106,8 @@ function buildCage(biome) {
   b.box(W * 2 + 0.3, 0.16, W * 2 + 0.3, shade(stone, 0.9), 0, 0, 0);
   // ostrzegawcze pasy na krawędzi podstawy
   for (let i = 0; i < 16; i++) { const t = -W - 0.1 + (i + 0.5) * (2 * W + 0.2) / 16, c = i % 2 ? 0x1a1a1a : 0xe8b020; b.box(0.13, 0.02, 0.06, c, t, 0.16, W + 0.11); b.box(0.13, 0.02, 0.06, c, t, 0.16, -W - 0.11); b.box(0.06, 0.02, 0.13, c, W + 0.11, 0.16, t); b.box(0.06, 0.02, 0.13, c, -W - 0.11, 0.16, t); }
-  for (const [x, z] of [[-W, -W], [W, -W], [-W, W], [W, W]]) {
-    b.box(0.14, H + 0.1, 0.14, iron, x, 0.16, z);
-    g.ball(0.05, 0xff3020, x, H + 0.32, z, 0);
-  }
+  // ostrzegawcze lampki na rogach podstawy
+  for (const [x, z] of [[-W, -W], [W, -W], [-W, W], [W, W]]) g.ball(0.05, 0xff3020, x * 1.12, 0.22, z * 1.12, 0);
   // pochodnie i łańcuchy
   for (const sx of [-1, 1]) {
     b.box(0.05, 0.6, 0.05, 0x3a2a1a, sx * (W + 0.3), 0, W + 0.25);
@@ -126,11 +124,12 @@ function buildCage(biome) {
     for (let i = 0; i < n; i++) sb.box(0.045, H, 0.045, iron, -W + (i + 0.5) * (2 * W / n), 0, 0);
     sb.box(2 * W, 0.07, 0.07, iron, 0, H * 0.45, 0);
     sb.box(2 * W, 0.08, 0.08, iron, 0, H - 0.08, 0);
+    sb.box(0.14, H + 0.1, 0.14, shade(iron, 0.8), W, 0, 0); // słupek narożny (każda ściana ma jeden)
     const m = sb.mesh();
     const piv = new THREE.Group();
     const a = k * Math.PI / 2;
     piv.position.set(Math.sin(a) * W, 0.16, Math.cos(a) * W);
-    piv.rotation.y = a + Math.PI / 2;
+    piv.rotation.y = a; // lokalna oś x biegnie wzdłuż krawędzi, z na zewnątrz klatki
     piv.add(m);
     piv.userData = { a, v: null };
     grp.add(piv);
@@ -141,7 +140,7 @@ function buildCage(biome) {
   const rm = roof.mesh();
   const rp = new THREE.Group(); rp.position.y = 0.16 + H; rp.add(rm); rp.userData = { a: 0, v: null, roof: true };
   grp.add(rp); c.sides.push(rp);
-  c.light = [0xff7a3a, 2.5, 3.5, c.x, 1.0, c.z + W + 0.3];
+  c.light = [0xff5a3a, 3.5, 4, c.x, 2.4, c.z];
   grp.position.set(c.x, 0, c.z);
   c.grp = grp;
   return grp;

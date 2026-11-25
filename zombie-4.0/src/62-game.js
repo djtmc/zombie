@@ -34,8 +34,9 @@ function composeBossWave(w) {
   const boss = MAP.biome.boss;
   const q = [];
   const esc = Math.min(12, 4 + Math.floor(w / 2));
-  for (let i = 0; i < esc; i++) q.push({ key: pick(['walker', 'walker', 'runner']), delay: 0.6 });
-  q.push({ key: '__cage', delay: 2.5 });
+  // boss wyrywa się z klatki na samym początku fali, za nim idzie eskorta
+  q.push({ key: '__cage', delay: 0.5 });
+  for (let i = 0; i < esc; i++) q.push({ key: pick(['walker', 'walker', 'runner']), delay: i === 0 ? 2.5 : 0.6 });
   for (let i = 0; i < esc; i++) q.push({ key: pick(UNLOCK.filter(u => u[1] <= w).map(u => u[0])), delay: 0.9 });
   return q;
 }
@@ -103,6 +104,7 @@ function endWave() {
   } else {
     GAME.state = 'prep';
     GAME.timer = 15;
+    damageCage(GAME.inBiome);
   }
 }
 

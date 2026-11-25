@@ -280,6 +280,7 @@ function breakCage() {
     sd.userData.v = sd.userData.roof ? { x: 0, y: 6, z: 0, r: 3 } : { x: Math.sin(a) * rr(2.5, 4), y: rr(3, 5), z: Math.cos(a) * rr(2.5, 4), r: rr(-5, 5) };
   }
   BASE.cageFx = c.sides.slice();
+  banner('BOSS SIĘ UWOLNIŁ!', ZT[MAP.biome.boss].name + ' wyrywa kraty klatki');
   explosion(c.x, c.z, 1.3, 0xff6a3a);
   puff(c.x, 0.5, c.z, 0x6a5a4a, 16, 0.35);
   shake(0.6); sfx('cage'); sfx('roar');
@@ -292,6 +293,18 @@ function breakCage() {
   e.x = c.x; e.z = c.z; e.s = best; e.exit = { s: best };
   e.B.root.position.set(e.x, 0.1, e.z);
   return e;
+}
+// Po każdej fali boss nadweręża klatkę: kolejna ściana krat wygina się na zewnątrz.
+function damageCage(stage) {
+  const c = MAP.cage;
+  if (!c || c.broken || !BASE.caged) return;
+  const sd = c.sides[(stage - 1) % 4];
+  sd.children[0].rotation.x = 0.12 + stage * 0.05;
+  sd.children[0].rotation.z = (stage % 2 ? 1 : -1) * 0.08;
+  sparks(sd.position.x + c.x, 1.2, sd.position.z + c.z, 10, 0xffd27a);
+  puff(c.x, 0.4, c.z, 0x6a5a4a, 6, 0.25);
+  BASE.caged.rattle = 1.2;
+  sfx('cage'); sfx('roar'); shake(0.25);
 }
 function updateCage(dt) {
   const cb = BASE.caged;
