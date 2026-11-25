@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0d0b0e">
+<meta name="description" content="Zombie Survival 3D 4.0 - obrona fortecy przed hordami zombie: wieże, armaty na placu, koszary, fabryka czołgów, tartaki i kopalnie złota.">
+<title>Zombie Survival 3D 4.0</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--ink:#efe6d6;--dim:#a99c88;--gold:#f2c14e;--red:#e0483c;--green:#7bc96f;--panel:rgba(16,13,15,.78);--line:rgba(239,230,214,.16);--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#0d0b0e;color:var(--ink);font:14px/1.3 "Trebuchet MS",system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated}
+button{font:inherit;color:inherit;cursor:pointer}
+.plate{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 11px;box-shadow:0 4px 18px rgba(0,0,0,.45);backdrop-filter:blur(3px)}
+#top{position:fixed;top:calc(8px + var(--sat));left:calc(8px + var(--sal));right:calc(8px + var(--sar));display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none}
+#top>*{pointer-events:auto}
+#stats{min-width:190px}
+#stats .row{display:flex;gap:14px;align-items:center;font-weight:bold;font-size:15px}
+#stats .gold{color:var(--gold)}
+#stats .wood{color:#d9a066}
+#ex{display:flex;gap:4px;margin-top:2px}
+#ex button{flex:1;font-size:11px;padding:2px 4px;border-radius:6px;background:rgba(255,255,255,.06);border:1px solid var(--line)}
+#ex button.no{opacity:.4}
+.bar{height:7px;border-radius:4px;background:rgba(255,255,255,.1);overflow:hidden;margin:4px 0 6px}
+.bar>i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c0392b,#e67e22);transition:width .25s}
+#hpbar>i{background:linear-gradient(90deg,#a83226,#e0483c 60%,#f39c5a)}
+#wave{text-align:center;border:1px solid var(--line);cursor:pointer;min-width:200px}
+#wave b{color:var(--gold)}
+#wave .sub{font-size:12px;color:var(--dim)}
+#wave.ready{border-color:rgba(242,193,78,.6)}
+#cmd{cursor:pointer;text-align:right}
+#cmd .who{font-weight:bold}
+#cmd .sub{font-size:12px;color:var(--dim)}
+#cmd.ai .sub{color:#b9d6f2}
+#cmd.ai .who{color:#8ec5ff}
+#cmd.me .who{color:var(--gold)}
+#boss{position:fixed;top:calc(78px + var(--sat));left:50%;transform:translateX(-50%);width:min(420px,80vw);text-align:center;display:none}
+#boss .name{font-weight:bold;letter-spacing:1px;color:#ff8a65}
+#bossbar>i{background:linear-gradient(90deg,#6d1b1b,#e0483c)}
+#banner{position:fixed;top:32%;left:0;right:0;text-align:center;pointer-events:none;opacity:0;transition:opacity .6s}
+#banner .big{font-size:clamp(26px,6vw,54px);font-weight:900;letter-spacing:3px;text-shadow:0 3px 0 #000,0 0 30px rgba(224,72,60,.55)}
+#banner .small{font-size:clamp(13px,2.5vw,18px);color:var(--dim);margin-top:6px;text-shadow:0 2px 0 #000}
+#note{position:fixed;left:50%;bottom:calc(64px + var(--sab));transform:translateX(-50%);max-width:min(560px,92vw);text-align:center;opacity:0;transition:opacity .5s;pointer-events:none}
+#note b{color:var(--gold)}
+#bottom{position:fixed;bottom:calc(8px + var(--sab));left:calc(8px + var(--sal));right:calc(8px + var(--sar));display:flex;gap:6px;justify-content:center;flex-wrap:wrap;pointer-events:none}
+#bottom button{pointer-events:auto;min-width:44px;height:40px;border-radius:9px;background:var(--panel);border:1px solid var(--line);font-weight:bold}
+#bottom button.on{border-color:rgba(242,193,78,.7);color:var(--gold)}
+#menu{position:fixed;display:none;z-index:5;min-width:220px;max-width:300px}
+#menu h4{margin:0 0 6px;font-size:14px;display:flex;justify-content:space-between;gap:8px}
+#menu .opt{display:flex;width:100%;gap:8px;align-items:center;text-align:left;margin:4px 0;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid transparent}
+#menu .opt:hover,#menu .opt.sel{border-color:rgba(242,193,78,.6)}
+#menu .opt.no{opacity:.45}
+#menu .opt .ic{font-size:20px;width:26px;text-align:center}
+#menu .opt .nm{font-weight:bold}
+#menu .opt .cs{margin-left:auto;color:var(--gold);font-weight:bold;white-space:nowrap}
+#menu .desc{font-size:12px;color:var(--dim)}
+#menu .x{background:none;border:0;color:var(--dim);font-size:16px;padding:0 2px}
+#over{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(8,5,6,.72);z-index:10}
+#over .box{text-align:center;padding:26px 30px}
+#over h2{margin:0 0 8px;font-size:34px;color:var(--red);letter-spacing:2px}
+#over button{margin-top:16px;padding:10px 22px;border-radius:10px;background:#7d241c;border:1px solid #e0483c;font-weight:bold;font-size:16px}
+#title{position:fixed;left:50%;bottom:calc(56px + var(--sab));transform:translateX(-50%);text-align:center;pointer-events:none;transition:opacity 1.2s}
+#title .t{font-size:clamp(20px,4vw,34px);font-weight:900;letter-spacing:4px;text-shadow:0 3px 0 #000}
+#title .t span{color:var(--red)}
+#title .s{color:var(--dim);font-size:13px;text-shadow:0 2px 0 #000}
+@media (max-width:640px){#stats{min-width:0}#wave{min-width:0}#stats .row{font-size:13px;gap:9px}#cmd.me .sub{display:none}#bottom button{min-width:40px;height:38px;padding:0 6px}#menu{width:min(340px,92vw);max-width:none}}
+@media (max-width:640px) and (orientation:portrait){#top{flex-wrap:wrap}#wave{order:3;flex-basis:100%}#boss{top:calc(118px + var(--sat))}}
+</style>
+</head>
+<body>
+<div id="top">
+  <div id="stats" class="plate">
+    <div class="row"><span>🏰 <b id="hp">100</b></span><span class="gold">💰 <b id="gold">0</b></span><span class="wood">🪵 <b id="wood">0</b></span><span>💀 <b id="kills">0</b></span></div>
+    <div id="hpbar" class="bar"><i></i></div>
+    <div id="ex"><button id="exG" title="Wymiana [Q]">20💰 → 10🪵</button><button id="exW" title="Wymiana [E]">10🪵 → 20💰</button></div>
+  </div>
+  <div id="wave" class="plate" title="Wezwij falę wcześniej [Spacja]"><div>FALA <b id="waveNo">1</b> · <span id="biomeName"></span></div><div class="sub" id="waveSub"></div></div>
+  <div id="cmd" class="plate me" title="Oddaj dowodzenie Tytanowi / przejmij je [C]"><div class="who" id="cmdWho">🎖️ Dowodzisz Ty</div><div class="sub" id="cmdSub">kliknij, by oddać dowodzenie Tytanowi</div></div>
+</div>
+<div id="boss" class="plate"><div class="name" id="bossName"></div><div id="bossbar" class="bar"><i></i></div></div>
+<div id="banner"><div class="big" id="bannerBig"></div><div class="small" id="bannerSmall"></div></div>
+<div id="note" class="plate"></div>
+<div id="title"><div class="t">ZOMBIE SURVIVAL <span>4.0</span></div><div class="s">Wieże na polach · armaty na placu · koszary, fabryka, tartaki i kopalnie na zapleczu</div></div>
+<div id="menu" class="plate"></div>
+<div id="bottom">
+  <button id="bPause" title="Pauza [P]">⏸</button>
+  <button id="bSpeed" title="Szybkość [Tab]">1×</button>
+  <button id="bMute" title="Dźwięk [M]">🔊</button>
+  <button id="bZoomIn" title="Przybliż [+]">＋</button>
+  <button id="bZoomOut" title="Oddal [-]">－</button>
+  <button id="bFollow" title="Śledź walkę [F]">🎥</button>
+  <button id="bFull" title="Pełny ekran">⛶</button>
+  <button id="bQuality" title="Jakość grafiki [G]">Auto</button>
+</div>
+<div id="over"><div class="box plate"><h2>FORTECA PADŁA</h2><div id="overText"></div><button id="bRestart">Zagraj jeszcze raz</button></div></div>
+<script>/*__THREE__*/</script>
+<script>/*__GAME__*/</script>
+<script>if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "Zombie Survival 3D 4.0",
+  "short_name": "Zombie 4.0",
+  "description": "Obrona fortecy przed hordami zombie: wieże, armaty na placu, koszary, fabryka, tartaki i kopalnie złota.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0d0b0e",
+  "theme_color": "#0d0b0e",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["games", "entertainment"]
+}
