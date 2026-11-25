@@ -2,7 +2,15 @@
 const AI = { t: 0, plan: 0 };
 
 // Ile punktów drogi wieża danego typu obejmie z danego pola (próbkowanie co 0.3).
+const COV = new Map();
 function coverage(pad, type, lv = 0) {
+  const ck = MAP.biomeIndex + ':' + pad.id + type + lv;
+  if (COV.has(ck)) return COV.get(ck);
+  const v = coverageRaw(pad, type, lv);
+  COV.set(ck, v);
+  return v;
+}
+function coverageRaw(pad, type, lv) {
   const r = towerRange(type, lv), p = { x: 0, z: 0 };
   let n = 0;
   for (let s = 1; s < MAP.pathLen - 1.5; s += 0.3) {

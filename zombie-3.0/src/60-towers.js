@@ -84,7 +84,7 @@ function towerModel(type, lv) {
   for (let y = 0.35; y < H; y += 0.35) { sc.box(0.84, 0.03, 0.03, 0x9a7a4a, 0, y, -0.4); sc.box(0.84, 0.03, 0.03, 0x9a7a4a, 0, y, 0.4); sc.box(0.03, 0.03, 0.84, 0x9a7a4a, -0.4, y, 0); sc.box(0.03, 0.03, 0.84, 0x9a7a4a, 0.4, y, 0); }
   const scaffold = sc.mesh();
   grp.add(scaffold);
-  const ice = new THREE.Mesh(new THREE.BoxGeometry(0.9, H + 0.2, 0.9), new THREE.MeshStandardMaterial({ color: 0xbfe8ff, transparent: true, opacity: 0.55, roughness: 0.2 }));
+  const ice = new THREE.Mesh(new THREE.BoxGeometry(0.9, H + 0.2, 0.9), new THREE.MeshLambertMaterial({ color: 0xbfe8ff, transparent: true, opacity: 0.55 }));
   ice.position.y = (H + 0.2) / 2 + 0.05; ice.visible = false; grp.add(ice);
   return { grp, body, head: hm, muzzle, scaffold, ice, H };
 }

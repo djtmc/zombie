@@ -71,11 +71,11 @@ function makeBody(P, mat = MAT.v) {
   const root = new THREE.Group();
   const hip = new THREE.Group();
   root.add(hip);
-  const m = (g, mt = mat) => { const x = new THREE.Mesh(g, mt); x.castShadow = true; return x; };
+  const m = (g, mt = mat, sh = false) => { const x = new THREE.Mesh(g, mt); x.castShadow = sh; return x; };
   const B = { root, hip, dog: !!P.dog, s: P.s };
   if (P.dog) {
     hip.position.y = 0.27;
-    B.torso = m(P.torso); hip.add(B.torso);
+    B.torso = m(P.torso, mat, true); hip.add(B.torso);
     B.legs = [];
     for (const [x, z] of [[-0.08, 0.18], [0.08, 0.18], [-0.08, -0.18], [0.08, -0.18]]) {
       const g = new THREE.Group(); g.position.set(x, -0.08, z); g.add(m(P.leg)); hip.add(g); B.legs.push(g);
@@ -83,7 +83,7 @@ function makeBody(P, mat = MAT.v) {
   } else {
     hip.position.y = 0.48;
     B.torso = new THREE.Group(); hip.add(B.torso);
-    B.torso.add(m(P.torso));
+    B.torso.add(m(P.torso, mat, true));
     if (P.glow) B.torso.add(new THREE.Mesh(P.glow, MAT.glow));
     B.armL = new THREE.Group(); B.armL.position.set(-0.24, 0.36, 0); B.armL.add(m(P.arm));
     B.armR = new THREE.Group(); B.armR.position.set(0.24, 0.36, 0); B.armR.add(m(P.armR || P.arm));

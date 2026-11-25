@@ -160,6 +160,8 @@ function initUI() {
   $('bFull').addEventListener('click', () => { const d = document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else if (d.requestFullscreen) d.requestFullscreen().catch(() => { }); });
   if (!document.documentElement.requestFullscreen) $('bFull').style.display = 'none';
   $('bRestart').addEventListener('click', () => startGame());
+  $('bQuality').addEventListener('click', cycleQuality);
+  $('bQuality').textContent = (QUALITY.mode === 'auto' ? 'Auto · ' : '') + QUALITY.lv().name;
   $('bMute').textContent = AUDIO.muted ? '🔇' : '🔊';
 }
 function togglePause() { GAME.paused = !GAME.paused; $('bPause').textContent = GAME.paused ? '▶' : '⏸'; $('bPause').classList.toggle('on', GAME.paused); }
