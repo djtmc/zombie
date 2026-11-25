@@ -88,9 +88,11 @@ function updateZombies(dt) {
     }
     if (e.exit) {
       // boss wychodzi z rozbitej klatki na drogę
-      pathAt(e.exit.s, _p);
-      const dx = _p.x - e.x, dz = _p.z - e.z, dd = Math.hypot(dx, dz), v = d.speed * 2 * dt;
-      if (dd <= v) e.exit = null;
+      if (e.exit.wait > 0) { e.exit.wait -= dt; e.phase += dt * 2; animBody(B, d.gait, e.phase, false, 0.2); continue; }
+      let tx, tz;
+      if (e.exit.gate) { tx = e.exit.gate.x; tz = e.exit.gate.z; } else { pathAt(e.exit.s, _p); tx = _p.x; tz = _p.z; }
+      const dx = tx - e.x, dz = tz - e.z, dd = Math.hypot(dx, dz), v = d.speed * 2 * dt;
+      if (dd <= v) { if (e.exit.gate) e.exit.gate = null; else e.exit = null; }
       else { e.x += dx / dd * v; e.z += dz / dd * v; B.root.position.set(e.x, 0, e.z); B.root.rotation.y = Math.atan2(dx, dz); e.phase += dt * 3; animBody(B, d.gait, e.phase, true, 0.2); }
       continue;
     }
