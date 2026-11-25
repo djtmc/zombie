@@ -6,7 +6,7 @@ function init() {
   initFx();
   initWeather();
   initTowers();
-  resizeGfx();
+  initQuality();
   computeFit();
   CAM.dist = CAM.fitDist;
   initUI();
@@ -33,6 +33,7 @@ function init() {
       updateLights(dt, time);
     }
     if (GAME.paused) updateLights(0, time);
+    updateQuality(real);
     updateAudio(real);
     placeCamera(real);
     updateHud(real);
@@ -41,7 +42,7 @@ function init() {
   }
   requestAnimationFrame(frame);
   window.__z3 = {
-    GAME, MAP, T, Z, CAM, padAt: padAtScreen,
+    GAME, MAP, T, Z, CAM, padAt: padAtScreen, bench(n) { let t0 = performance.now(); for (let i = 0; i < n; i++) { updateTowers(0.016); updateZombies(0.016); updateFx(0.016); placeCamera(0.016); updateHud(0.016); } const sim = (performance.now() - t0) / n; t0 = performance.now(); const gl = G.renderer.getContext(), px = new Uint8Array(4); G.renderer.info.autoReset = false; G.renderer.info.reset(); for (let i = 0; i < n; i++) { renderFrame(i * 0.016); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); } const r = { sim, render: (performance.now() - t0) / n, calls: G.renderer.info.render.calls / n, tris: G.renderer.info.render.triangles / n }; G.renderer.info.autoReset = true; return r; }, setQ(l) { QUALITY.mode = l; applyQuality(l); },
     // hak testowy: symulacja bez renderowania (dt = 0.05 s)
     step(secs) { for (let i = 0; i < secs * 20; i++) { layoutAnim(0.05); updateGame(0.05); if (MAP.state === 'live') { updateAI(0.05); updateTowers(0.05); updateZombies(0.05); } updateFx(0.05); } },
     fog() { return [G.scene.fog.near, G.scene.fog.far, CAM.dist, CAM.fitDist]; }

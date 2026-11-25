@@ -117,6 +117,7 @@ function buildFortress(biome, gx, gz) {
 
 function buildMap(biomeIndex) {
   MAP.biomeIndex = biomeIndex;
+  if (typeof COV !== 'undefined') COV.clear();
   const biome = MAP.biome = BIOMES[biomeIndex % BIOMES.length];
   MAP.road = new Set();
   const cells = genRoad();
@@ -133,7 +134,7 @@ function buildMap(biomeIndex) {
 
   // płytki terenu jako jeden InstancedMesh (każda płytka spada osobno przy rozpadzie)
   const tileGeo = new THREE.BoxGeometry(1, 2, 1);
-  const tiles = new THREE.InstancedMesh(tileGeo, new THREE.MeshStandardMaterial({ roughness: 0.95, flatShading: true }), MW * MD);
+  const tiles = new THREE.InstancedMesh(tileGeo, new THREE.MeshLambertMaterial({ flatShading: true }), MW * MD);
   tiles.receiveShadow = true; tiles.castShadow = false;
   MAP.tileInfo = [];
   const m4 = new THREE.Matrix4();

@@ -7,7 +7,7 @@ const G = {
 // Wspólny materiał z kolorami wierzchołków - całe modele składamy z pudełek w jedną geometrię.
 const MAT = {};
 function makeMaterials() {
-  MAT.v = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 });
+  MAT.v = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
   MAT.glow = new THREE.MeshBasicMaterial({ vertexColors: true });
   MAT.water = new THREE.MeshStandardMaterial({ color: 0x334, roughness: 0.25, metalness: 0.1, transparent: true, opacity: 0.85 });
 }
@@ -60,12 +60,12 @@ function initLights() {
     const l = new THREE.PointLight(0xffaa55, 0, 6, 1.6);
     l.position.set(0, -50, 0);
     G.scene.add(l);
-    G.lights.push({ l, owner: null, t: 0, life: 0, base: 0, flick: 0 });
+    G.lights.push({ l, owner: null, t: 0, life: 0, base: 0, flick: 0, on: true });
   }
 }
 // Stałe światło (np. beczka z ogniem) - migocze, dopóki nie zostanie zwolnione.
 function claimLight(owner, color, intensity, range, x, y, z, flick = 0.25) {
-  const s = G.lights.find(s => !s.owner);
+  const s = G.lights.find(s => s.on && !s.owner);
   if (!s) return null;
   s.owner = owner; s.life = 0; s.base = intensity; s.flick = flick;
   s.l.color.set(color); s.l.distance = range; s.l.intensity = intensity; s.l.position.set(x, y, z);
@@ -74,8 +74,8 @@ function claimLight(owner, color, intensity, range, x, y, z, flick = 0.25) {
 function releaseLights(owner) { for (const s of G.lights) if (s.owner === owner) { s.owner = null; s.l.intensity = 0; s.l.position.y = -50; } }
 // Krótki błysk (wystrzał, wybuch) - zajmuje najstarszy wolny lub wygasający slot.
 function flash(color, intensity, range, x, y, z, life = 0.12) {
-  let s = G.lights.find(s => !s.owner);
-  if (!s) s = G.lights.filter(s => s.owner === 'flash').sort((a, b) => a.t - b.t)[0];
+  let s = G.lights.find(s => s.on && !s.owner);
+  if (!s) s = G.lights.filter(s => s.on && s.owner === 'flash').sort((a, b) => a.t - b.t)[0];
   if (!s) return;
   s.owner = 'flash'; s.life = life; s.t = life; s.base = intensity; s.flick = 0;
   s.l.color.set(color); s.l.distance = range; s.l.intensity = intensity; s.l.position.set(x, y, z);
@@ -97,7 +97,8 @@ function initGfx() {
   const r = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
   r.setPixelRatio(1);
   r.shadowMap.enabled = true;
-  r.shadowMap.type = THREE.PCFSoftShadowMap;
+  r.shadowMap.type = THREE.PCFShadowMap;
+  r.shadowMap.autoUpdate = false;
   r.outputColorSpace = THREE.SRGBColorSpace;
   r.toneMapping = THREE.ACESFilmicToneMapping;
   r.toneMappingExposure = 1.05;
@@ -109,7 +110,7 @@ function initGfx() {
   G.scene.add(G.hemi);
   const sun = new THREE.DirectionalLight(0xffeedd, 1.4);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1024, 1024);
   const sc = sun.shadow.camera;
   sc.left = -22; sc.right = 22; sc.top = 14; sc.bottom = -14; sc.near = 1; sc.far = 80;
   sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.02;

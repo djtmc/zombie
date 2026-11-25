@@ -84,6 +84,7 @@ function initInput() {
     else if (lk === 'c') setCommand(!GAME.ai);
     else if (lk === 'm') toggleMute();
     else if (lk === 'p') togglePause();
+    else if (lk === 'g') cycleQuality();
     else if (lk === 'f' || k === '0') followFight();
     else if (k === '+' || k === '=') zoomAt(0.8);
     else if (k === '-' || k === '_') zoomAt(1.25);

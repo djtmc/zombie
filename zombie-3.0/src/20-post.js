@@ -31,7 +31,7 @@ void main(){
   }
   // poświata jasnych punktów (ogień, błyski, wyładowania)
   vec3 g = vec3(0.0);
-  for (int i = 0; i < 8; i++) {
+  if (uGlow > 0.0) for (int i = 0; i < 8; i++) {
     float a = float(i) * 0.785398 + 0.3;
     vec3 s1 = texture2D(tColor, vUv + vec2(cos(a), sin(a)) * 3.0 / uRes).rgb;
     vec3 s2 = texture2D(tColor, vUv + vec2(cos(a), sin(a)) * 7.0 / uRes).rgb;
@@ -77,10 +77,10 @@ function resizeGfx() {
   G.renderer.setSize(w, h, false);
   G.renderer.domElement.style.width = w + 'px';
   G.renderer.domElement.style.height = h + 'px';
-  G.renderer.setPixelRatio(dpr);
-  // mniejsza rozdzielczość wewnętrzna = wygląd makiety i lepsza wydajność na telefonach
-  let s = POST.scale * dpr;
-  const maxW = 1400;
+  G.renderer.setPixelRatio(Math.min(dpr, QUALITY.lv().dpr));
+  // mniejsza rozdzielczość wewnętrzna = wygląd makiety i lepsza wydajność (liczona w pikselach CSS)
+  let s = QUALITY.lv().scale;
+  const maxW = QUALITY.lv().maxW;
   if (w * s > maxW) s = maxW / w;
   const rw = Math.max(2, Math.round(w * s)), rh = Math.max(2, Math.round(h * s));
   POST.rt.setSize(rw, rh);
@@ -91,6 +91,9 @@ function resizeGfx() {
 
 function renderFrame(time) {
   POST.mat.uniforms.uTime.value = time % 100;
+  QUALITY.frame++;
+  const q = QUALITY.lv();
+  if (q.shadow && QUALITY.frame % q.shadowEvery === 0) G.renderer.shadowMap.needsUpdate = true;
   G.renderer.setRenderTarget(POST.rt);
   G.renderer.render(G.scene, G.camera);
   G.renderer.setRenderTarget(null);

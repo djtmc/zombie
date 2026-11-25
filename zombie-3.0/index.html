@@ -16,7 +16,7 @@
 :root{--ink:#efe6d6;--dim:#a99c88;--gold:#f2c14e;--red:#e0483c;--green:#7bc96f;--panel:rgba(16,13,15,.78);--line:rgba(239,230,214,.16);--sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);--sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:#0d0b0e;color:var(--ink);font:14px/1.3 "Trebuchet MS",system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
-canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%;image-rendering:pixelated}
 button{font:inherit;color:inherit;cursor:pointer}
 .plate{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 11px;box-shadow:0 4px 18px rgba(0,0,0,.45);backdrop-filter:blur(3px)}
 #top{position:fixed;top:calc(8px + var(--sat));left:calc(8px + var(--sal));right:calc(8px + var(--sar));display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none}
@@ -91,6 +91,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <button id="bZoomOut" title="Oddal [-]">－</button>
   <button id="bFollow" title="Śledź walkę [F]">🎥</button>
   <button id="bFull" title="Pełny ekran">⛶</button>
+  <button id="bQuality" title="Jakość grafiki [G]">Auto</button>
 </div>
 <div id="over"><div class="box plate"><h2>FORTECA PADŁA</h2><div id="overText"></div><button id="bRestart">Zagraj jeszcze raz</button></div></div>
 <script>var THREE=(function(){/**
@@ -147,7 +148,7 @@ const G = {
 // Wspólny materiał z kolorami wierzchołków - całe modele składamy z pudełek w jedną geometrię.
 const MAT = {};
 function makeMaterials() {
-  MAT.v = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 0.95, metalness: 0 });
+  MAT.v = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
   MAT.glow = new THREE.MeshBasicMaterial({ vertexColors: true });
   MAT.water = new THREE.MeshStandardMaterial({ color: 0x334, roughness: 0.25, metalness: 0.1, transparent: true, opacity: 0.85 });
 }
@@ -200,12 +201,12 @@ function initLights() {
     const l = new THREE.PointLight(0xffaa55, 0, 6, 1.6);
     l.position.set(0, -50, 0);
     G.scene.add(l);
-    G.lights.push({ l, owner: null, t: 0, life: 0, base: 0, flick: 0 });
+    G.lights.push({ l, owner: null, t: 0, life: 0, base: 0, flick: 0, on: true });
   }
 }
 // Stałe światło (np. beczka z ogniem) - migocze, dopóki nie zostanie zwolnione.
 function claimLight(owner, color, intensity, range, x, y, z, flick = 0.25) {
-  const s = G.lights.find(s => !s.owner);
+  const s = G.lights.find(s => s.on && !s.owner);
   if (!s) return null;
   s.owner = owner; s.life = 0; s.base = intensity; s.flick = flick;
   s.l.color.set(color); s.l.distance = range; s.l.intensity = intensity; s.l.position.set(x, y, z);
@@ -214,8 +215,8 @@ function claimLight(owner, color, intensity, range, x, y, z, flick = 0.25) {
 function releaseLights(owner) { for (const s of G.lights) if (s.owner === owner) { s.owner = null; s.l.intensity = 0; s.l.position.y = -50; } }
 // Krótki błysk (wystrzał, wybuch) - zajmuje najstarszy wolny lub wygasający slot.
 function flash(color, intensity, range, x, y, z, life = 0.12) {
-  let s = G.lights.find(s => !s.owner);
-  if (!s) s = G.lights.filter(s => s.owner === 'flash').sort((a, b) => a.t - b.t)[0];
+  let s = G.lights.find(s => s.on && !s.owner);
+  if (!s) s = G.lights.filter(s => s.on && s.owner === 'flash').sort((a, b) => a.t - b.t)[0];
   if (!s) return;
   s.owner = 'flash'; s.life = life; s.t = life; s.base = intensity; s.flick = 0;
   s.l.color.set(color); s.l.distance = range; s.l.intensity = intensity; s.l.position.set(x, y, z);
@@ -237,7 +238,8 @@ function initGfx() {
   const r = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
   r.setPixelRatio(1);
   r.shadowMap.enabled = true;
-  r.shadowMap.type = THREE.PCFSoftShadowMap;
+  r.shadowMap.type = THREE.PCFShadowMap;
+  r.shadowMap.autoUpdate = false;
   r.outputColorSpace = THREE.SRGBColorSpace;
   r.toneMapping = THREE.ACESFilmicToneMapping;
   r.toneMappingExposure = 1.05;
@@ -249,7 +251,7 @@ function initGfx() {
   G.scene.add(G.hemi);
   const sun = new THREE.DirectionalLight(0xffeedd, 1.4);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.set(1024, 1024);
   const sc = sun.shadow.camera;
   sc.left = -22; sc.right = 22; sc.top = 14; sc.bottom = -14; sc.near = 1; sc.far = 80;
   sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.02;
@@ -258,6 +260,73 @@ function initGfx() {
   G.scene.fog = new THREE.Fog(0x000000, 40, 90);
   makeMaterials();
   initLights();
+}
+
+// ---- 15-quality.js ----
+// Jakość grafiki: trzy poziomy i tryb automatyczny, który obniża jakość, gdy gra działa za wolno.
+const QLEVELS = [
+  { name: 'Niska', scale: 0.4, maxW: 760, dpr: 0.5, shadow: 0, shadowEvery: 1, lights: 2, blur: false, glow: false, weather: 250 },
+  { name: 'Średnia', scale: 0.5, maxW: 1000, dpr: 0.75, shadow: 1024, shadowEvery: 3, lights: 4, blur: true, glow: false, weather: 500 },
+  { name: 'Wysoka', scale: 0.6, maxW: 1400, dpr: 1.5, shadow: 2048, shadowEvery: 1, lights: 8, blur: true, glow: true, weather: 900 }
+];
+const QUALITY = {
+  mode: store.get('quality', 'auto'), cur: 1, frame: 0, acc: 0, n: 0, wait: 4,
+  lv() { return QLEVELS[this.cur]; }
+};
+
+function applyQuality(i) {
+  QUALITY.cur = clamp(i, 0, QLEVELS.length - 1);
+  const q = QUALITY.lv();
+  // cienie
+  G.sun.castShadow = !!q.shadow;
+  if (q.shadow && G.sun.shadow.mapSize.x !== q.shadow) {
+    G.sun.shadow.mapSize.set(q.shadow, q.shadow);
+    if (G.sun.shadow.map) { G.sun.shadow.map.dispose(); G.sun.shadow.map = null; }
+  }
+  G.renderer.shadowMap.needsUpdate = true;
+  // światła punktowe: zbędne wyłączamy całkiem (mniej obliczeń na każdy piksel)
+  G.lights.forEach((s, k) => {
+    const on = k < q.lights;
+    if (on === s.on) return;
+    s.on = on;
+    if (on) G.scene.add(s.l); else { G.scene.remove(s.l); s.owner = null; s.l.intensity = 0; }
+  });
+  if (MAP.state === 'live') { releaseLights('map'); releaseLights('fort'); lightMapDecor(); }
+  POST.mat.uniforms.uGlow.value = q.glow ? 0.16 : 0;
+  if (FX.weather) FX.weather.geometry.setDrawRange(0, q.weather);
+  resizeGfx();
+  const b = $('bQuality');
+  if (b) b.textContent = (QUALITY.mode === 'auto' ? 'Auto · ' : '') + q.name;
+}
+
+function initQuality() {
+  const start = QUALITY.mode === 'auto' ? (isTouch || (navigator.hardwareConcurrency || 4) <= 4 ? 1 : 2) : QUALITY.mode;
+  applyQuality(start);
+}
+
+function cycleQuality() {
+  // Auto -> Wysoka -> Średnia -> Niska -> Auto
+  const order = ['auto', 2, 1, 0];
+  QUALITY.mode = order[(order.indexOf(QUALITY.mode) + 1) % order.length];
+  store.set('quality', QUALITY.mode);
+  QUALITY.acc = 0; QUALITY.n = 0; QUALITY.wait = 4;
+  applyQuality(QUALITY.mode === 'auto' ? 1 : QUALITY.mode);
+  showNote('Grafika', 'jakość: ' + (QUALITY.mode === 'auto' ? 'automatyczna' : QUALITY.lv().name.toLowerCase()));
+}
+
+// Tryb auto: mierzy średni czas klatki co 3 s i obniża jakość, jeśli gra nie trzyma ~30 FPS.
+function updateQuality(real) {
+  if (QUALITY.mode !== 'auto' || document.hidden) return;
+  if (QUALITY.wait > 0) { QUALITY.wait -= real; return; }
+  QUALITY.acc += real; QUALITY.n++;
+  if (QUALITY.acc < 3) return;
+  const avg = QUALITY.acc / QUALITY.n;
+  QUALITY.acc = 0; QUALITY.n = 0;
+  if (avg > 0.034 && QUALITY.cur > 0) {
+    applyQuality(QUALITY.cur - 1);
+    QUALITY.wait = 3;
+    showNote('Grafika', 'obniżono jakość do: ' + QUALITY.lv().name.toLowerCase() + ', żeby gra działała płynniej.');
+  }
 }
 
 // ---- 20-post.js ----
@@ -294,7 +363,7 @@ void main(){
   }
   // poświata jasnych punktów (ogień, błyski, wyładowania)
   vec3 g = vec3(0.0);
-  for (int i = 0; i < 8; i++) {
+  if (uGlow > 0.0) for (int i = 0; i < 8; i++) {
     float a = float(i) * 0.785398 + 0.3;
     vec3 s1 = texture2D(tColor, vUv + vec2(cos(a), sin(a)) * 3.0 / uRes).rgb;
     vec3 s2 = texture2D(tColor, vUv + vec2(cos(a), sin(a)) * 7.0 / uRes).rgb;
@@ -340,10 +409,10 @@ function resizeGfx() {
   G.renderer.setSize(w, h, false);
   G.renderer.domElement.style.width = w + 'px';
   G.renderer.domElement.style.height = h + 'px';
-  G.renderer.setPixelRatio(dpr);
-  // mniejsza rozdzielczość wewnętrzna = wygląd makiety i lepsza wydajność na telefonach
-  let s = POST.scale * dpr;
-  const maxW = 1400;
+  G.renderer.setPixelRatio(Math.min(dpr, QUALITY.lv().dpr));
+  // mniejsza rozdzielczość wewnętrzna = wygląd makiety i lepsza wydajność (liczona w pikselach CSS)
+  let s = QUALITY.lv().scale;
+  const maxW = QUALITY.lv().maxW;
   if (w * s > maxW) s = maxW / w;
   const rw = Math.max(2, Math.round(w * s)), rh = Math.max(2, Math.round(h * s));
   POST.rt.setSize(rw, rh);
@@ -354,6 +423,9 @@ function resizeGfx() {
 
 function renderFrame(time) {
   POST.mat.uniforms.uTime.value = time % 100;
+  QUALITY.frame++;
+  const q = QUALITY.lv();
+  if (q.shadow && QUALITY.frame % q.shadowEvery === 0) G.renderer.shadowMap.needsUpdate = true;
   G.renderer.setRenderTarget(POST.rt);
   G.renderer.render(G.scene, G.camera);
   G.renderer.setRenderTarget(null);
@@ -609,6 +681,7 @@ function buildFortress(biome, gx, gz) {
 
 function buildMap(biomeIndex) {
   MAP.biomeIndex = biomeIndex;
+  if (typeof COV !== 'undefined') COV.clear();
   const biome = MAP.biome = BIOMES[biomeIndex % BIOMES.length];
   MAP.road = new Set();
   const cells = genRoad();
@@ -625,7 +698,7 @@ function buildMap(biomeIndex) {
 
   // płytki terenu jako jeden InstancedMesh (każda płytka spada osobno przy rozpadzie)
   const tileGeo = new THREE.BoxGeometry(1, 2, 1);
-  const tiles = new THREE.InstancedMesh(tileGeo, new THREE.MeshStandardMaterial({ roughness: 0.95, flatShading: true }), MW * MD);
+  const tiles = new THREE.InstancedMesh(tileGeo, new THREE.MeshLambertMaterial({ flatShading: true }), MW * MD);
   tiles.receiveShadow = true; tiles.castShadow = false;
   MAP.tileInfo = [];
   const m4 = new THREE.Matrix4();
@@ -765,7 +838,7 @@ const NPART = 1400, NGLOW = 1000, NSEG = 600;
 
 function initFx() {
   const geo = new THREE.BoxGeometry(1, 1, 1);
-  FX.lit = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ roughness: 0.9 }), NPART);
+  FX.lit = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial(), NPART);
   FX.glow = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ toneMapped: false }), NGLOW);
   for (const m of [FX.lit, FX.glow]) {
     m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -773,7 +846,7 @@ function initFx() {
     m.setColorAt(0, new THREE.Color());
     G.scene.add(m);
   }
-  FX.lit.castShadow = true;
+  FX.lit.castShadow = false;
   const lg = new THREE.BufferGeometry();
   lg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(NSEG * 6), 3));
   lg.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(NSEG * 6), 3));
@@ -998,11 +1071,11 @@ function makeBody(P, mat = MAT.v) {
   const root = new THREE.Group();
   const hip = new THREE.Group();
   root.add(hip);
-  const m = (g, mt = mat) => { const x = new THREE.Mesh(g, mt); x.castShadow = true; return x; };
+  const m = (g, mt = mat, sh = false) => { const x = new THREE.Mesh(g, mt); x.castShadow = sh; return x; };
   const B = { root, hip, dog: !!P.dog, s: P.s };
   if (P.dog) {
     hip.position.y = 0.27;
-    B.torso = m(P.torso); hip.add(B.torso);
+    B.torso = m(P.torso, mat, true); hip.add(B.torso);
     B.legs = [];
     for (const [x, z] of [[-0.08, 0.18], [0.08, 0.18], [-0.08, -0.18], [0.08, -0.18]]) {
       const g = new THREE.Group(); g.position.set(x, -0.08, z); g.add(m(P.leg)); hip.add(g); B.legs.push(g);
@@ -1010,7 +1083,7 @@ function makeBody(P, mat = MAT.v) {
   } else {
     hip.position.y = 0.48;
     B.torso = new THREE.Group(); hip.add(B.torso);
-    B.torso.add(m(P.torso));
+    B.torso.add(m(P.torso, mat, true));
     if (P.glow) B.torso.add(new THREE.Mesh(P.glow, MAT.glow));
     B.armL = new THREE.Group(); B.armL.position.set(-0.24, 0.36, 0); B.armL.add(m(P.arm));
     B.armR = new THREE.Group(); B.armR.position.set(0.24, 0.36, 0); B.armR.add(m(P.armR || P.arm));
@@ -1259,7 +1332,7 @@ function towerModel(type, lv) {
   for (let y = 0.35; y < H; y += 0.35) { sc.box(0.84, 0.03, 0.03, 0x9a7a4a, 0, y, -0.4); sc.box(0.84, 0.03, 0.03, 0x9a7a4a, 0, y, 0.4); sc.box(0.03, 0.03, 0.84, 0x9a7a4a, -0.4, y, 0); sc.box(0.03, 0.03, 0.84, 0x9a7a4a, 0.4, y, 0); }
   const scaffold = sc.mesh();
   grp.add(scaffold);
-  const ice = new THREE.Mesh(new THREE.BoxGeometry(0.9, H + 0.2, 0.9), new THREE.MeshStandardMaterial({ color: 0xbfe8ff, transparent: true, opacity: 0.55, roughness: 0.2 }));
+  const ice = new THREE.Mesh(new THREE.BoxGeometry(0.9, H + 0.2, 0.9), new THREE.MeshLambertMaterial({ color: 0xbfe8ff, transparent: true, opacity: 0.55 }));
   ice.position.y = (H + 0.2) / 2 + 0.05; ice.visible = false; grp.add(ice);
   return { grp, body, head: hm, muzzle, scaffold, ice, H };
 }
@@ -1857,7 +1930,15 @@ function updateGame(dt) {
 const AI = { t: 0, plan: 0 };
 
 // Ile punktów drogi wieża danego typu obejmie z danego pola (próbkowanie co 0.3).
+const COV = new Map();
 function coverage(pad, type, lv = 0) {
+  const ck = MAP.biomeIndex + ':' + pad.id + type + lv;
+  if (COV.has(ck)) return COV.get(ck);
+  const v = coverageRaw(pad, type, lv);
+  COV.set(ck, v);
+  return v;
+}
+function coverageRaw(pad, type, lv) {
   const r = towerRange(type, lv), p = { x: 0, z: 0 };
   let n = 0;
   for (let s = 1; s < MAP.pathLen - 1.5; s += 0.3) {
@@ -1987,7 +2068,7 @@ function placeCamera(dt) {
   if (G.scene.fog && MAP.biome) { G.scene.fog.near = CAM.dist + 6 + (MAP.biome.fogNear - 30) * 0.3; G.scene.fog.far = CAM.dist + 30 + (MAP.biome.fogFar - 70) * 0.5; }
   const z = CAM.dist / CAM.fitDist;
   POST.mat.uniforms.uBand.value = lerp(0.06, 0.16, clamp(z, 0, 1));
-  POST.mat.uniforms.uBlur.value = lerp(4, 2.0, clamp(z, 0, 1));
+  POST.mat.uniforms.uBlur.value = QUALITY.lv().blur ? lerp(4, 2.0, clamp(z, 0, 1)) : 0;
 }
 
 // ---- 72-ui.js ----
@@ -2153,6 +2234,8 @@ function initUI() {
   $('bFull').addEventListener('click', () => { const d = document.documentElement; if (document.fullscreenElement) document.exitFullscreen(); else if (d.requestFullscreen) d.requestFullscreen().catch(() => { }); });
   if (!document.documentElement.requestFullscreen) $('bFull').style.display = 'none';
   $('bRestart').addEventListener('click', () => startGame());
+  $('bQuality').addEventListener('click', cycleQuality);
+  $('bQuality').textContent = (QUALITY.mode === 'auto' ? 'Auto · ' : '') + QUALITY.lv().name;
   $('bMute').textContent = AUDIO.muted ? '🔇' : '🔊';
 }
 function togglePause() { GAME.paused = !GAME.paused; $('bPause').textContent = GAME.paused ? '▶' : '⏸'; $('bPause').classList.toggle('on', GAME.paused); }
@@ -2246,6 +2329,7 @@ function initInput() {
     else if (lk === 'c') setCommand(!GAME.ai);
     else if (lk === 'm') toggleMute();
     else if (lk === 'p') togglePause();
+    else if (lk === 'g') cycleQuality();
     else if (lk === 'f' || k === '0') followFight();
     else if (k === '+' || k === '=') zoomAt(0.8);
     else if (k === '-' || k === '_') zoomAt(1.25);
@@ -2367,7 +2451,7 @@ function init() {
   initFx();
   initWeather();
   initTowers();
-  resizeGfx();
+  initQuality();
   computeFit();
   CAM.dist = CAM.fitDist;
   initUI();
@@ -2394,6 +2478,7 @@ function init() {
       updateLights(dt, time);
     }
     if (GAME.paused) updateLights(0, time);
+    updateQuality(real);
     updateAudio(real);
     placeCamera(real);
     updateHud(real);
@@ -2402,7 +2487,7 @@ function init() {
   }
   requestAnimationFrame(frame);
   window.__z3 = {
-    GAME, MAP, T, Z, CAM, padAt: padAtScreen,
+    GAME, MAP, T, Z, CAM, padAt: padAtScreen, bench(n) { let t0 = performance.now(); for (let i = 0; i < n; i++) { updateTowers(0.016); updateZombies(0.016); updateFx(0.016); placeCamera(0.016); updateHud(0.016); } const sim = (performance.now() - t0) / n; t0 = performance.now(); const gl = G.renderer.getContext(), px = new Uint8Array(4); G.renderer.info.autoReset = false; G.renderer.info.reset(); for (let i = 0; i < n; i++) { renderFrame(i * 0.016); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); } const r = { sim, render: (performance.now() - t0) / n, calls: G.renderer.info.render.calls / n, tris: G.renderer.info.render.triangles / n }; G.renderer.info.autoReset = true; return r; }, setQ(l) { QUALITY.mode = l; applyQuality(l); },
     // hak testowy: symulacja bez renderowania (dt = 0.05 s)
     step(secs) { for (let i = 0; i < secs * 20; i++) { layoutAnim(0.05); updateGame(0.05); if (MAP.state === 'live') { updateAI(0.05); updateTowers(0.05); updateZombies(0.05); } updateFx(0.05); } },
     fog() { return [G.scene.fog.near, G.scene.fog.far, CAM.dist, CAM.fitDist]; }

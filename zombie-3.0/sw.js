@@ -1,6 +1,6 @@
 // Service worker Zombie 3.0 - gra to jeden plik index.html, więc cache jest mały.
 // Podbij wersję przy każdej zmianie gry - inaczej gracze dostaną starą wersję z cache.
-const CACHE = 'zombie3-v1';
+const CACHE = 'zombie3-v2';
 const FILES = ['./', 'index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {

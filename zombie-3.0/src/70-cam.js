@@ -64,5 +64,5 @@ function placeCamera(dt) {
   if (G.scene.fog && MAP.biome) { G.scene.fog.near = CAM.dist + 6 + (MAP.biome.fogNear - 30) * 0.3; G.scene.fog.far = CAM.dist + 30 + (MAP.biome.fogFar - 70) * 0.5; }
   const z = CAM.dist / CAM.fitDist;
   POST.mat.uniforms.uBand.value = lerp(0.06, 0.16, clamp(z, 0, 1));
-  POST.mat.uniforms.uBlur.value = lerp(4, 2.0, clamp(z, 0, 1));
+  POST.mat.uniforms.uBlur.value = QUALITY.lv().blur ? lerp(4, 2.0, clamp(z, 0, 1)) : 0;
 }

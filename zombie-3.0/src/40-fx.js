@@ -4,7 +4,7 @@ const NPART = 1400, NGLOW = 1000, NSEG = 600;
 
 function initFx() {
   const geo = new THREE.BoxGeometry(1, 1, 1);
-  FX.lit = new THREE.InstancedMesh(geo, new THREE.MeshStandardMaterial({ roughness: 0.9 }), NPART);
+  FX.lit = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial(), NPART);
   FX.glow = new THREE.InstancedMesh(geo, new THREE.MeshBasicMaterial({ toneMapped: false }), NGLOW);
   for (const m of [FX.lit, FX.glow]) {
     m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -12,7 +12,7 @@ function initFx() {
     m.setColorAt(0, new THREE.Color());
     G.scene.add(m);
   }
-  FX.lit.castShadow = true;
+  FX.lit.castShadow = false;
   const lg = new THREE.BufferGeometry();
   lg.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(NSEG * 6), 3));
   lg.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(NSEG * 6), 3));
